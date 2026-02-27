@@ -1,0 +1,154 @@
+"use client";
+
+import { useState, useEffect } from "react";
+
+interface ComparacionItem {
+  chapa: string;
+  centro_distribucion: string;
+  expedicion: any;
+  transporte: any;
+  alerta: boolean;
+}
+
+export default function TablaExpedicionTransporte() {
+  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const [datos, setDatos] = useState<ComparacionItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetchDatos();
+  }, [fecha]);
+
+  const fetchDatos = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/comparar?fecha=${fecha}&tipo=expedicion_transporte`,
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setDatos(data);
+      } else {
+        setError(data.error || "Error al cargar datos");
+      }
+    } catch (err) {
+      setError("Error en el servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">
+        Expedición - Transporte
+      </h2>
+
+      <div className="mb-4">
+        <label className="block text-gray-700 font-semibold mb-2">Fecha</label>
+        <input
+          type="date"
+          value={fecha}
+          onChange={(e) => setFecha(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <p className="text-gray-500">Cargando...</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-200">
+                <th colSpan={2} className="border p-2 text-left">
+                  Centro de Distribución
+                </th>
+                <th colSpan={4} className="border p-2 text-center bg-blue-50">
+                  Expedición
+                </th>
+                <th colSpan={4} className="border p-2 text-center bg-green-50">
+                  Transporte
+                </th>
+              </tr>
+              <tr className="bg-gray-100">
+                <th className="border p-2 text-center">CD</th>
+                <th className="border p-2 text-center">Chapa</th>
+                <th className="border p-2 text-center">Expedidor</th>
+                <th className="border p-2 text-center">Blancas</th>
+                <th className="border p-2 text-center">Negras</th>
+                <th className="border p-2 text-center">Verdes</th>
+                <th className="border p-2 text-center">Chofer</th>
+                <th className="border p-2 text-center">Blancas</th>
+                <th className="border p-2 text-center">Negras</th>
+                <th className="border p-2 text-center">Verdes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {datos.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={10}
+                    className="border p-4 text-center text-gray-500"
+                  >
+                    No hay datos para esta fecha
+                  </td>
+                </tr>
+              ) : (
+                datos.map((item, index) => (
+                  <tr
+                    key={index}
+                    className={
+                      item.alerta
+                        ? "bg-red-100 hover:bg-red-200"
+                        : "hover:bg-gray-100"
+                    }
+                  >
+                    <td className="border p-2 font-semibold">
+                      {item.centro_distribucion}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.chapa ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.expedicion?.nombre ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.expedicion?.cajas?.blancas ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.expedicion?.cajas?.negras ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.expedicion?.cajas?.verdes ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.transporte?.nombre ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.transporte?.cajas?.blancas ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.transporte?.cajas?.negras ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.transporte?.cajas?.verdes ?? "-"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}

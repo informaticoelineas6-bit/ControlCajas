@@ -1,0 +1,417 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+interface Centro {
+  _id: string;
+  nombre: string;
+}
+
+interface Vehiculo {
+  _id: string;
+  chapa: string;
+  marca: string;
+  modelo: string;
+}
+
+interface FormularioEventoProps {
+  usuario: {
+    nombre: string;
+    rol: string;
+  };
+}
+
+export default function FormularioEvento({ usuario }: FormularioEventoProps) {
+  const router = useRouter();
+  const [tipoEvento, setTipoEvento] = useState<string>("");
+  const [centros, setCentros] = useState<Centro[]>([]);
+  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [mensaje, setMensaje] = useState("");
+
+  const [formData, setFormData] = useState({
+    centro_distribucion: "",
+    fecha: new Date().toISOString().split("T")[0],
+    chapa: "",
+    cajas: { blancas: 0, negras: 0, verdes: 0 },
+    cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+    tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+  });
+
+  useEffect(() => {
+    fetchCentros();
+    fetchVehiculos();
+  }, []);
+
+  const fetchCentros = async () => {
+    try {
+      const response = await fetch("/api/centros");
+      const data = await response.json();
+      setCentros(data);
+    } catch (error) {
+      console.error("Error fetching centros:", error);
+    }
+  };
+
+  const fetchVehiculos = async () => {
+    try {
+      const response = await fetch("/api/vehiculos");
+      const data = await response.json();
+      setVehiculos(data);
+    } catch (error) {
+      console.error("Error fetching vehiculos:", error);
+    }
+  };
+
+  const handleSelectEvento = (tipo: string) => {
+    setTipoEvento(tipo);
+    setMensaje("");
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    if (name.startsWith("cajas_")) {
+      const [, color] = name.split("_");
+      setFormData((prev) => ({
+        ...prev,
+        cajas: { ...prev.cajas, [color]: parseInt(value) || 0 },
+      }));
+    } else if (name.startsWith("cajas_rotas_")) {
+      const [, , color] = name.split("_");
+      setFormData((prev) => ({
+        ...prev,
+        cajas_rotas: { ...prev.cajas_rotas, [color]: parseInt(value) || 0 },
+      }));
+    } else if (name.startsWith("tapas_rotas_")) {
+      const [, , color] = name.split("_");
+      setFormData((prev) => ({
+        ...prev,
+        tapas_rotas: { ...prev.tapas_rotas, [color]: parseInt(value) || 0 },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/eventos/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo_evento: tipoEvento,
+          ...formData,
+          nombre: usuario.nombre,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMensaje("Evento creado exitosamente");
+        setTipoEvento("");
+        setFormData({
+          centro_distribucion: "",
+          fecha: new Date().toISOString().split("T")[0],
+          chapa: "",
+          cajas: { blancas: 0, negras: 0, verdes: 0 },
+          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+        });
+        setTimeout(() => {
+          setMensaje("");
+        }, 3000);
+      } else {
+        setMensaje(data.error || "Error al crear el evento");
+      }
+    } catch (error) {
+      setMensaje("Error en el servidor");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const opcionesEvento = (() => {
+    switch (usuario.rol) {
+      case "chofer":
+        return ["Transporte", "Recogida"];
+      case "expedidor":
+        return ["Expedicion"];
+      case "almacenero":
+        return ["Devolucion"];
+      default:
+        return [];
+    }
+  })();
+
+  const mostrarChapa = ["Transporte", "Recogida"].includes(tipoEvento);
+  const mostrarCajasRotas = ["Recogida", "Devolucion"].includes(tipoEvento);
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Nuevo Evento</h2>
+
+      {opcionesEvento.length === 0 ? (
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
+          No tienes permisos para crear eventos
+        </div>
+      ) : (
+        <>
+          {!tipoEvento ? (
+            <div className="space-y-3">
+              <p className="text-gray-700 font-semibold mb-4">
+                Selecciona el tipo de evento:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {opcionesEvento.map((tipo) => (
+                  <button
+                    key={tipo}
+                    onClick={() => handleSelectEvento(tipo)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded transition"
+                  >
+                    {tipo}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="mb-4">
+                <button
+                  type="button"
+                  onClick={() => setTipoEvento("")}
+                  className="text-blue-500 hover:text-blue-700 text-sm"
+                >
+                  ← Cambiar tipo de evento
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  Centro de distribución *
+                </label>
+                <select
+                  name="centro_distribucion"
+                  value={formData.centro_distribucion}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Selecciona un centro</option>
+                  {centros.map((centro) => (
+                    <option key={centro._id} value={centro.nombre}>
+                      {centro.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  Fecha
+                </label>
+                <input
+                  type="text"
+                  value={formData.fecha}
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-gray-700"
+                />
+              </div>
+
+              {mostrarChapa && (
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-2">
+                    Chapa *
+                  </label>
+                  <select
+                    name="chapa"
+                    value={formData.chapa}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Selecciona una chapa</option>
+                    {vehiculos.map((vehiculo) => (
+                      <option key={vehiculo._id} value={vehiculo.chapa}>
+                        {vehiculo.chapa} - {vehiculo.marca} {vehiculo.modelo}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="bg-gray-50 p-4 rounded">
+                <h3 className="font-semibold text-gray-800 mb-3">Cajas</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">
+                      Blancas
+                    </label>
+                    <input
+                      type="number"
+                      name="cajas_blancas"
+                      value={formData.cajas.blancas}
+                      onChange={handleInputChange}
+                      min="0"
+                      className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">
+                      Negras
+                    </label>
+                    <input
+                      type="number"
+                      name="cajas_negras"
+                      value={formData.cajas.negras}
+                      onChange={handleInputChange}
+                      min="0"
+                      className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">
+                      Verdes
+                    </label>
+                    <input
+                      type="number"
+                      name="cajas_verdes"
+                      value={formData.cajas.verdes}
+                      onChange={handleInputChange}
+                      min="0"
+                      className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {mostrarCajasRotas && (
+                <>
+                  <div className="bg-gray-50 p-4 rounded">
+                    <h3 className="font-semibold text-gray-800 mb-3">
+                      Cajas Rotas
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-gray-700 text-sm mb-1">
+                          Blancas
+                        </label>
+                        <input
+                          type="number"
+                          name="cajas_rotas_blancas"
+                          value={formData.cajas_rotas.blancas}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm mb-1">
+                          Negras
+                        </label>
+                        <input
+                          type="number"
+                          name="cajas_rotas_negras"
+                          value={formData.cajas_rotas.negras}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm mb-1">
+                          Verdes
+                        </label>
+                        <input
+                          type="number"
+                          name="cajas_rotas_verdes"
+                          value={formData.cajas_rotas.verdes}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded">
+                    <h3 className="font-semibold text-gray-800 mb-3">
+                      Tapas Rotas
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-gray-700 text-sm mb-1">
+                          Blancas
+                        </label>
+                        <input
+                          type="number"
+                          name="tapas_rotas_blancas"
+                          value={formData.tapas_rotas.blancas}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm mb-1">
+                          Negras
+                        </label>
+                        <input
+                          type="number"
+                          name="tapas_rotas_negras"
+                          value={formData.tapas_rotas.negras}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm mb-1">
+                          Verdes
+                        </label>
+                        <input
+                          type="number"
+                          name="tapas_rotas_verdes"
+                          value={formData.tapas_rotas.verdes}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {mensaje && (
+                <div
+                  className={`p-3 rounded ${mensaje.includes("exitosamente") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                >
+                  {mensaje}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded transition"
+              >
+                {loading ? "Guardando..." : "Guardar Evento"}
+              </button>
+            </form>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
