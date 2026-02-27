@@ -16,9 +16,9 @@ interface Usuario {
 export default function Dashboard() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [activeTab, setActiveTab] = useState<"eventos" | "ver_eventos">(
-    "eventos",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "eventos" | "mis_eventos" | "ver_eventos"
+  >("eventos");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -67,6 +67,16 @@ export default function Dashboard() {
               }`}
             >
               Nuevo Evento
+            </button>
+            <button
+              onClick={() => setActiveTab("mis_eventos")}
+              className={`px-4 py-2 font-semibold border-b-2 transition ${
+                activeTab === "mis_eventos"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              Mis Eventos
             </button>
             <button
               onClick={() => setActiveTab("ver_eventos")}

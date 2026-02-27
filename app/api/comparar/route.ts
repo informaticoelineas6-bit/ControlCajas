@@ -14,6 +14,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    function sumCajas(
+      actuales: { blancas: any; negras: any; verdes: any },
+      nuevas: { blancas: number; negras: number; verdes: number },
+    ): { blancas: number; negras: number; verdes: number } {
+      return {
+        blancas: (actuales?.blancas ?? 0) + (nuevas.blancas ?? 0),
+        negras: (actuales?.negras ?? 0) + (nuevas.negras ?? 0),
+        verdes: (actuales?.verdes ?? 0) + (nuevas.verdes ?? 0),
+      };
+    }
+
+    function appendNombre(actual: string, nuevo: string): string {
+      return actual
+        ? actual.includes(nuevo)
+          ? actual
+          : actual + " + " + nuevo
+        : nuevo;
+    }
+
     const { db } = await connectToDatabase();
 
     if (tipo === "expedicion_transporte") {
@@ -34,51 +53,60 @@ export async function GET(request: NextRequest) {
 
       // Agrupar por centro de distribución
       const centrosExp = new Map();
-      expediciones.forEach((exp: any) => {
-        const centro = exp.centro_distribucion;
+
+      for (const current of expediciones) {
+        const centro = current.centro_distribucion;
         if (!centrosExp.has(centro)) {
           centrosExp.set(centro, {
             centro_distribucion: centro,
-            expedicion: null,
+            chapa: null,
+            expedicion: { nombre: current.nombre, cajas: current.cajas },
             transporte: null,
             alerta: false,
           });
+        } else {
+          const item = centrosExp.get(centro);
+          item.expedicion = {
+            nombre: appendNombre(item.expedicion?.nombre, current.nombre),
+            cajas: sumCajas(item.expedicion?.cajas, current.cajas),
+          };
         }
-        const item = centrosExp.get(centro);
-        item.expedicion = { nombre: exp.nombre, cajas: exp.cajas };
-      });
+      }
 
-      transportes.forEach((trans: any) => {
-        const centro = trans.centro_distribucion;
+      for (const current of transportes) {
+        const centro = current.centro_distribucion;
         if (!centrosExp.has(centro)) {
           centrosExp.set(centro, {
             centro_distribucion: centro,
+            chapa: current.chapa,
             expedicion: null,
-            transporte: null,
+            transporte: { nombre: current.nombre, cajas: current.cajas },
             alerta: true,
           });
+        } else {
+          const item = centrosExp.get(centro);
+          item.chapa = appendNombre(item.chapa, current.chapa);
+          item.transporte = {
+            nombre: appendNombre(item.transporte?.nombre, current.nombre),
+            cajas: sumCajas(item.transporte?.cajas, current.cajas),
+          };
         }
-        const item = centrosExp.get(centro);
-        item.chapa = item.chapa
-          ? item.chapa + " + " + trans.chapa
-          : trans.chapa; // Guardar chapa para posible uso futuro
-        item.transporte = { nombre: trans.nombre, cajas: trans.cajas };
-      });
+      }
 
       // Verificar inconsistencias
       const resultados = Array.from(centrosExp.values()).map((item) => {
-        if (!item.expedicion || !item.transporte) {
-          item.alerta = true; // Hay transporte pero no expedición o viceversa
-        }
         if (item.expedicion && item.transporte) {
           // Ambos existen, comparar
           if (
-            item.expedicion.cajas.blancas !== item.transporte.cajas.blancas ||
-            item.expedicion.cajas.negras !== item.transporte.cajas.negras ||
-            item.expedicion.cajas.verdes !== item.transporte.cajas.verdes
+            item.expedicion?.cajas?.blancas !==
+              item.transporte?.cajas?.blancas ||
+            item.expedicion?.cajas?.negras !== item.transporte?.cajas?.negras ||
+            item.expedicion?.cajas?.verdes !== item.transporte?.cajas?.verdes
           ) {
             item.alerta = true;
           }
+        } else {
+          item.alerta = true;
         }
         return item;
       });
@@ -102,59 +130,87 @@ export async function GET(request: NextRequest) {
 
       // Agrupar por centro de distribución
       const centrosRec = new Map();
-      recogidas.forEach((rec: any) => {
-        const centro = rec.centro_distribucion;
-        if (!centrosRec.has(centro)) {
-          centrosRec.set(centro, {
-            centro_distribucion: centro,
-            devolucion: null,
-            recogida: null,
-            alerta: false,
-            rotura: false,
-          });
-        }
-        const item = centrosRec.get(centro);
-        item.chapa = item.chapa ? item.chapa + " + " + rec.chapa : rec.chapa; // Guardar chapa para posible uso futuro
-        item.recogida = {
-          nombre: rec.nombre,
-          cajas: rec.cajas,
-          cajas_rotas: rec.cajas_rotas,
-          tapas_rotas: rec.tapas_rotas,
-        };
-      });
 
-      devoluciones.forEach((dev: any) => {
-        const centro = dev.centro_distribucion;
+      for (const current of recogidas) {
+        const centro = current.centro_distribucion;
         if (!centrosRec.has(centro)) {
           centrosRec.set(centro, {
             centro_distribucion: centro,
+            chapa: current.chapa,
+            recogida: {
+              nombre: current.nombre,
+              cajas: current.cajas,
+              cajas_rotas: current.cajas_rotas,
+              tapas_rotas: current.tapas_rotas,
+            },
             devolucion: null,
-            recogida: null,
             alerta: false,
             rotura: false,
           });
+        } else {
+          const item = centrosRec.get(centro);
+          item.chapa = appendNombre(item.chapa, current.chapa);
+          item.recogida = {
+            nombre: appendNombre(item.recogida?.nombre, current.nombre),
+            cajas: sumCajas(item.recogida?.cajas, current.cajas),
+            cajas_rotas: sumCajas(
+              item.recogida?.cajas_rotas,
+              current.cajas_rotas,
+            ),
+            tapas_rotas: sumCajas(
+              item.recogida?.tapas_rotas,
+              current.tapas_rotas,
+            ),
+          };
         }
-        const item = centrosRec.get(centro);
-        item.devolucion = {
-          nombre: dev.nombre,
-          cajas: dev.cajas,
-          cajas_rotas: dev.cajas_rotas,
-          tapas_rotas: dev.tapas_rotas,
-        };
-      });
+      }
+
+      for (const current of devoluciones) {
+        const centro = current.centro_distribucion;
+        if (!centrosRec.has(centro)) {
+          centrosRec.set(centro, {
+            centro_distribucion: centro,
+            chapa: null,
+            recogida: null,
+            devolucion: {
+              nombre: current.nombre,
+              cajas: current.cajas,
+              cajas_rotas: current.cajas_rotas,
+              tapas_rotas: current.tapas_rotas,
+            },
+            alerta: false,
+            rotura: false,
+          });
+        } else {
+          const item = centrosRec.get(centro);
+          item.devolucion = {
+            nombre: appendNombre(item.devolucion?.nombre, current.nombre),
+            cajas: sumCajas(item.devolucion?.cajas, current.cajas),
+            cajas_rotas: sumCajas(
+              item.devolucion?.cajas_rotas,
+              current.cajas_rotas,
+            ),
+            tapas_rotas: sumCajas(
+              item.devolucion?.tapas_rotas,
+              current.tapas_rotas,
+            ),
+          };
+        }
+      }
 
       // Verificar inconsistencias
       const resultados = Array.from(centrosRec.values()).map((item) => {
-        if (!item.devolucion || !item.recogida) {
-          item.alerta = true;
-        }
         if (item.devolucion && item.recogida) {
           const dev = item.devolucion;
           const rec = item.recogida;
           if (
             dev.cajas.blancas !== rec.cajas.blancas ||
             dev.cajas.negras !== rec.cajas.negras ||
-            dev.cajas.verdes !== rec.cajas.verdes ||
+            dev.cajas.verdes !== rec.cajas.verdes
+          ) {
+            item.alerta = true;
+          }
+          if (
             dev.cajas_rotas.blancas !== rec.cajas_rotas.blancas ||
             dev.cajas_rotas.negras !== rec.cajas_rotas.negras ||
             dev.cajas_rotas.verdes !== rec.cajas_rotas.verdes ||
@@ -162,24 +218,10 @@ export async function GET(request: NextRequest) {
             dev.tapas_rotas.negras !== rec.tapas_rotas.negras ||
             dev.tapas_rotas.verdes !== rec.tapas_rotas.verdes
           ) {
-            item.alerta = true;
-          }
-          if (
-            dev.cajas_rotas.blancas > 0 ||
-            rec.cajas_rotas.blancas > 0 ||
-            dev.cajas_rotas.negras > 0 ||
-            rec.cajas_rotas.negras > 0 ||
-            dev.cajas_rotas.verdes > 0 ||
-            rec.cajas_rotas.verdes > 0 ||
-            dev.tapas_rotas.blancas > 0 ||
-            rec.tapas_rotas.blancas > 0 ||
-            dev.tapas_rotas.negras > 0 ||
-            rec.tapas_rotas.negras > 0 ||
-            dev.tapas_rotas.verdes > 0 ||
-            rec.tapas_rotas.verdes > 0
-          ) {
             item.rotura = true;
           }
+        } else {
+          item.alerta = true;
         }
         return item;
       });
