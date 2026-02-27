@@ -41,7 +41,7 @@ export default function TablaExpedicionTransporte() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div>
       <h2 className="text-2xl font-bold mb-4 text-gray-800">
         Expedición - Transporte
       </h2>

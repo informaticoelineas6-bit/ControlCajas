@@ -6,6 +6,10 @@ import Header from "@/components/Header";
 import FormularioEvento from "@/components/FormularioEvento";
 import TablaExpedicionTransporte from "@/components/TablaExpedicionTransporte";
 import TablaDevolucionRecogida from "@/components/TablaDevolucionRecogida";
+import TablaExpedicion from "@/components/TablaExpedicion";
+import TablaTransporte from "@/components/TablaTransporte";
+import TablaDevolucionSimple from "@/components/TablaDevolucionSimple";
+import TablaRecogidaSimple from "@/components/TablaRecogidaSimple";
 
 interface Usuario {
   id: string;
@@ -20,6 +24,7 @@ export default function Dashboard() {
     "eventos" | "mis_eventos" | "ver_eventos"
   >("eventos");
   const [loading, setLoading] = useState(true);
+  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
 
   useEffect(() => {
     // Obtener usuario desde el servidor
@@ -99,8 +104,29 @@ export default function Dashboard() {
           ) : (
             <FormularioEvento usuario={usuario} />
           )
-        ) : usuario.rol === "informatico" ? (
+        ) : activeTab === "mis_eventos" ? (
           <div className="space-y-8">
+            {/* Mostrar 4 tablas separadas. La API limitará por usuario si no es informático */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  Fecha
+                </label>
+                <input
+                  type="date"
+                  value={fecha}
+                  onChange={(e) => setFecha(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <TablaExpedicion usuario={usuario} fecha={fecha} />
+              <TablaTransporte usuario={usuario} fecha={fecha} />
+              <TablaRecogidaSimple usuario={usuario} fecha={fecha} />
+              <TablaDevolucionSimple usuario={usuario} fecha={fecha} />
+            </div>
+          </div>
+        ) : usuario.rol === "informatico" ? (
+          <div className="space-y-8 bg-white rounded-lg shadow p-6">
             <TablaExpedicionTransporte />
             <TablaDevolucionRecogida />
           </div>

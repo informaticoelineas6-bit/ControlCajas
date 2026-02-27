@@ -6,15 +6,17 @@ interface Evento {
   centro_distribucion: string;
   fecha: string;
   nombre: string;
+  chapa?: string;
   cajas?: { blancas?: number; negras?: number; verdes?: number };
+  cajas_rotas?: { blancas?: number; negras?: number; verdes?: number };
 }
 
-export default function TablaExpedicion({
-  usuario,
+export default function TablaRecogidaSimple({
   fecha,
+  usuario,
 }: Readonly<{
-  usuario: any;
   fecha: string;
+  usuario: any;
 }>) {
   const [datos, setDatos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,9 +30,7 @@ export default function TablaExpedicion({
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=Expedicion`,
-      );
+      const res = await fetch(`/api/eventos/list?fecha=${fecha}&tipo=Recogida`);
       const data = await res.json();
       if (res.ok) setDatos(data);
       else setError(data.error || "Error al cargar eventos");
@@ -44,12 +44,12 @@ export default function TablaExpedicion({
   return (
     <div
       className={
-        usuario.rol === "informatico" || usuario.rol === "expedidor"
+        usuario.rol === "informatico" || usuario.rol === "chofer"
           ? "mt-6"
           : "hidden"
       }
     >
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Expediciones</h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">Recogidas</h2>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
@@ -65,17 +65,21 @@ export default function TablaExpedicion({
             <thead>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Centro</th>
-                <th className="border p-2 text-left">Usuario</th>
+                <th className="border p-2 text-left">Chofer</th>
+                <th className="border p-2 text-left">Chapa</th>
                 <th className="border p-2 text-center">Blancas</th>
                 <th className="border p-2 text-center">Negras</th>
                 <th className="border p-2 text-center">Verdes</th>
+                <th className="border p-2 text-center">Rotas B</th>
+                <th className="border p-2 text-center">Rotas N</th>
+                <th className="border p-2 text-center">Rotas V</th>
               </tr>
             </thead>
             <tbody>
               {datos.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={9}
                     className="border p-4 text-center text-gray-500"
                   >
                     No hay eventos para esta fecha
@@ -86,6 +90,7 @@ export default function TablaExpedicion({
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="border p-2">{d.centro_distribucion}</td>
                     <td className="border p-2">{d.nombre}</td>
+                    <td className="border p-2">{d.chapa ?? "-"}</td>
                     <td className="border p-2 text-center">
                       {d.cajas?.blancas ?? "-"}
                     </td>
@@ -94,6 +99,15 @@ export default function TablaExpedicion({
                     </td>
                     <td className="border p-2 text-center">
                       {d.cajas?.verdes ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {d.cajas_rotas?.blancas ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {d.cajas_rotas?.negras ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {d.cajas_rotas?.verdes ?? "-"}
                     </td>
                   </tr>
                 ))
