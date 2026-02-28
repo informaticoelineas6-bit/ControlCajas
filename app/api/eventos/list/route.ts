@@ -47,7 +47,51 @@ export async function GET(request: NextRequest) {
       filter.nombre = usuario.nombre;
     }
 
-    const items = await db.collection(collectionName).find(filter).toArray();
+    let items = await db.collection(collectionName).find(filter).toArray();
+
+    // convert ObjectId to string and apply ajuste values to cajas
+    items = items.map((it: any) => {
+      const item = {
+        ...it,
+        _id: it._id.toString(),
+      };
+
+      // Apply ajuste to cajas if it exists
+      if (item.ajuste) {
+        item.cajas = {
+          blancas:
+            (item.cajas?.blancas ?? 0) + (item.ajuste.cajas?.blancas ?? 0),
+          negras: (item.cajas?.negras ?? 0) + (item.ajuste.cajas?.negras ?? 0),
+          verdes: (item.cajas?.verdes ?? 0) + (item.ajuste.cajas?.verdes ?? 0),
+        };
+        item.cajas_rotas = {
+          blancas:
+            (item.cajas_rotas?.blancas ?? 0) +
+            (item.ajuste.cajas_rotas?.blancas ?? 0),
+          negras:
+            (item.cajas_rotas?.negras ?? 0) +
+            (item.ajuste.cajas_rotas?.negras ?? 0),
+          verdes:
+            (item.cajas_rotas?.verdes ?? 0) +
+            (item.ajuste.cajas_rotas?.verdes ?? 0),
+        };
+        item.tapas_rotas = {
+          blancas:
+            (item.tapas_rotas?.blancas ?? 0) +
+            (item.ajuste.tapas_rotas?.blancas ?? 0),
+          negras:
+            (item.tapas_rotas?.negras ?? 0) +
+            (item.ajuste.tapas_rotas?.negras ?? 0),
+          verdes:
+            (item.tapas_rotas?.verdes ?? 0) +
+            (item.ajuste.tapas_rotas?.verdes ?? 0),
+        };
+        // Replace ajuste object with just the nombre
+        item.ajuste = item.ajuste.nombre || "";
+      }
+
+      return item;
+    });
 
     return NextResponse.json(items);
   } catch (error) {

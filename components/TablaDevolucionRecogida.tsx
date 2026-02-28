@@ -73,10 +73,10 @@ export default function TablaDevolucionRecogida() {
                 <th colSpan={2} className="border p-2 text-left">
                   Centro de Distribución
                 </th>
-                <th colSpan={4} className="border p-2 text-center bg-blue-50">
+                <th colSpan={5} className="border p-2 text-center bg-blue-50">
                   Recogida
                 </th>
-                <th colSpan={4} className="border p-2 text-center bg-orange-50">
+                <th colSpan={5} className="border p-2 text-center bg-orange-50">
                   Devolución
                 </th>
               </tr>
@@ -84,10 +84,12 @@ export default function TablaDevolucionRecogida() {
                 <th className="border p-1">CD</th>
                 <th className="border p-1">Chapa</th>
                 <th className="border p-1">Chofer</th>
+                <th className="border p-1">Ajuste</th>
                 <th className="border p-1">Blancas</th>
                 <th className="border p-1">Negras</th>
                 <th className="border p-1">Verdes</th>
                 <th className="border p-1">Jefe Almacén</th>
+                <th className="border p-1">Ajuste</th>
                 <th className="border p-1">Blancas</th>
                 <th className="border p-1">Negras</th>
                 <th className="border p-1">Verdes</th>
@@ -132,6 +134,9 @@ export default function TablaDevolucionRecogida() {
                       {item.recogida?.nombre ?? "-"}
                     </td>
                     <td className="border p-1 text-center text-xs">
+                      {item.recogida?.ajuste || "-"}
+                    </td>
+                    <td className="border p-1 text-center text-xs">
                       {item.recogida?.cajas?.blancas ?? "-"}
                     </td>
                     <td className="border p-1 text-center text-xs">
@@ -143,6 +148,9 @@ export default function TablaDevolucionRecogida() {
                     {/* Dev. Cajas */}
                     <td className="border p-1 text-center text-xs">
                       {item.devolucion?.nombre ?? "-"}
+                    </td>
+                    <td className="border p-1 text-center text-xs">
+                      {item.devolucion?.ajuste || "-"}
                     </td>
                     <td className="border p-1 text-center text-xs">
                       {item.devolucion?.cajas?.blancas ?? "-"}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 interface Centro {
   _id: string;
@@ -20,34 +19,87 @@ interface FormularioEventoProps {
     nombre: string;
     rol: string;
   };
+  initialData?: any; // full event document when editing
+  isAdjustment?: boolean;
+  onAdjustmentSaved?: () => void; // callback when adjustment is saved
 }
 
-export default function FormularioEvento({ usuario }: FormularioEventoProps) {
-  const router = useRouter();
+export default function FormularioEvento({
+  usuario,
+  initialData,
+  isAdjustment = false,
+  onAdjustmentSaved,
+}: Readonly<FormularioEventoProps>) {
+  // router not needed here
   const [tipoEvento, setTipoEvento] = useState<string>("");
+  const [originalTipo, setOriginalTipo] = useState<string>("");
+  const [originalId, setOriginalId] = useState<string | null>(null);
   const [centros, setCentros] = useState<Centro[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
-  const [formData, setFormData] = useState({
+  type Caja = { blancas: number; negras: number; verdes: number };
+  type Ajuste = {
+    cajas: Caja;
+    cajas_rotas: Caja;
+    tapas_rotas: Caja;
+    nombre?: string;
+  };
+
+  const [formData, setFormData] = useState<{
+    centro_distribucion: string;
+    fecha: string;
+    chapa: string;
+    cajas: Caja;
+    cajas_rotas: Caja;
+    tapas_rotas: Caja;
+    ajuste: Ajuste | null;
+  }>({
     centro_distribucion: "",
     fecha: new Date().toISOString().split("T")[0],
     chapa: "",
     cajas: { blancas: 0, negras: 0, verdes: 0 },
     cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
     tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-    ajuste: {
-      cajas: { blancas: 0, negras: 0, verdes: 0 },
-      cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-      tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-    },
+    ajuste: null,
   });
 
   useEffect(() => {
     fetchCentros();
     fetchVehiculos();
   }, []);
+
+  // populate when editing/adjustment
+  useEffect(() => {
+    if (initialData) {
+      setOriginalTipo(initialData.tipo_evento || "");
+      setOriginalId(initialData._id || null);
+      // show ajuste mode
+      setTipoEvento("Ajuste");
+      setFormData({
+        centro_distribucion: initialData.centro_distribucion || "",
+        fecha: initialData.fecha || new Date().toISOString().split("T")[0],
+        chapa: initialData.chapa || "",
+        cajas: initialData.cajas || { blancas: 0, negras: 0, verdes: 0 },
+        cajas_rotas: initialData.cajas_rotas || {
+          blancas: 0,
+          negras: 0,
+          verdes: 0,
+        },
+        tapas_rotas: initialData.tapas_rotas || {
+          blancas: 0,
+          negras: 0,
+          verdes: 0,
+        },
+        ajuste: initialData.ajuste || {
+          cajas: { blancas: 0, negras: 0, verdes: 0 },
+          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+        },
+      });
+    }
+  }, [initialData]);
 
   const fetchCentros = async () => {
     try {
@@ -79,15 +131,15 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
   ) => {
     const { name, value } = e.target;
     // parseInt supports negatives; fallback to 0 when NaN
-    const numValue = parseInt(value, 10);
+    const numValue = Number.parseInt(value, 10);
 
     // Ajuste fields have a prefix that includes "ajuste_" followed by the
     // category (cajas / cajas_rotas / tapas_rotas) and finally the color.
     if (name.startsWith("ajuste_")) {
       const parts = name.split("_");
       // last part is color, the rest after "ajuste" defines the category
-      const color = parts[parts.length - 1];
-      const category = parts.slice(1, parts.length - 1).join("_") as
+      const color = parts.at(-1);
+      const category = parts.slice(1, -1).join("_") as
         | "cajas"
         | "cajas_rotas"
         | "tapas_rotas";
@@ -104,7 +156,7 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
             ...baseAjuste,
             [category]: {
               ...baseAjuste[category],
-              [color]: numValue || 0,
+              [color!]: numValue || 0,
             },
           },
         };
@@ -166,39 +218,59 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/eventos/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tipo_evento: tipoEvento,
-          ...formData,
-          nombre: usuario.nombre,
-        }),
-      });
+      let response;
+      if (isAdjustment && originalTipo && originalId) {
+        response = await fetch("/api/eventos/ajuste", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tipo_evento: originalTipo,
+            id: originalId,
+            ajuste: formData.ajuste,
+            nombre: usuario.nombre,
+          }),
+        });
+      } else {
+        response = await fetch("/api/eventos/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tipo_evento: tipoEvento,
+            ...formData,
+            nombre: usuario.nombre,
+          }),
+        });
+      }
 
       const data = await response.json();
 
       if (response.ok) {
-        setMensaje("Evento creado exitosamente");
-        setTipoEvento("");
-        setFormData({
-          centro_distribucion: "",
-          fecha: new Date().toISOString().split("T")[0],
-          chapa: "",
-          cajas: { blancas: 0, negras: 0, verdes: 0 },
-          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          ajuste: {
+        setMensaje(
+          isAdjustment
+            ? "Ajuste guardado exitosamente"
+            : "Evento creado exitosamente",
+        );
+        if (!isAdjustment) {
+          setTipoEvento("");
+          setFormData({
+            centro_distribucion: "",
+            fecha: new Date().toISOString().split("T")[0],
+            chapa: "",
             cajas: { blancas: 0, negras: 0, verdes: 0 },
             cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
             tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          },
-        });
+            ajuste: null,
+          });
+        } else if (isAdjustment && onAdjustmentSaved) {
+          setTimeout(() => {
+            onAdjustmentSaved();
+          }, 1500);
+        }
         setTimeout(() => {
           setMensaje("");
         }, 3000);
       } else {
-        setMensaje(data.error || "Error al crear el evento");
+        setMensaje(data.error || "Error al procesar");
       }
     } catch (error) {
       setMensaje("Error en el servidor");
@@ -223,19 +295,20 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
 
   const mostrarChapa = ["Transporte", "Recogida"].includes(tipoEvento);
   const mostrarCajasRotas = ["Recogida", "Devolucion"].includes(tipoEvento);
-  const mostrarAjuste = tipoEvento === "Ajuste";
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Nuevo Evento</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        {isAdjustment ? "Ajustar Evento" : "Nuevo Evento"}
+      </h2>
 
-      {opcionesEvento.length === 0 ? (
+      {!isAdjustment && opcionesEvento.length === 0 ? (
         <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
           No tienes permisos para crear eventos
         </div>
       ) : (
         <>
-          {!tipoEvento ? (
+          {!tipoEvento && !isAdjustment ? (
             <div className="space-y-3">
               <p className="text-gray-700 font-semibold mb-4">
                 Selecciona el tipo de evento:
@@ -255,24 +328,31 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="mb-4">
-                <button
-                  type="button"
-                  onClick={() => setTipoEvento("")}
-                  className="text-blue-500 hover:text-blue-700 text-sm"
-                >
-                  ← Cambiar tipo de evento
-                </button>
+                {!isAdjustment && (
+                  <button
+                    type="button"
+                    onClick={() => setTipoEvento("")}
+                    className="text-blue-500 hover:text-blue-700 text-sm"
+                  >
+                    ← Cambiar tipo de evento
+                  </button>
+                )}
               </div>
 
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
+                <label
+                  htmlFor="centro_distribucion"
+                  className="block text-gray-700 font-semibold mb-2"
+                >
                   Centro de distribución *
                 </label>
                 <select
+                  id="centro_distribucion"
                   name="centro_distribucion"
                   value={formData.centro_distribucion}
                   onChange={handleInputChange}
                   required
+                  disabled={isAdjustment}
                   className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Selecciona un centro</option>
@@ -284,28 +364,21 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-gray-700 font-semibold mb-2">
-                  Fecha
-                </label>
-                <input
-                  type="text"
-                  value={formData.fecha}
-                  disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-gray-700"
-                />
-              </div>
-
               {mostrarChapa && (
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
+                  <label
+                    htmlFor="chapa"
+                    className="block text-gray-700 font-semibold mb-2"
+                  >
                     Chapa *
                   </label>
                   <select
+                    id="chapa"
                     name="chapa"
                     value={formData.chapa}
                     onChange={handleInputChange}
                     required
+                    disabled={isAdjustment}
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Selecciona una chapa</option>
@@ -322,7 +395,7 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
                 formData.cajas,
                 "Total de Cajas",
                 "cajas",
-                mostrarAjuste,
+                isAdjustment,
               )}
 
               {mostrarCajasRotas &&
@@ -330,7 +403,7 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
                   formData.cajas_rotas,
                   "Cajas Rotas",
                   "cajas_rotas",
-                  mostrarAjuste,
+                  isAdjustment,
                 )}
 
               {mostrarCajasRotas &&
@@ -338,10 +411,10 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
                   formData.tapas_rotas,
                   "Tapas Rotas",
                   "tapas_rotas",
-                  mostrarAjuste,
+                  isAdjustment,
                 )}
 
-              {mostrarAjuste && (
+              {isAdjustment && (
                 <div>
                   {formCajas(
                     formData.ajuste?.cajas || {
@@ -394,9 +467,7 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
               >
                 {loading
                   ? "Guardando..."
-                  : mostrarAjuste
-                    ? "Guardar Ajuste"
-                    : "Guardar Evento"}
+                  : "Guardar" + (isAdjustment ? " Ajuste" : "")}
               </button>
             </form>
           )}
@@ -418,7 +489,7 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
           <div className="grid grid-cols-2 gap-2">
             <label
               htmlFor={`${prefix}_blancas`}
-              className="border border-gray-300 bg-gray-100 text-gray-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+              className="border border-gray-500 bg-white text-gray-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
             >
               Blancas
             </label>
@@ -429,13 +500,18 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
               value={object.blancas}
               onChange={handleInputChange}
               disabled={disabled}
-              className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={
+                object.blancas === 0
+                  ? "border-gray-300 "
+                  : "border-gray-500 " +
+                    "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              }
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <label
               htmlFor={`${prefix}_negras`}
-              className="border border-gray-300 bg-gray-800 text-white font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+              className="border border-gray-500 bg-gray-800 text-white font-bold py-2 px-3 rounded flex items-center justify-center text-center"
             >
               Negras
             </label>
@@ -446,13 +522,18 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
               value={object.negras}
               onChange={handleInputChange}
               disabled={disabled}
-              className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={
+                object.negras === 0
+                  ? "border-gray-300 "
+                  : "border-gray-500 " +
+                    "w-full px-2 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              }
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <label
               htmlFor={`${prefix}_verdes`}
-              className="border border-gray-300 bg-green-100 text-green-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+              className="border border-gray-500 bg-green-100 text-green-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
             >
               Verdes
             </label>
@@ -463,7 +544,12 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
               value={object.verdes}
               onChange={handleInputChange}
               disabled={disabled}
-              className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={
+                object.verdes === 0
+                  ? "border-gray-300 "
+                  : "border-gray-500 " +
+                    "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              }
             />
           </div>
         </div>

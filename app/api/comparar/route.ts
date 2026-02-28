@@ -14,6 +14,47 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    function applyAjuste(item: any): any {
+      // Apply ajuste values to cajas if it exists
+      if (item.ajuste) {
+        return {
+          ...item,
+          cajas: {
+            blancas:
+              (item.cajas?.blancas ?? 0) + (item.ajuste.cajas?.blancas ?? 0),
+            negras:
+              (item.cajas?.negras ?? 0) + (item.ajuste.cajas?.negras ?? 0),
+            verdes:
+              (item.cajas?.verdes ?? 0) + (item.ajuste.cajas?.verdes ?? 0),
+          },
+          cajas_rotas: {
+            blancas:
+              (item.cajas_rotas?.blancas ?? 0) +
+              (item.ajuste.cajas_rotas?.blancas ?? 0),
+            negras:
+              (item.cajas_rotas?.negras ?? 0) +
+              (item.ajuste.cajas_rotas?.negras ?? 0),
+            verdes:
+              (item.cajas_rotas?.verdes ?? 0) +
+              (item.ajuste.cajas_rotas?.verdes ?? 0),
+          },
+          tapas_rotas: {
+            blancas:
+              (item.tapas_rotas?.blancas ?? 0) +
+              (item.ajuste.tapas_rotas?.blancas ?? 0),
+            negras:
+              (item.tapas_rotas?.negras ?? 0) +
+              (item.ajuste.tapas_rotas?.negras ?? 0),
+            verdes:
+              (item.tapas_rotas?.verdes ?? 0) +
+              (item.ajuste.tapas_rotas?.verdes ?? 0),
+          },
+          ajuste: item.ajuste.nombre || "",
+        };
+      }
+      return item;
+    }
+
     function sumCajas(
       actuales: { blancas: any; negras: any; verdes: any },
       nuevas: { blancas: number; negras: number; verdes: number },
@@ -26,28 +67,52 @@ export async function GET(request: NextRequest) {
     }
 
     function appendNombre(actual: string, nuevo: string): string {
-      return actual
-        ? actual.includes(nuevo)
-          ? actual
-          : actual + " + " + nuevo
-        : nuevo;
+      if (!actual) {
+        return nuevo;
+      }
+      if (actual.includes(nuevo)) {
+        return actual;
+      }
+      return actual + " + " + nuevo;
+    }
+
+    function alertCompare(event1: any, event2: any): boolean {
+      if (!event1 || !event2) {
+        return true; // Si falta uno de los eventos, marcar alerta
+      } else {
+        // Ambos existen, comparar
+        return (
+          event1?.cajas?.blancas !== event2?.cajas?.blancas ||
+          event1?.cajas?.negras !== event2?.cajas?.negras ||
+          event1?.cajas?.verdes !== event2?.cajas?.verdes
+        );
+      }
+    }
+
+    function alertCompareRotura(event1: any, event2: any): boolean {
+      return (
+        event1?.cajas_rotas?.blancas !== event2?.cajas_rotas?.blancas ||
+        event1?.cajas_rotas?.negras !== event2?.cajas_rotas?.negras ||
+        event1?.cajas_rotas?.verdes !== event2?.cajas_rotas?.verdes ||
+        event1?.tapas_rotas?.blancas !== event2?.tapas_rotas?.blancas ||
+        event1?.tapas_rotas?.negras !== event2?.tapas_rotas?.negras ||
+        event1?.tapas_rotas?.verdes !== event2?.tapas_rotas?.verdes
+      );
     }
 
     const { db } = await connectToDatabase();
 
     if (tipo === "expedicion_transporte") {
       // Obtener expediciones y transportes
-      const expediciones = await db
-        .collection("Expedicion")
-        .find({ fecha })
-        .toArray();
+      const expediciones = (
+        await db.collection("Expedicion").find({ fecha }).toArray()
+      ).map(applyAjuste);
 
       console.log("Expediciones:", expediciones); // Debug: Ver expediciones obtenidas
 
-      const transportes = await db
-        .collection("Transporte")
-        .find({ fecha })
-        .toArray();
+      const transportes = (
+        await db.collection("Transporte").find({ fecha }).toArray()
+      ).map(applyAjuste);
 
       console.log("Transportes:", transportes); // Debug: Ver transportes obtenidos
 
@@ -60,7 +125,11 @@ export async function GET(request: NextRequest) {
           centrosExp.set(centro, {
             centro_distribucion: centro,
             chapa: null,
-            expedicion: { nombre: current.nombre, cajas: current.cajas },
+            expedicion: {
+              nombre: current.nombre,
+              cajas: current.cajas,
+              ajuste: current.ajuste || "",
+            },
             transporte: null,
             alerta: false,
           });
@@ -69,6 +138,7 @@ export async function GET(request: NextRequest) {
           item.expedicion = {
             nombre: appendNombre(item.expedicion?.nombre, current.nombre),
             cajas: sumCajas(item.expedicion?.cajas, current.cajas),
+            ajuste: appendNombre(item.expedicion?.ajuste, current.ajuste || ""),
           };
         }
       }
@@ -80,7 +150,11 @@ export async function GET(request: NextRequest) {
             centro_distribucion: centro,
             chapa: current.chapa,
             expedicion: null,
-            transporte: { nombre: current.nombre, cajas: current.cajas },
+            transporte: {
+              nombre: current.nombre,
+              cajas: current.cajas,
+              ajuste: current.ajuste || "",
+            },
             alerta: true,
           });
         } else {
@@ -89,42 +163,30 @@ export async function GET(request: NextRequest) {
           item.transporte = {
             nombre: appendNombre(item.transporte?.nombre, current.nombre),
             cajas: sumCajas(item.transporte?.cajas, current.cajas),
+            ajuste: appendNombre(item.transporte?.ajuste, current.ajuste || ""),
           };
         }
       }
 
       // Verificar inconsistencias
       const resultados = Array.from(centrosExp.values()).map((item) => {
-        if (item.expedicion && item.transporte) {
-          // Ambos existen, comparar
-          if (
-            item.expedicion?.cajas?.blancas !==
-              item.transporte?.cajas?.blancas ||
-            item.expedicion?.cajas?.negras !== item.transporte?.cajas?.negras ||
-            item.expedicion?.cajas?.verdes !== item.transporte?.cajas?.verdes
-          ) {
-            item.alerta = true;
-          }
-        } else {
-          item.alerta = true;
-        }
+        item.alerta = alertCompare(item.expedicion, item.transporte);
+        item.rotura = alertCompareRotura(item.expedicion, item.transporte);
         return item;
       });
 
       return NextResponse.json(resultados);
     } else if (tipo === "devolucion_recogida") {
       // Obtener devoluciones y recogidas
-      const recogidas = await db
-        .collection("Recogida")
-        .find({ fecha })
-        .toArray();
+      const recogidas = (
+        await db.collection("Recogida").find({ fecha }).toArray()
+      ).map(applyAjuste);
 
       console.log("Recogidas:", recogidas); // Debug: Ver recogidas obtenidas
 
-      const devoluciones = await db
-        .collection("Devolucion")
-        .find({ fecha })
-        .toArray();
+      const devoluciones = (
+        await db.collection("Devolucion").find({ fecha }).toArray()
+      ).map(applyAjuste);
 
       console.log("Devoluciones:", devoluciones); // Debug: Ver devoluciones obtenidas
 
@@ -142,6 +204,7 @@ export async function GET(request: NextRequest) {
               cajas: current.cajas,
               cajas_rotas: current.cajas_rotas,
               tapas_rotas: current.tapas_rotas,
+              ajuste: current.ajuste || "",
             },
             devolucion: null,
             alerta: false,
@@ -161,6 +224,7 @@ export async function GET(request: NextRequest) {
               item.recogida?.tapas_rotas,
               current.tapas_rotas,
             ),
+            ajuste: appendNombre(item.recogida?.ajuste, current.ajuste || ""),
           };
         }
       }
@@ -177,6 +241,7 @@ export async function GET(request: NextRequest) {
               cajas: current.cajas,
               cajas_rotas: current.cajas_rotas,
               tapas_rotas: current.tapas_rotas,
+              ajuste: current.ajuste || "",
             },
             alerta: false,
             rotura: false,
@@ -194,35 +259,15 @@ export async function GET(request: NextRequest) {
               item.devolucion?.tapas_rotas,
               current.tapas_rotas,
             ),
+            ajuste: appendNombre(item.devolucion?.ajuste, current.ajuste || ""),
           };
         }
       }
 
       // Verificar inconsistencias
       const resultados = Array.from(centrosRec.values()).map((item) => {
-        if (item.devolucion && item.recogida) {
-          const dev = item.devolucion;
-          const rec = item.recogida;
-          if (
-            dev.cajas.blancas !== rec.cajas.blancas ||
-            dev.cajas.negras !== rec.cajas.negras ||
-            dev.cajas.verdes !== rec.cajas.verdes
-          ) {
-            item.alerta = true;
-          }
-          if (
-            dev.cajas_rotas.blancas !== rec.cajas_rotas.blancas ||
-            dev.cajas_rotas.negras !== rec.cajas_rotas.negras ||
-            dev.cajas_rotas.verdes !== rec.cajas_rotas.verdes ||
-            dev.tapas_rotas.blancas !== rec.tapas_rotas.blancas ||
-            dev.tapas_rotas.negras !== rec.tapas_rotas.negras ||
-            dev.tapas_rotas.verdes !== rec.tapas_rotas.verdes
-          ) {
-            item.rotura = true;
-          }
-        } else {
-          item.alerta = true;
-        }
+        item.alerta = alertCompare(item.recogida, item.devolucion);
+        item.rotura = alertCompareRotura(item.recogida, item.devolucion);
         return item;
       });
 

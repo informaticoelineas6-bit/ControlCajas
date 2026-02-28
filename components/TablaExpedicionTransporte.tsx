@@ -72,10 +72,10 @@ export default function TablaExpedicionTransporte() {
                 <th colSpan={2} className="border p-2 text-left">
                   Centro de Distribución
                 </th>
-                <th colSpan={4} className="border p-2 text-center bg-blue-50">
+                <th colSpan={5} className="border p-2 text-center bg-blue-50">
                   Expedición
                 </th>
-                <th colSpan={4} className="border p-2 text-center bg-green-50">
+                <th colSpan={5} className="border p-2 text-center bg-green-50">
                   Transporte
                 </th>
               </tr>
@@ -83,10 +83,12 @@ export default function TablaExpedicionTransporte() {
                 <th className="border p-2 text-center">CD</th>
                 <th className="border p-2 text-center">Chapa</th>
                 <th className="border p-2 text-center">Expedidor</th>
+                <th className="border p-2 text-center">Ajuste</th>
                 <th className="border p-2 text-center">Blancas</th>
                 <th className="border p-2 text-center">Negras</th>
                 <th className="border p-2 text-center">Verdes</th>
                 <th className="border p-2 text-center">Chofer</th>
+                <th className="border p-2 text-center">Ajuste</th>
                 <th className="border p-2 text-center">Blancas</th>
                 <th className="border p-2 text-center">Negras</th>
                 <th className="border p-2 text-center">Verdes</th>
@@ -122,6 +124,9 @@ export default function TablaExpedicionTransporte() {
                       {item.expedicion?.nombre ?? "-"}
                     </td>
                     <td className="border p-2 text-center">
+                      {item.expedicion?.ajuste || "-"}
+                    </td>
+                    <td className="border p-2 text-center">
                       {item.expedicion?.cajas?.blancas ?? "-"}
                     </td>
                     <td className="border p-2 text-center">
@@ -132,6 +137,9 @@ export default function TablaExpedicionTransporte() {
                     </td>
                     <td className="border p-2 text-center">
                       {item.transporte?.nombre ?? "-"}
+                    </td>
+                    <td className="border p-2 text-center">
+                      {item.transporte?.ajuste || "-"}
                     </td>
                     <td className="border p-2 text-center">
                       {item.transporte?.cajas?.blancas ?? "-"}
