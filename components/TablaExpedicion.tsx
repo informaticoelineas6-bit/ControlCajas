@@ -49,8 +49,6 @@ export default function TablaExpedicion({
           : "hidden"
       }
     >
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Expediciones</h2>
-
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
           {error}
@@ -63,6 +61,14 @@ export default function TablaExpedicion({
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
+              <tr className="bg-gray-200">
+                <th
+                  colSpan={5}
+                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-blue-50"
+                >
+                  Expediciones
+                </th>
+              </tr>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Centro</th>
                 <th className="border p-2 text-left">Usuario</th>
@@ -83,7 +89,7 @@ export default function TablaExpedicion({
                 </tr>
               ) : (
                 datos.map((d, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
+                  <tr key={i} className="hover:bg-gray-100">
                     <td className="border p-2">{d.centro_distribucion}</td>
                     <td className="border p-2">{d.nombre}</td>
                     <td className="border p-2 text-center">

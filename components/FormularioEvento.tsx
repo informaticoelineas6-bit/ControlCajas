@@ -37,6 +37,11 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
     cajas: { blancas: 0, negras: 0, verdes: 0 },
     cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
     tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+    ajuste: {
+      cajas: { blancas: 0, negras: 0, verdes: 0 },
+      cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+      tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+    },
   });
 
   useEffect(() => {
@@ -73,24 +78,81 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    if (name.startsWith("cajas_")) {
+    // parseInt supports negatives; fallback to 0 when NaN
+    const numValue = parseInt(value, 10);
+
+    // Ajuste fields have a prefix that includes "ajuste_" followed by the
+    // category (cajas / cajas_rotas / tapas_rotas) and finally the color.
+    if (name.startsWith("ajuste_")) {
+      const parts = name.split("_");
+      // last part is color, the rest after "ajuste" defines the category
+      const color = parts[parts.length - 1];
+      const category = parts.slice(1, parts.length - 1).join("_") as
+        | "cajas"
+        | "cajas_rotas"
+        | "tapas_rotas";
+
+      setFormData((prev) => {
+        const baseAjuste = prev.ajuste || {
+          cajas: { blancas: 0, negras: 0, verdes: 0 },
+          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+        };
+        return {
+          ...prev,
+          ajuste: {
+            ...baseAjuste,
+            [category]: {
+              ...baseAjuste[category],
+              [color]: numValue || 0,
+            },
+          },
+        };
+      });
+      setMensaje("");
+      return;
+    }
+
+    if (numValue < 0) {
+      setMensaje("Los valores no pueden ser negativos");
+      return;
+    }
+
+    if (name.startsWith("tapas_rotas_")) {
+      const [, , color] = name.split("_");
+      const colorKey = color as keyof typeof formData.cajas;
+      if (numValue > formData.cajas[colorKey]) {
+        setMensaje(
+          `Las tapas ${color} rotas no pueden ser más que el total de cajas ${color}`,
+        );
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        tapas_rotas: { ...prev.tapas_rotas, [color]: numValue || 0 },
+      }));
+      setMensaje("");
+    } else if (name.startsWith("cajas_rotas_")) {
+      const [, , color] = name.split("_");
+      const colorKey = color as keyof typeof formData.cajas;
+      if (numValue > formData.cajas[colorKey]) {
+        setMensaje(
+          `Las cajas ${color} rotas no pueden ser más que el total de cajas ${color}`,
+        );
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        cajas_rotas: { ...prev.cajas_rotas, [color]: numValue || 0 },
+      }));
+      setMensaje("");
+    } else if (name.startsWith("cajas_")) {
       const [, color] = name.split("_");
       setFormData((prev) => ({
         ...prev,
-        cajas: { ...prev.cajas, [color]: parseInt(value) || 0 },
+        cajas: { ...prev.cajas, [color]: numValue || 0 },
       }));
-    } else if (name.startsWith("cajas_rotas_")) {
-      const [, , color] = name.split("_");
-      setFormData((prev) => ({
-        ...prev,
-        cajas_rotas: { ...prev.cajas_rotas, [color]: parseInt(value) || 0 },
-      }));
-    } else if (name.startsWith("tapas_rotas_")) {
-      const [, , color] = name.split("_");
-      setFormData((prev) => ({
-        ...prev,
-        tapas_rotas: { ...prev.tapas_rotas, [color]: parseInt(value) || 0 },
-      }));
+      setMensaje("");
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -126,6 +188,11 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
           cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
           tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          ajuste: {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          },
         });
         setTimeout(() => {
           setMensaje("");
@@ -156,6 +223,7 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
 
   const mostrarChapa = ["Transporte", "Recogida"].includes(tipoEvento);
   const mostrarCajasRotas = ["Recogida", "Devolucion"].includes(tipoEvento);
+  const mostrarAjuste = tipoEvento === "Ajuste";
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -250,147 +318,63 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
                 </div>
               )}
 
-              <div className="bg-gray-50 p-4 rounded">
-                <h3 className="font-semibold text-gray-800 mb-3">Cajas</h3>
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Blancas
-                    </label>
-                    <input
-                      type="number"
-                      name="cajas_blancas"
-                      value={formData.cajas.blancas}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Negras
-                    </label>
-                    <input
-                      type="number"
-                      name="cajas_negras"
-                      value={formData.cajas.negras}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Verdes
-                    </label>
-                    <input
-                      type="number"
-                      name="cajas_verdes"
-                      value={formData.cajas.verdes}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+              {formCajas(
+                formData.cajas,
+                "Total de Cajas",
+                "cajas",
+                mostrarAjuste,
+              )}
+
+              {mostrarCajasRotas &&
+                formCajas(
+                  formData.cajas_rotas,
+                  "Cajas Rotas",
+                  "cajas_rotas",
+                  mostrarAjuste,
+                )}
+
+              {mostrarCajasRotas &&
+                formCajas(
+                  formData.tapas_rotas,
+                  "Tapas Rotas",
+                  "tapas_rotas",
+                  mostrarAjuste,
+                )}
+
+              {mostrarAjuste && (
+                <div>
+                  {formCajas(
+                    formData.ajuste?.cajas || {
+                      blancas: 0,
+                      negras: 0,
+                      verdes: 0,
+                    },
+                    "Ajuste Total de Cajas",
+                    "ajuste_cajas",
+                  )}
+
+                  {mostrarCajasRotas &&
+                    formCajas(
+                      formData.ajuste?.cajas_rotas || {
+                        blancas: 0,
+                        negras: 0,
+                        verdes: 0,
+                      },
+                      "Ajuste Cajas Rotas",
+                      "ajuste_cajas_rotas",
+                    )}
+
+                  {mostrarCajasRotas &&
+                    formCajas(
+                      formData.ajuste?.tapas_rotas || {
+                        blancas: 0,
+                        negras: 0,
+                        verdes: 0,
+                      },
+                      "Ajuste Tapas Rotas",
+                      "ajuste_tapas_rotas",
+                    )}
                 </div>
-              </div>
-
-              {mostrarCajasRotas && (
-                <>
-                  <div className="bg-gray-50 p-4 rounded">
-                    <h3 className="font-semibold text-gray-800 mb-3">
-                      Cajas Rotas
-                    </h3>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-gray-700 text-sm mb-1">
-                          Blancas
-                        </label>
-                        <input
-                          type="number"
-                          name="cajas_rotas_blancas"
-                          value={formData.cajas_rotas.blancas}
-                          onChange={handleInputChange}
-                          min="0"
-                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-gray-700 text-sm mb-1">
-                          Negras
-                        </label>
-                        <input
-                          type="number"
-                          name="cajas_rotas_negras"
-                          value={formData.cajas_rotas.negras}
-                          onChange={handleInputChange}
-                          min="0"
-                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-gray-700 text-sm mb-1">
-                          Verdes
-                        </label>
-                        <input
-                          type="number"
-                          name="cajas_rotas_verdes"
-                          value={formData.cajas_rotas.verdes}
-                          onChange={handleInputChange}
-                          min="0"
-                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded">
-                    <h3 className="font-semibold text-gray-800 mb-3">
-                      Tapas Rotas
-                    </h3>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-gray-700 text-sm mb-1">
-                          Blancas
-                        </label>
-                        <input
-                          type="number"
-                          name="tapas_rotas_blancas"
-                          value={formData.tapas_rotas.blancas}
-                          onChange={handleInputChange}
-                          min="0"
-                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-gray-700 text-sm mb-1">
-                          Negras
-                        </label>
-                        <input
-                          type="number"
-                          name="tapas_rotas_negras"
-                          value={formData.tapas_rotas.negras}
-                          onChange={handleInputChange}
-                          min="0"
-                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-gray-700 text-sm mb-1">
-                          Verdes
-                        </label>
-                        <input
-                          type="number"
-                          name="tapas_rotas_verdes"
-                          value={formData.tapas_rotas.verdes}
-                          onChange={handleInputChange}
-                          min="0"
-                          className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </>
               )}
 
               {mensaje && (
@@ -404,9 +388,15 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded transition"
+                className={
+                  "w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded transition"
+                }
               >
-                {loading ? "Guardando..." : "Guardar Evento"}
+                {loading
+                  ? "Guardando..."
+                  : mostrarAjuste
+                    ? "Guardar Ajuste"
+                    : "Guardar Evento"}
               </button>
             </form>
           )}
@@ -414,4 +404,70 @@ export default function FormularioEvento({ usuario }: FormularioEventoProps) {
       )}
     </div>
   );
+
+  function formCajas(
+    object: { blancas: number; negras: number; verdes: number },
+    title: string,
+    prefix: string,
+    disabled = false,
+  ) {
+    return (
+      <div className="bg-gray-50 p-4 rounded">
+        <h3 className="font-semibold text-gray-800 mb-3">{title}</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-2">
+            <label
+              htmlFor={`${prefix}_blancas`}
+              className="border border-gray-300 bg-gray-100 text-gray-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+            >
+              Blancas
+            </label>
+            <input
+              type="number"
+              id={`${prefix}_blancas`}
+              name={`${prefix}_blancas`}
+              value={object.blancas}
+              onChange={handleInputChange}
+              disabled={disabled}
+              className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label
+              htmlFor={`${prefix}_negras`}
+              className="border border-gray-300 bg-gray-800 text-white font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+            >
+              Negras
+            </label>
+            <input
+              type="number"
+              id={`${prefix}_negras`}
+              name={`${prefix}_negras`}
+              value={object.negras}
+              onChange={handleInputChange}
+              disabled={disabled}
+              className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label
+              htmlFor={`${prefix}_verdes`}
+              className="border border-gray-300 bg-green-100 text-green-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+            >
+              Verdes
+            </label>
+            <input
+              type="number"
+              id={`${prefix}_verdes`}
+              name={`${prefix}_verdes`}
+              value={object.verdes}
+              onChange={handleInputChange}
+              disabled={disabled}
+              className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 }

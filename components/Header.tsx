@@ -27,7 +27,7 @@ export default function Header({ usuario }: HeaderProps) {
   };
 
   return (
-    <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
+    <header className="bg-gradient-to-r from-sky-400 to-sky-800 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <h1 className="text-3xl font-bold">ControlCajas</h1>
         {usuario && (

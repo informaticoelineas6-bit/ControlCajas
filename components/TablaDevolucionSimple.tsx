@@ -50,8 +50,6 @@ export default function TablaDevolucionSimple({
           : "hidden"
       }
     >
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Devoluciones</h2>
-
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
           {error}
@@ -64,15 +62,23 @@ export default function TablaDevolucionSimple({
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
+              <tr className="bg-gray-200">
+                <th
+                  colSpan={5}
+                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-orange-50"
+                >
+                  Devoluciones
+                </th>
+              </tr>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Centro</th>
                 <th className="border p-2 text-left">Usuario</th>
                 <th className="border p-2 text-center">Blancas</th>
                 <th className="border p-2 text-center">Negras</th>
                 <th className="border p-2 text-center">Verdes</th>
-                <th className="border p-2 text-center">Rotas B</th>
-                <th className="border p-2 text-center">Rotas N</th>
-                <th className="border p-2 text-center">Rotas V</th>
+                <th className="border p-2 text-center hidden">Rotas B</th>
+                <th className="border p-2 text-center hidden">Rotas N</th>
+                <th className="border p-2 text-center hidden">Rotas V</th>
               </tr>
             </thead>
             <tbody>
@@ -87,7 +93,7 @@ export default function TablaDevolucionSimple({
                 </tr>
               ) : (
                 datos.map((d, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
+                  <tr key={i} className="hover:bg-gray-100">
                     <td className="border p-2">{d.centro_distribucion}</td>
                     <td className="border p-2">{d.nombre}</td>
                     <td className="border p-2 text-center">
@@ -99,13 +105,13 @@ export default function TablaDevolucionSimple({
                     <td className="border p-2 text-center">
                       {d.cajas?.verdes ?? "-"}
                     </td>
-                    <td className="border p-2 text-center">
+                    <td className="border p-2 text-center hidden">
                       {d.cajas_rotas?.blancas ?? "-"}
                     </td>
-                    <td className="border p-2 text-center">
+                    <td className="border p-2 text-center hidden">
                       {d.cajas_rotas?.negras ?? "-"}
                     </td>
-                    <td className="border p-2 text-center">
+                    <td className="border p-2 text-center hidden">
                       {d.cajas_rotas?.verdes ?? "-"}
                     </td>
                   </tr>

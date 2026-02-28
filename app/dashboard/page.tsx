@@ -65,11 +65,15 @@ export default function Dashboard() {
           <div className="flex gap-4 border-b">
             <button
               onClick={() => setActiveTab("eventos")}
-              className={`px-4 py-2 font-semibold border-b-2 transition ${
-                activeTab === "eventos"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-800"
-              }`}
+              className={
+                usuario.rol !== "informatico"
+                  ? `px-4 py-2 font-semibold border-b-2 transition ${
+                      activeTab === "eventos"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-gray-600 hover:text-gray-800"
+                    }`
+                  : "hidden"
+              }
             >
               Nuevo Evento
             </button>
@@ -81,17 +85,23 @@ export default function Dashboard() {
                   : "border-transparent text-gray-600 hover:text-gray-800"
               }`}
             >
-              Mis Eventos
+              {usuario.rol === "informatico"
+                ? "Eventos del día"
+                : "Mis Eventos"}
             </button>
             <button
               onClick={() => setActiveTab("ver_eventos")}
-              className={`px-4 py-2 font-semibold border-b-2 transition ${
-                activeTab === "ver_eventos"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-800"
-              }`}
+              className={
+                usuario.rol === "informatico"
+                  ? `px-4 py-2 font-semibold border-b-2 transition ${
+                      activeTab === "ver_eventos"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-gray-600 hover:text-gray-800"
+                    }`
+                  : "hidden"
+              }
             >
-              Ver Eventos
+              Resumen de Eventos
             </button>
           </div>
         </div>
