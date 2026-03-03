@@ -20,6 +20,7 @@ export default function FormularioEvento({
   const [tipoEvento, setTipoEvento] = useState<string>("");
   const [originalTipo, setOriginalTipo] = useState<string>("");
   const [originalId, setOriginalId] = useState<string | null>(null);
+  const [almacenes, setAlmacenes] = useState<CentroDistribucion[]>([]);
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -34,6 +35,7 @@ export default function FormularioEvento({
   };
 
   const [formData, setFormData] = useState<{
+    almacen?: string;
     centro_distribucion: string;
     fecha: string;
     chapa: string;
@@ -42,6 +44,7 @@ export default function FormularioEvento({
     tapas_rotas: Caja;
     ajuste: Ajuste | null;
   }>({
+    almacen: "",
     centro_distribucion: "",
     fecha: new Date().toISOString().split("T")[0],
     chapa: "",
@@ -52,6 +55,7 @@ export default function FormularioEvento({
   });
 
   useEffect(() => {
+    fetchAlmacenes();
     fetchCentros();
     fetchVehiculos();
   }, []);
@@ -65,6 +69,7 @@ export default function FormularioEvento({
       setTipoEvento("Ajuste");
       setFormData({
         centro_distribucion: initialData.centro_distribucion || "",
+        almacen: initialData.almacen || "",
         fecha: initialData.fecha || new Date().toISOString().split("T")[0],
         chapa: initialData.chapa || "",
         cajas: initialData.cajas || { blancas: 0, negras: 0, verdes: 0 },
@@ -79,6 +84,7 @@ export default function FormularioEvento({
           verdes: 0,
         },
         ajuste: initialData.ajuste || {
+          nombre: usuario.nombre,
           cajas: { blancas: 0, negras: 0, verdes: 0 },
           cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
           tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
@@ -86,6 +92,16 @@ export default function FormularioEvento({
       });
     }
   }, [initialData]);
+
+  const fetchAlmacenes = async () => {
+    try {
+      const response = await fetch("/api/almacenes");
+      const data = await response.json();
+      setAlmacenes(data);
+    } catch (error) {
+      console.error("Error fetching almacenes:", error);
+    }
+  };
 
   const fetchCentros = async () => {
     try {
@@ -323,6 +339,31 @@ export default function FormularioEvento({
                     ← Cambiar tipo de evento
                   </button>
                 )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="almacen"
+                  className="block text-gray-700 font-semibold mb-2"
+                >
+                  Almacén *
+                </label>
+                <select
+                  id="almacen"
+                  name="almacen"
+                  value={formData.almacen}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isAdjustment}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Selecciona un almacén</option>
+                  {almacenes.map((almacen) => (
+                    <option key={almacen._id} value={almacen.nombre}>
+                      {almacen.nombre}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>

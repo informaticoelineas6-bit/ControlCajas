@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import FormularioEvento from "@/components/FormularioEvento";
 import TablaExpedicionEntrega from "@/components/TablaExpedicionEntrega";
-import TablaDevolucionRecogida from "@/components/TablaDevolucionRecogida";
+import TablaRecogidaDevolucion from "@/components/TablaRecogidaDevolucion";
 import TablaExpedicion from "@/components/TablaExpedicion";
 import TablaEntrega from "@/components/TablaEntrega";
 import TablaDevolucionSimple from "@/components/TablaDevolucionSimple";
 import TablaRecogidaSimple from "@/components/TablaRecogidaSimple";
+import TablaVehiculos from "@/components/TablaVehiculos";
+import TablaAlmacenes from "@/components/TablaAlmacenes";
+import TablaCentros from "@/components/TablaCentros";
 import { Usuario } from "@/lib/constants";
 
 interface Evento {
@@ -22,7 +25,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "eventos" | "mis_eventos" | "ver_eventos"
+    "eventos" | "mis_eventos" | "ver_eventos" | "administracion"
   >("eventos");
   const [loading, setLoading] = useState(true);
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
@@ -142,11 +145,23 @@ export default function Dashboard() {
         return usuario?.rol === "informatico" ? (
           <div className="space-y-8 bg-white rounded-lg shadow p-6">
             <TablaExpedicionEntrega />
-            <TablaDevolucionRecogida />
+            <TablaRecogidaDevolucion />
           </div>
         ) : (
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
             Sólo los informáticos pueden ver los eventos
+          </div>
+        );
+      case "administracion":
+        return usuario?.rol === "informatico" ? (
+          <div className="space-y-8 bg-white rounded-lg shadow p-6">
+            <TablaVehiculos />
+            <TablaAlmacenes />
+            <TablaCentros />
+          </div>
+        ) : (
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
+            Sólo los informáticos pueden administrar los datos
           </div>
         );
       default:
@@ -189,16 +204,28 @@ export default function Dashboard() {
                 : "Mis Eventos"}
             </button>
             {usuario.rol === "informatico" && (
-              <button
-                onClick={() => setActiveTab("ver_eventos")}
-                className={`px-4 py-2 font-semibold border-b-2 transition ${
-                  activeTab === "ver_eventos"
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Resumen de Eventos
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab("ver_eventos")}
+                  className={`px-4 py-2 font-semibold border-b-2 transition ${
+                    activeTab === "ver_eventos"
+                      ? "border-blue-600 text-blue-600"
+                      : "border-transparent text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  Resumen de Eventos
+                </button>
+                <button
+                  onClick={() => setActiveTab("administracion")}
+                  className={`px-4 py-2 font-semibold border-b-2 transition ${
+                    activeTab === "administracion"
+                      ? "border-blue-600 text-blue-600"
+                      : "border-transparent text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  Administración
+                </button>
+              </>
             )}
           </div>
         </div>

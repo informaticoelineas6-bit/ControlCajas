@@ -5,12 +5,13 @@ import { useState, useEffect } from "react";
 interface ComparacionItem {
   chapa: string;
   centro_distribucion: string;
+  almacen: string;
   expedicion: any;
-  transporte: any;
+  entrega: any;
   alerta: boolean;
 }
 
-export default function TablaExpedicionTransporte() {
+export default function TablaExpedicionEntrega() {
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [datos, setDatos] = useState<ComparacionItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,7 @@ export default function TablaExpedicionTransporte() {
     setError("");
     try {
       const response = await fetch(
-        `/api/comparar?fecha=${fecha}&tipo=expedicion_transporte`,
+        `/api/comparar?fecha=${fecha}&tipo=expedicion_entrega`,
       );
       const data = await response.json();
       if (response.ok) {
@@ -43,7 +44,7 @@ export default function TablaExpedicionTransporte() {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Expedición - Transporte
+        Expedición - Entrega
       </h2>
 
       <div className="mb-4">
@@ -75,18 +76,19 @@ export default function TablaExpedicionTransporte() {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="bg-gray-200">
-                <th colSpan={2} className="border p-2 text-left">
+                <th colSpan={3} className="border p-2 text-left">
                   Centro de Distribución
                 </th>
                 <th colSpan={5} className="border p-2 text-center bg-blue-50">
                   Expedición
                 </th>
                 <th colSpan={5} className="border p-2 text-center bg-green-50">
-                  Transporte
+                  Entrega
                 </th>
               </tr>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-center">CD</th>
+                <th className="border p-2 text-center">Almacén</th>
                 <th className="border p-2 text-center">Chapa</th>
                 <th className="border p-2 text-center">Expedidor</th>
                 <th className="border p-2 text-center">Ajuste</th>
@@ -121,7 +123,10 @@ export default function TablaExpedicionTransporte() {
                     }
                   >
                     <td className="border p-2 font-semibold">
-                      {item.centro_distribucion}
+                      {item.centro_distribucion ?? "-"}
+                    </td>
+                    <td className="border p-2 font-semibold">
+                      {item.almacen ?? "-"}
                     </td>
                     <td className="border p-2 text-center">
                       {item.chapa ?? "-"}
@@ -142,19 +147,19 @@ export default function TablaExpedicionTransporte() {
                       {item.expedicion?.cajas?.verdes ?? "-"}
                     </td>
                     <td className="border p-2 text-center">
-                      {item.transporte?.nombre ?? "-"}
+                      {item.entrega?.nombre ?? "-"}
                     </td>
                     <td className="border p-2 text-center">
-                      {item.transporte?.ajuste || "-"}
+                      {item.entrega?.ajuste || "-"}
                     </td>
                     <td className="border p-2 text-center">
-                      {item.transporte?.cajas?.blancas ?? "-"}
+                      {item.entrega?.cajas?.blancas ?? "-"}
                     </td>
                     <td className="border p-2 text-center">
-                      {item.transporte?.cajas?.negras ?? "-"}
+                      {item.entrega?.cajas?.negras ?? "-"}
                     </td>
                     <td className="border p-2 text-center">
-                      {item.transporte?.cajas?.verdes ?? "-"}
+                      {item.entrega?.cajas?.verdes ?? "-"}
                     </td>
                   </tr>
                 ))

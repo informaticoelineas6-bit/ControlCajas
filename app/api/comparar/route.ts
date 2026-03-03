@@ -100,6 +100,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    function alertRotura(event1: any, event2: any): boolean {
+      return (
+        event1?.cajas_rotas?.blancas > 0 ||
+        event1?.cajas_rotas?.negras > 0 ||
+        event1?.cajas_rotas?.verdes > 0 ||
+        event1?.tapas_rotas?.blancas > 0 ||
+        event1?.tapas_rotas?.negras > 0 ||
+        event1?.tapas_rotas?.verdes > 0 ||
+        event2?.cajas_rotas?.blancas > 0 ||
+        event2?.cajas_rotas?.negras > 0 ||
+        event2?.cajas_rotas?.verdes > 0 ||
+        event2?.tapas_rotas?.blancas > 0 ||
+        event2?.tapas_rotas?.negras > 0 ||
+        event2?.tapas_rotas?.verdes > 0
+      );
+    }
+
     const { db } = await connectToDatabase();
 
     if (tipo === "expedicion_entrega") {
@@ -124,6 +141,7 @@ export async function GET(request: NextRequest) {
         if (!centrosExp.has(centro)) {
           centrosExp.set(centro, {
             centro_distribucion: centro,
+            almacen: current.almacen,
             chapa: null,
             expedicion: {
               nombre: current.nombre,
@@ -135,6 +153,7 @@ export async function GET(request: NextRequest) {
           });
         } else {
           const item = centrosExp.get(centro);
+          item.almacen = appendNombre(item.almacen, current.almacen);
           item.expedicion = {
             nombre: appendNombre(item.expedicion?.nombre, current.nombre),
             cajas: sumCajas(item.expedicion?.cajas, current.cajas),
@@ -148,6 +167,7 @@ export async function GET(request: NextRequest) {
         if (!centrosExp.has(centro)) {
           centrosExp.set(centro, {
             centro_distribucion: centro,
+            almacen: current.almacen,
             chapa: current.chapa,
             expedicion: null,
             entrega: {
@@ -159,6 +179,7 @@ export async function GET(request: NextRequest) {
           });
         } else {
           const item = centrosExp.get(centro);
+          item.almacen = appendNombre(item.almacen, current.almacen);
           item.chapa = appendNombre(item.chapa, current.chapa);
           item.entrega = {
             nombre: appendNombre(item.entrega?.nombre, current.nombre),
@@ -197,6 +218,7 @@ export async function GET(request: NextRequest) {
         if (!centrosRec.has(centro)) {
           centrosRec.set(centro, {
             centro_distribucion: centro,
+            almacen: current.almacen,
             chapa: current.chapa,
             recogida: {
               nombre: current.nombre,
@@ -211,6 +233,7 @@ export async function GET(request: NextRequest) {
           });
         } else {
           const item = centrosRec.get(centro);
+          item.almacen = appendNombre(item.almacen, current.almacen);
           item.chapa = appendNombre(item.chapa, current.chapa);
           item.recogida = {
             nombre: appendNombre(item.recogida?.nombre, current.nombre),
@@ -233,6 +256,7 @@ export async function GET(request: NextRequest) {
         if (!centrosRec.has(centro)) {
           centrosRec.set(centro, {
             centro_distribucion: centro,
+            almacen: current.almacen,
             chapa: null,
             recogida: null,
             devolucion: {
@@ -247,6 +271,7 @@ export async function GET(request: NextRequest) {
           });
         } else {
           const item = centrosRec.get(centro);
+          item.almacen = appendNombre(item.almacen, current.almacen);
           item.devolucion = {
             nombre: appendNombre(item.devolucion?.nombre, current.nombre),
             cajas: sumCajas(item.devolucion?.cajas, current.cajas),
@@ -265,8 +290,10 @@ export async function GET(request: NextRequest) {
 
       // Verificar inconsistencias
       const resultados = Array.from(centrosRec.values()).map((item) => {
-        item.alerta = alertCompare(item.recogida, item.devolucion);
-        item.rotura = alertCompareRotura(item.recogida, item.devolucion);
+        item.alerta =
+          alertCompare(item.recogida, item.devolucion) ||
+          alertCompareRotura(item.recogida, item.devolucion);
+        item.rotura = alertRotura(item.recogida, item.devolucion);
         return item;
       });
 

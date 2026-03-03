@@ -16,6 +16,7 @@ export const TIPOS_EVENTO = {
 export const ROLES_ARRAY = Object.values(ROLES);
 
 export const COLECCIONES = {
+  ALMACEN: "Almacen",
   CENTRO_DISTRIBUCION: "CentroDistribucion",
   USUARIO: "Usuario",
   VEHICULO: "Vehiculo",
@@ -44,10 +45,16 @@ export interface Usuario {
   rol: (typeof ROLES)[keyof typeof ROLES];
 }
 
+export interface Almacen {
+  _id: string;
+  nombre: string;
+  stock?: number;
+}
+
 export interface CentroDistribucion {
   _id: string;
   nombre: string;
-  ubicacion: string;
+  deuda?: number;
 }
 
 export interface Vehiculo {
@@ -66,6 +73,7 @@ export interface Cajas {
 export interface Expedicion {
   _id?: string;
   centro_distribucion: string;
+  almacen: string;
   fecha: string;
   nombre: string;
   cajas: Cajas;
@@ -75,6 +83,7 @@ export interface Expedicion {
 export interface Entrega {
   _id?: string;
   centro_distribucion: string;
+  almacen: string;
   fecha: string;
   nombre: string;
   chapa: string;
@@ -85,6 +94,7 @@ export interface Entrega {
 export interface Recogida {
   _id?: string;
   centro_distribucion: string;
+  almacen: string;
   fecha: string;
   nombre: string;
   chapa: string;
@@ -96,6 +106,7 @@ export interface Recogida {
 export interface Devolucion {
   _id?: string;
   centro_distribucion: string;
+  almacen: string;
   fecha: string;
   nombre: string;
   cajas: Cajas;

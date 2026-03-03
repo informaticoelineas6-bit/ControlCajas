@@ -51,7 +51,7 @@ export default function TablaRecogidaSimple({
             <thead>
               <tr className="bg-gray-200">
                 <th
-                  colSpan={6}
+                  colSpan={7}
                   className="text-2xl font-bold border p-2 text-center text-gray-800 bg-blue-50"
                 >
                   Recogidas
@@ -65,6 +65,7 @@ export default function TablaRecogidaSimple({
               </tr>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Centro</th>
+                <th className="border p-2 text-left">Almacén</th>
                 <th className="border p-2 text-left">Chofer</th>
                 <th className="border p-2 text-left">Chapa</th>
                 <th className="border p-2 text-center">Blancas</th>
@@ -94,8 +95,11 @@ export default function TablaRecogidaSimple({
               ) : (
                 datos.map((d) => (
                   <tr key={d._id} className="hover:bg-gray-100">
-                    <td className="border p-2">{d.centro_distribucion}</td>
-                    <td className="border p-2">{d.nombre}</td>
+                    <td className="border p-2">
+                      {d.centro_distribucion ?? "-"}
+                    </td>
+                    <td className="border p-2">{d.almacen ?? "-"}</td>
+                    <td className="border p-2">{d.nombre ?? "-"}</td>
                     <td className="border p-2">{d.chapa ?? "-"}</td>
                     <td className="border p-2 text-center">
                       {d.cajas?.blancas ?? "-"}

@@ -53,7 +53,7 @@ export default function TablaExpedicion({
             <thead>
               <tr className="bg-gray-200">
                 <th
-                  colSpan={5}
+                  colSpan={6}
                   className="text-2xl font-bold border p-2 text-center text-gray-800 bg-blue-50"
                 >
                   Expediciones
@@ -67,7 +67,8 @@ export default function TablaExpedicion({
               </tr>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Centro</th>
-                <th className="border p-2 text-left">Usuario</th>
+                <th className="border p-2 text-left">Almacén</th>
+                <th className="border p-2 text-left">Expedidor</th>
                 <th className="border p-2 text-center">Blancas</th>
                 <th className="border p-2 text-center">Negras</th>
                 <th className="border p-2 text-center">Verdes</th>
@@ -92,8 +93,11 @@ export default function TablaExpedicion({
               ) : (
                 datos.map((d) => (
                   <tr key={d._id} className="hover:bg-gray-100">
-                    <td className="border p-2">{d.centro_distribucion}</td>
-                    <td className="border p-2">{d.nombre}</td>
+                    <td className="border p-2">
+                      {d.centro_distribucion ?? "-"}
+                    </td>
+                    <td className="border p-2">{d.almacen ?? "-"}</td>
+                    <td className="border p-2">{d.nombre ?? "-"}</td>
                     <td className="border p-2 text-center">
                       {d.cajas?.blancas ?? "-"}
                     </td>

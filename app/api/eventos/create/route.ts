@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
     const {
       tipo_evento,
       centro_distribucion,
+      almacen,
       fecha,
       nombre,
       cajas,
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
       tapas_rotas,
     } = data;
 
-    if (!tipo_evento || !centro_distribucion || !fecha || !nombre) {
+    if (!tipo_evento || !centro_distribucion || !almacen || !fecha || !nombre) {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
     }
 
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest) {
     let coleccion;
     let documento: any = {
       centro_distribucion,
+      almacen,
       fecha,
       nombre,
       cajas: cajas || { blancas: 0, negras: 0, verdes: 0 },

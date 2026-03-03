@@ -9,7 +9,7 @@ Una aplicación web completa para gestionar el sistema de distribución y contro
   - **Chofer**: Puede crear eventos de Entrega y Recogida
   - **Almacenero**: Puede crear eventos de Devolución.
   - **Expedidor**: Puede crear eventos de Expedición.
-  - **Informático**: Acceso solo lectura a reportes
+  - **Informático**: Acceso a reportes y a una sección administrativa para gestionar vehículos y centros de distribución
 - **Creación de eventos**: Formularios dinámicos según el rol del usuario
 - **Comparación de datos**: Tablas de análisis para detectar inconsistencias
 - **Alertas visuales**: Filas resaltadas en rojo cuando hay desajustes entre eventos
@@ -64,7 +64,7 @@ Esto creará:
 │   │   ├── vehiculos/       # Obtener vehículos
 │   │   ├── eventos/         # Crear eventos
 │   │   └── comparar/        # Comparar eventos
-│   ├── dashboard/           # Dashboard principal
+│   ├── dashboard/           # Dashboard principal (incluye pestaña de administración para informáticos)
 │   ├── page.tsx             # Página de login
 │   ├── registro/            # Página de registro
 │   ├── layout.tsx           # Layout raíz

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 interface ItemRecogidaDevolucion {
   centro_distribucion: string;
+  almacen: string;
   chapa: string;
   recogida: any;
   devolucion: any;
@@ -11,7 +12,7 @@ interface ItemRecogidaDevolucion {
   rotura: boolean;
 }
 
-export default function TablaDevolucionRecogida() {
+export default function TablaRecogidaDevolucion() {
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [datos, setDatos] = useState<ItemRecogidaDevolucion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -76,7 +77,7 @@ export default function TablaDevolucionRecogida() {
           <table className="w-full text-xs sm:text-sm border-collapse">
             <thead>
               <tr className="bg-gray-200">
-                <th colSpan={2} className="border p-2 text-left">
+                <th colSpan={3} className="border p-2 text-left">
                   Centro de Distribución
                 </th>
                 <th colSpan={5} className="border p-2 text-center bg-blue-50">
@@ -88,13 +89,14 @@ export default function TablaDevolucionRecogida() {
               </tr>
               <tr className="bg-gray-100 text-xs">
                 <th className="border p-1">CD</th>
+                <th className="border p-1">Almacén</th>
                 <th className="border p-1">Chapa</th>
                 <th className="border p-1">Chofer</th>
                 <th className="border p-1">Ajuste</th>
                 <th className="border p-1">Blancas</th>
                 <th className="border p-1">Negras</th>
                 <th className="border p-1">Verdes</th>
-                <th className="border p-1">Jefe Almacén</th>
+                <th className="border p-1">Almacenero</th>
                 <th className="border p-1">Ajuste</th>
                 <th className="border p-1">Blancas</th>
                 <th className="border p-1">Negras</th>
@@ -130,7 +132,10 @@ export default function TablaDevolucionRecogida() {
                     }
                   >
                     <td className="border p-2 font-semibold text-sm">
-                      {item.centro_distribucion}
+                      {item.centro_distribucion ?? "-"}
+                    </td>
+                    <td className="border p-2 font-semibold text-sm">
+                      {item.almacen ?? "-"}
                     </td>
                     <td className="border p-2 text-center">
                       {item.chapa ?? "-"}
