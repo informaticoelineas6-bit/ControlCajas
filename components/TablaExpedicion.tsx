@@ -1,15 +1,7 @@
 "use client";
 
+import { Expedicion } from "@/lib/constants";
 import { useState, useEffect } from "react";
-
-interface Evento {
-  _id?: string;
-  centro_distribucion: string;
-  fecha: string;
-  nombre: string;
-  cajas?: { blancas?: number; negras?: number; verdes?: number };
-  ajuste?: string;
-}
 
 export default function TablaExpedicion({
   usuario,
@@ -20,7 +12,7 @@ export default function TablaExpedicion({
   fecha: string;
   onAjustar?: (tipo: string, id: string) => void;
 }>) {
-  const [datos, setDatos] = useState<Evento[]>([]);
+  const [datos, setDatos] = useState<Expedicion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 

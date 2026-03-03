@@ -1,16 +1,7 @@
 "use client";
 
+import { Devolucion } from "@/lib/constants";
 import { useState, useEffect } from "react";
-
-interface Evento {
-  _id?: string;
-  centro_distribucion: string;
-  fecha: string;
-  nombre: string;
-  cajas?: { blancas?: number; negras?: number; verdes?: number };
-  cajas_rotas?: { blancas?: number; negras?: number; verdes?: number };
-  ajuste?: string;
-}
 
 export default function TablaDevolucionSimple({
   fecha,
@@ -21,7 +12,7 @@ export default function TablaDevolucionSimple({
   usuario: any;
   onAjustar?: (tipo: string, id: string) => void;
 }>) {
-  const [datos, setDatos] = useState<Evento[]>([]);
+  const [datos, setDatos] = useState<Devolucion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -133,9 +124,7 @@ export default function TablaDevolucionSimple({
                       <td className="border p-2 text-center">
                         <button
                           className="bg-yellow-200 text-yellow-800 px-2 py-1 rounded hover:bg-yellow-300"
-                          onClick={() =>
-                            onAjustar?.("Devolucion", d._id!)
-                          }
+                          onClick={() => onAjustar?.("Devolucion", d._id!)}
                         >
                           Ajustar
                         </button>

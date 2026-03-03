@@ -1,17 +1,7 @@
 "use client";
 
+import { Recogida } from "@/lib/constants";
 import { useState, useEffect } from "react";
-
-interface Evento {
-  _id?: string;
-  centro_distribucion: string;
-  fecha: string;
-  nombre: string;
-  chapa?: string;
-  cajas?: { blancas?: number; negras?: number; verdes?: number };
-  cajas_rotas?: { blancas?: number; negras?: number; verdes?: number };
-  ajuste?: string;
-}
 
 export default function TablaRecogidaSimple({
   fecha,
@@ -22,7 +12,7 @@ export default function TablaRecogidaSimple({
   usuario: any;
   onAjustar?: (tipo: string, id: string) => void;
 }>) {
-  const [datos, setDatos] = useState<Evento[]>([]);
+  const [datos, setDatos] = useState<Recogida[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 

@@ -1,16 +1,14 @@
 "use client";
 
+import { Usuario } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface HeaderProps {
-  usuario?: {
-    nombre: string;
-    rol: string;
-  };
+  usuario?: Usuario;
 }
 
-export default function Header({ usuario }: HeaderProps) {
+export default function Header({ usuario }: Readonly<HeaderProps>) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 

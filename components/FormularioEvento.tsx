@@ -1,18 +1,7 @@
 "use client";
 
+import { CentroDistribucion, Vehiculo } from "@/lib/constants";
 import { useState, useEffect } from "react";
-
-interface Centro {
-  _id: string;
-  nombre: string;
-}
-
-interface Vehiculo {
-  _id: string;
-  chapa: string;
-  marca: string;
-  modelo: string;
-}
 
 interface FormularioEventoProps {
   usuario: {
@@ -34,7 +23,7 @@ export default function FormularioEvento({
   const [tipoEvento, setTipoEvento] = useState<string>("");
   const [originalTipo, setOriginalTipo] = useState<string>("");
   const [originalId, setOriginalId] = useState<string | null>(null);
-  const [centros, setCentros] = useState<Centro[]>([]);
+  const [centros, setCentros] = useState<CentroDistribucion[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");

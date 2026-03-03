@@ -10,12 +10,7 @@ import TablaExpedicion from "@/components/TablaExpedicion";
 import TablaTransporte from "@/components/TablaTransporte";
 import TablaDevolucionSimple from "@/components/TablaDevolucionSimple";
 import TablaRecogidaSimple from "@/components/TablaRecogidaSimple";
-
-interface Usuario {
-  id: string;
-  nombre: string;
-  rol: string;
-}
+import { Usuario } from "@/lib/constants";
 
 interface Evento {
   _id: string;
