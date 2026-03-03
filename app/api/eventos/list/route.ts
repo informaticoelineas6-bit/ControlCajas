@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const fecha = searchParams.get("fecha");
-    const tipo = searchParams.get("tipo"); // Expedicion|Transporte|Devolucion|Recogida
+    const tipo = searchParams.get("tipo"); // Expedicion|Entrega|Devolucion|Recogida
 
     if (!fecha || !tipo) {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const mapping: Record<string, string> = {
       Expedicion: "Expedicion",
-      Transporte: "Transporte",
+      Entrega: "Entrega",
       Devolucion: "Devolucion",
       Recogida: "Recogida",
     };

@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import FormularioEvento from "@/components/FormularioEvento";
-import TablaExpedicionTransporte from "@/components/TablaExpedicionTransporte";
+import TablaExpedicionEntrega from "@/components/TablaExpedicionEntrega";
 import TablaDevolucionRecogida from "@/components/TablaDevolucionRecogida";
 import TablaExpedicion from "@/components/TablaExpedicion";
-import TablaTransporte from "@/components/TablaTransporte";
+import TablaEntrega from "@/components/TablaEntrega";
 import TablaDevolucionSimple from "@/components/TablaDevolucionSimple";
 import TablaRecogidaSimple from "@/components/TablaRecogidaSimple";
 import { Usuario } from "@/lib/constants";
@@ -113,7 +113,7 @@ export default function Dashboard() {
               )}
               {(usuario?.rol === "informatico" ||
                 usuario?.rol === "chofer") && (
-                <TablaTransporte
+                <TablaEntrega
                   usuario={usuario}
                   fecha={fecha}
                   onAjustar={handleAjustarClick}
@@ -141,7 +141,7 @@ export default function Dashboard() {
       case "ver_eventos":
         return usuario?.rol === "informatico" ? (
           <div className="space-y-8 bg-white rounded-lg shadow p-6">
-            <TablaExpedicionTransporte />
+            <TablaExpedicionEntrega />
             <TablaDevolucionRecogida />
           </div>
         ) : (

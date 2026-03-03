@@ -60,10 +60,14 @@ export default function Home() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label
+              htmlFor="nombre"
+              className="block text-gray-700 font-semibold mb-2"
+            >
               Usuario
             </label>
             <input
+              id="nombre"
               type="text"
               name="nombre"
               value={formData.nombre}
@@ -75,10 +79,14 @@ export default function Home() {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label
+              htmlFor="password"
+              className="block text-gray-700 font-semibold mb-2"
+            >
               Contraseña
             </label>
             <input
+              id="password"
               type="password"
               name="contrasena"
               value={formData.contrasena}

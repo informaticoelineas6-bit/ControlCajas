@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const fecha = searchParams.get("fecha");
-    const tipo = searchParams.get("tipo"); // 'expedicion_transporte' o 'devolucion_recogida'
+    const tipo = searchParams.get("tipo"); // 'expedicion_entrega' o 'devolucion_recogida'
 
     if (!fecha || !tipo) {
       return NextResponse.json(
@@ -102,19 +102,19 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
-    if (tipo === "expedicion_transporte") {
-      // Obtener expediciones y transportes
+    if (tipo === "expedicion_entrega") {
+      // Obtener expediciones y entregas
       const expediciones = (
         await db.collection("Expedicion").find({ fecha }).toArray()
       ).map(applyAjuste);
 
       console.log("Expediciones:", expediciones); // Debug: Ver expediciones obtenidas
 
-      const transportes = (
-        await db.collection("Transporte").find({ fecha }).toArray()
+      const entregas = (
+        await db.collection("Entrega").find({ fecha }).toArray()
       ).map(applyAjuste);
 
-      console.log("Transportes:", transportes); // Debug: Ver transportes obtenidos
+      console.log("Entregas:", entregas); // Debug: Ver entregas obtenidas
 
       // Agrupar por centro de distribución
       const centrosExp = new Map();
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
               cajas: current.cajas,
               ajuste: current.ajuste || "",
             },
-            transporte: null,
+            entrega: null,
             alerta: false,
           });
         } else {
@@ -143,14 +143,14 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      for (const current of transportes) {
+      for (const current of entregas) {
         const centro = current.centro_distribucion;
         if (!centrosExp.has(centro)) {
           centrosExp.set(centro, {
             centro_distribucion: centro,
             chapa: current.chapa,
             expedicion: null,
-            transporte: {
+            entrega: {
               nombre: current.nombre,
               cajas: current.cajas,
               ajuste: current.ajuste || "",
@@ -160,18 +160,17 @@ export async function GET(request: NextRequest) {
         } else {
           const item = centrosExp.get(centro);
           item.chapa = appendNombre(item.chapa, current.chapa);
-          item.transporte = {
-            nombre: appendNombre(item.transporte?.nombre, current.nombre),
-            cajas: sumCajas(item.transporte?.cajas, current.cajas),
-            ajuste: appendNombre(item.transporte?.ajuste, current.ajuste || ""),
+          item.entrega = {
+            nombre: appendNombre(item.entrega?.nombre, current.nombre),
+            cajas: sumCajas(item.entrega?.cajas, current.cajas),
+            ajuste: appendNombre(item.entrega?.ajuste, current.ajuste || ""),
           };
         }
       }
 
       // Verificar inconsistencias
       const resultados = Array.from(centrosExp.values()).map((item) => {
-        item.alerta = alertCompare(item.expedicion, item.transporte);
-        item.rotura = alertCompareRotura(item.expedicion, item.transporte);
+        item.alerta = alertCompare(item.expedicion, item.entrega);
         return item;
       });
 

@@ -6,8 +6,8 @@ Una aplicación web completa para gestionar el sistema de distribución y contro
 
 - **Autenticación**: Registro e inicio de sesión de usuarios con roles específicos
 - **Roles de usuario**:
-  - **Chofer**: Puede crear eventos de Transporte y Recogida
-  - **Almacenero**: Puede crear eventos de Devolución.  
+  - **Chofer**: Puede crear eventos de Entrega y Recogida
+  - **Almacenero**: Puede crear eventos de Devolución.
   - **Expedidor**: Puede crear eventos de Expedición.
   - **Informático**: Acceso solo lectura a reportes
 - **Creación de eventos**: Formularios dinámicos según el rol del usuario
@@ -71,7 +71,7 @@ Esto creará:
 │   └── globals.css          # Estilos globales
 ├── components/              # Componentes React
 │   ├── FormularioEvento.tsx
-│   ├── TablaExpedicionTransporte.tsx
+│   ├── TablaExpedicionEntrega.tsx
 │   ├── TablaDevolucionRecogida.tsx
 │   └── Header.tsx
 ├── lib/                     # Funciones utilitarias
@@ -110,9 +110,9 @@ La aplicación automatiza el acceso a las siguientes colecciones en la base de d
 - **Usuario**: Usuarios registrados con contraseñas hasheadas
 - **Vehiculo**: Vehículos disponibles para transporte
 - **Expedicion**: Eventos de expedición de cajas desde almacén
-- **Transporte**: Eventos de transporte de cajas
-- **Devolucion**: Eventos de devolución de cajas
+- **Entrega**: Eventos de entrega de cajas
 - **Recogida**: Eventos de recogida de cajas
+- **Devolucion**: Eventos de devolución de cajas
 
 ## Flujo de Uso
 
@@ -133,7 +133,7 @@ La aplicación automatiza el acceso a las siguientes colecciones en la base de d
 
 - En el dashboard, haz clic en "Ver Eventos"
 - Selecciona una fecha para ver los eventos de ese día
-- Las filas en rojo indican inconsistencias entre expediciones/transportes o devoluciones/recogidas
+- Las filas en rojo indican inconsistencias entre expediciones/entregas o recogidas/devoluciones
 
 ## Seguridad
 

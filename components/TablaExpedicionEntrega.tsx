@@ -33,7 +33,7 @@ export default function TablaExpedicionTransporte() {
       } else {
         setError(data.error || "Error al cargar datos");
       }
-    } catch (err) {
+    } catch {
       setError("Error en el servidor");
     } finally {
       setLoading(false);
@@ -47,8 +47,14 @@ export default function TablaExpedicionTransporte() {
       </h2>
 
       <div className="mb-4">
-        <label className="block text-gray-700 font-semibold mb-2">Fecha</label>
+        <label
+          htmlFor="fecha"
+          className="block text-gray-700 font-semibold mb-2"
+        >
+          Fecha
+        </label>
         <input
+          id="fecha"
           type="date"
           value={fecha}
           onChange={(e) => setFecha(e.target.value)}
@@ -105,9 +111,9 @@ export default function TablaExpedicionTransporte() {
                   </td>
                 </tr>
               ) : (
-                datos.map((item, index) => (
+                datos.map((item) => (
                   <tr
-                    key={index}
+                    key={item.centro_distribucion}
                     className={
                       item.alerta
                         ? "bg-red-100 hover:bg-red-200"

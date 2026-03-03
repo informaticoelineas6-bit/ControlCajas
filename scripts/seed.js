@@ -23,7 +23,7 @@ async function seed() {
       "Usuario",
       "Vehiculo",
       "Expedicion",
-      "Transporte",
+      "Entrega",
       "Devolucion",
       "Recogida",
     ];
@@ -51,28 +51,28 @@ async function seed() {
         marca: "Volvo",
         modelo: "FH16",
         tipo_chapa: "Placa Normal",
-        vehiculo: "Camión",
+        categoria: "Camión",
       },
       {
         chapa: "ABC-002",
         marca: "Hyundai",
         modelo: "HD85",
         tipo_chapa: "Placa Normal",
-        vehiculo: "Camión",
+        categoria: "Camión",
       },
       {
         chapa: "ABC-003",
         marca: "Volkswagen",
         modelo: "Delivery",
         tipo_chapa: "Placa Normal",
-        vehiculo: "Furgón",
+        categoria: "Furgón",
       },
       {
         chapa: "ABC-004",
         marca: "Isuzu",
         modelo: "NPR",
         tipo_chapa: "Placa Normal",
-        vehiculo: "Camión",
+        categoria: "Camión",
       },
     ]);
 
@@ -90,4 +90,4 @@ async function seed() {
   }
 }
 
-seed();
+await seed();

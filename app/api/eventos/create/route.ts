@@ -28,17 +28,23 @@ export async function POST(request: NextRequest) {
     try {
       usuario = JSON.parse(usuarioCookie.value);
     } catch {
-      return NextResponse.json({ error: "Cookie de usuario inválida" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Cookie de usuario inválida" },
+        { status: 401 },
+      );
     }
 
     const rol = usuario.rol;
     const tipo = tipo_evento;
     const permitido =
-      (rol === "chofer" && (tipo === "Transporte" || tipo === "Recogida")) ||
+      (rol === "chofer" && (tipo === "Entrega" || tipo === "Recogida")) ||
       (rol === "expedidor" && tipo === "Expedicion") ||
       (rol === "almacenero" && tipo === "Devolucion");
     if (!permitido) {
-      return NextResponse.json({ error: "Sin permiso para ese tipo de evento" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Sin permiso para ese tipo de evento" },
+        { status: 403 },
+      );
     }
 
     const { db } = await connectToDatabase();
@@ -50,7 +56,7 @@ export async function POST(request: NextRequest) {
       cajas: cajas || { blancas: 0, negras: 0, verdes: 0 },
     };
 
-    if (tipo_evento === "Transporte" || tipo_evento === "Recogida") {
+    if (tipo_evento === "Entrega" || tipo_evento === "Recogida") {
       documento.chapa = chapa;
       if (tipo_evento === "Recogida") {
         documento.cajas_rotas = cajas_rotas || {

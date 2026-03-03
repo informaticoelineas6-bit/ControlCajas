@@ -71,10 +71,11 @@ export default function Registro() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label htmlFor="nombre" className="block text-gray-700 font-semibold mb-2">
               Usuario *
             </label>
             <input
+              id="nombre"
               type="text"
               name="nombre"
               value={formData.nombre}
@@ -86,10 +87,11 @@ export default function Registro() {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label htmlFor="contrasena" className="block text-gray-700 font-semibold mb-2">
               Contraseña *
             </label>
             <input
+              id="contrasena"
               type="password"
               name="contrasena"
               value={formData.contrasena}
@@ -101,10 +103,11 @@ export default function Registro() {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label htmlFor="rol" className="block text-gray-700 font-semibold mb-2">
               Rol *
             </label>
             <select
+              id="rol"
               name="rol"
               value={formData.rol}
               onChange={handleInputChange}

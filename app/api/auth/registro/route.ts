@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { hashPassword } from "@/lib/auth";
 
-const ROLES_VALIDOS = ["informatico", "chofer", "almacenero", "expedidor"];
+const ROLES_VALIDOS = new Set(["informatico", "chofer", "almacenero", "expedidor"]);
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!ROLES_VALIDOS.includes(rol)) {
+    if (!ROLES_VALIDOS.has(rol)) {
       return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
     }
 

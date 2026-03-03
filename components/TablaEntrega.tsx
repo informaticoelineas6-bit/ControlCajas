@@ -1,18 +1,9 @@
 "use client";
 
+import { Entrega } from "@/lib/constants";
 import { useState, useEffect } from "react";
 
-interface Evento {
-  _id?: string;
-  centro_distribucion: string;
-  fecha: string;
-  nombre: string;
-  chapa?: string;
-  cajas?: { blancas?: number; negras?: number; verdes?: number };
-  ajuste?: string;
-}
-
-export default function TablaTransporte({
+export default function TablaEntrega({
   usuario,
   fecha,
   onAjustar,
@@ -21,7 +12,7 @@ export default function TablaTransporte({
   fecha: string;
   onAjustar?: (tipo: string, id: string) => void;
 }>) {
-  const [datos, setDatos] = useState<Evento[]>([]);
+  const [datos, setDatos] = useState<Entrega[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -33,9 +24,7 @@ export default function TablaTransporte({
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=Transporte`,
-      );
+      const res = await fetch(`/api/eventos/list?fecha=${fecha}&tipo=Entrega`);
       const data = await res.json();
       if (res.ok) setDatos(data);
       else setError(data.error || "Error al cargar eventos");
@@ -65,7 +54,7 @@ export default function TablaTransporte({
                   colSpan={6}
                   className="text-2xl font-bold border p-2 text-center text-gray-800 bg-green-50"
                 >
-                  Transportes
+                  Entregas
                 </th>
                 <th
                   colSpan={2}
@@ -123,7 +112,7 @@ export default function TablaTransporte({
                       <td className="border p-2 text-center">
                         <button
                           className="bg-yellow-200 text-yellow-800 px-2 py-1 rounded hover:bg-yellow-300"
-                          onClick={() => onAjustar?.("Transporte", d._id!)}
+                          onClick={() => onAjustar?.("Entrega", d._id!)}
                         >
                           Ajustar
                         </button>

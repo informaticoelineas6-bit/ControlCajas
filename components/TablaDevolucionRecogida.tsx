@@ -2,18 +2,18 @@
 
 import { useState, useEffect } from "react";
 
-interface ItemDevolucionRecogida {
+interface ItemRecogidaDevolucion {
   centro_distribucion: string;
   chapa: string;
-  devolucion: any;
   recogida: any;
+  devolucion: any;
   alerta: boolean;
   rotura: boolean;
 }
 
 export default function TablaDevolucionRecogida() {
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
-  const [datos, setDatos] = useState<ItemDevolucionRecogida[]>([]);
+  const [datos, setDatos] = useState<ItemRecogidaDevolucion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -34,7 +34,7 @@ export default function TablaDevolucionRecogida() {
       } else {
         setError(data.error || "Error al cargar datos");
       }
-    } catch (err) {
+    } catch {
       setError("Error en el servidor");
     } finally {
       setLoading(false);
@@ -48,8 +48,14 @@ export default function TablaDevolucionRecogida() {
       </h2>
 
       <div className="mb-4">
-        <label className="block text-gray-700 font-semibold mb-2">Fecha</label>
+        <label
+          htmlFor="fechaDevolucionRecogida"
+          className="block text-gray-700 font-semibold mb-2"
+        >
+          Fecha
+        </label>
         <input
+          id="fechaDevolucionRecogida"
           type="date"
           value={fecha}
           onChange={(e) => setFecha(e.target.value)}
@@ -112,9 +118,9 @@ export default function TablaDevolucionRecogida() {
                   </td>
                 </tr>
               ) : (
-                datos.map((item, index) => (
+                datos.map((item) => (
                   <tr
-                    key={index}
+                    key={item.centro_distribucion}
                     className={
                       item.alerta
                         ? "bg-red-100 hover:bg-red-200"

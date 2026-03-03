@@ -1,13 +1,10 @@
 "use client";
 
-import { CentroDistribucion, Vehiculo } from "@/lib/constants";
+import { CentroDistribucion, Usuario, Vehiculo } from "@/lib/constants";
 import { useState, useEffect } from "react";
 
 interface FormularioEventoProps {
-  usuario: {
-    nombre: string;
-    rol: string;
-  };
+  usuario: Usuario;
   initialData?: any; // full event document when editing
   isAdjustment?: boolean;
   onAdjustmentSaved?: () => void; // callback when adjustment is saved
@@ -272,7 +269,7 @@ export default function FormularioEvento({
   const opcionesEvento = (() => {
     switch (usuario.rol) {
       case "chofer":
-        return ["Transporte", "Recogida"];
+        return ["Entrega", "Recogida"];
       case "expedidor":
         return ["Expedicion"];
       case "almacenero":
@@ -282,7 +279,7 @@ export default function FormularioEvento({
     }
   })();
 
-  const mostrarChapa = ["Transporte", "Recogida"].includes(tipoEvento);
+  const mostrarChapa = ["Entrega", "Recogida"].includes(tipoEvento);
   const mostrarCajasRotas = ["Recogida", "Devolucion"].includes(tipoEvento);
 
   return (
@@ -373,7 +370,10 @@ export default function FormularioEvento({
                     <option value="">Selecciona una chapa</option>
                     {vehiculos.map((vehiculo) => (
                       <option key={vehiculo._id} value={vehiculo.chapa}>
-                        {vehiculo.chapa} - {vehiculo.marca} {vehiculo.modelo}
+                        {vehiculo.categoria}{" "}
+                        {vehiculo.marca ? vehiculo.marca + " " : ""}
+                        {vehiculo.modelo ? vehiculo.modelo + " " : ""}-{" "}
+                        {vehiculo.chapa}
                       </option>
                     ))}
                   </select>

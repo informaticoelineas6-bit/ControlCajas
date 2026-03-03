@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
-import { hashPassword, comparePassword } from "@/lib/auth";
+import { comparePassword } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
