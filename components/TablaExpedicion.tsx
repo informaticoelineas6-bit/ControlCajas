@@ -54,16 +54,18 @@ export default function TablaExpedicion({
               <tr className="bg-gray-200">
                 <th
                   colSpan={6}
-                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-blue-50"
+                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-green-50"
                 >
                   Expediciones
                 </th>
-                <th
-                  colSpan={2}
-                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-slate-50"
-                >
-                  Ajuste
-                </th>
+                {usuario.rol === "informatico" && (
+                  <th
+                    colSpan={2}
+                    className="text-2xl font-bold border p-2 text-center text-gray-800 bg-slate-50"
+                  >
+                    Ajuste
+                  </th>
+                )}
               </tr>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Centro</th>

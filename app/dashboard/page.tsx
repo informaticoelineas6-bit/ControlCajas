@@ -4,16 +4,21 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import FormularioEvento from "@/components/FormularioEvento";
-import TablaExpedicionEntrega from "@/components/TablaExpedicionEntrega";
-import TablaRecogidaDevolucion from "@/components/TablaRecogidaDevolucion";
+import TablaExpedicionEntrega, {
+  ItemExpedicionEntrega,
+} from "@/components/TablaExpedicionEntrega";
+import TablaRecogidaDevolucion, {
+  ItemRecogidaDevolucion,
+} from "@/components/TablaRecogidaDevolucion";
 import TablaExpedicion from "@/components/TablaExpedicion";
 import TablaEntrega from "@/components/TablaEntrega";
-import TablaDevolucionSimple from "@/components/TablaDevolucionSimple";
-import TablaRecogidaSimple from "@/components/TablaRecogidaSimple";
+import TablaDevolucion from "@/components/TablaDevolucion";
+import TablaRecogida from "@/components/TablaRecogida";
 import TablaVehiculos from "@/components/TablaVehiculos";
 import TablaAlmacenes from "@/components/TablaAlmacenes";
 import TablaCentros from "@/components/TablaCentros";
 import { Usuario } from "@/lib/constants";
+import CierreDiario from "@/components/CierreDiario";
 
 interface Evento {
   _id: string;
@@ -30,6 +35,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [adjustingEvent, setAdjustingEvent] = useState<Evento | null>(null);
+  const [expedicionData, setExpedicionData] = useState<ItemExpedicionEntrega[]>(
+    [],
+  );
+  const [recogidaData, setRecogidaData] = useState<ItemRecogidaDevolucion[]>(
+    [],
+  );
 
   useEffect(() => {
     // Obtener usuario desde el servidor
@@ -124,7 +135,7 @@ export default function Dashboard() {
               )}
               {(usuario?.rol === "informatico" ||
                 usuario?.rol === "chofer") && (
-                <TablaRecogidaSimple
+                <TablaRecogida
                   usuario={usuario}
                   fecha={fecha}
                   onAjustar={handleAjustarClick}
@@ -132,7 +143,7 @@ export default function Dashboard() {
               )}
               {(usuario?.rol === "informatico" ||
                 usuario?.rol === "almacenero") && (
-                <TablaDevolucionSimple
+                <TablaDevolucion
                   usuario={usuario}
                   fecha={fecha}
                   onAjustar={handleAjustarClick}
@@ -144,8 +155,36 @@ export default function Dashboard() {
       case "ver_eventos":
         return usuario?.rol === "informatico" ? (
           <div className="space-y-8 bg-white rounded-lg shadow p-6">
-            <TablaExpedicionEntrega />
-            <TablaRecogidaDevolucion />
+            <div>
+              <label
+                htmlFor="fechaRender"
+                className="block text-gray-700 font-semibold mb-2"
+              >
+                Fecha
+              </label>
+              <input
+                id="fechaRender"
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <TablaExpedicionEntrega
+              fecha={fecha}
+              datos={expedicionData}
+              setDatos={setExpedicionData}
+            />
+            <TablaRecogidaDevolucion
+              fecha={fecha}
+              datos={recogidaData}
+              setDatos={setRecogidaData}
+            />
+            <CierreDiario
+              fecha={fecha}
+              expedicionData={expedicionData}
+              recogidaData={recogidaData}
+            />
           </div>
         ) : (
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">

@@ -3,7 +3,7 @@
 import { Devolucion } from "@/lib/constants";
 import { useState, useEffect } from "react";
 
-export default function TablaDevolucionSimple({
+export default function TablaDevolucion({
   fecha,
   usuario,
   onAjustar,
@@ -54,16 +54,18 @@ export default function TablaDevolucionSimple({
               <tr className="bg-gray-200">
                 <th
                   colSpan={6}
-                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-orange-50"
+                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-amber-50"
                 >
                   Devoluciones
                 </th>
-                <th
-                  colSpan={2}
-                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-slate-50"
-                >
-                  Ajuste
-                </th>
+                {usuario.rol === "informatico" && (
+                  <th
+                    colSpan={2}
+                    className="text-2xl font-bold border p-2 text-center text-gray-800 bg-slate-50"
+                  >
+                    Ajuste
+                  </th>
+                )}
               </tr>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Centro</th>

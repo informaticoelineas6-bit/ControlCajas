@@ -24,6 +24,7 @@ export const COLECCIONES = {
   ENTREGA: "Entrega",
   DEVOLUCION: "Devolucion",
   RECOGIDA: "Recogida",
+  CIERRE: "Cierre",
 } as const;
 
 export const COLORES_CAJAS = {
@@ -48,27 +49,34 @@ export interface Usuario {
 export interface Almacen {
   _id: string;
   nombre: string;
-  stock?: number;
+  stock: Cajas;
 }
 
 export interface CentroDistribucion {
   _id: string;
   nombre: string;
-  deuda?: number;
+  deuda: Cajas;
 }
 
 export interface Vehiculo {
   _id: string;
-  chapa: string;
-  marca?: string;
-  modelo?: string;
   categoria: string;
+  chapa: string;
+  marca: string;
+  modelo: string;
 }
 
 export interface Cajas {
   blancas: number;
   negras: number;
   verdes: number;
+}
+
+export interface Ajuste {
+  cajas: Cajas;
+  cajas_rotas: Cajas;
+  tapas_rotas: Cajas;
+  nombre?: string;
 }
 export interface Expedicion {
   _id?: string;
@@ -83,7 +91,6 @@ export interface Expedicion {
 export interface Entrega {
   _id?: string;
   centro_distribucion: string;
-  almacen: string;
   fecha: string;
   nombre: string;
   chapa: string;
@@ -94,7 +101,6 @@ export interface Entrega {
 export interface Recogida {
   _id?: string;
   centro_distribucion: string;
-  almacen: string;
   fecha: string;
   nombre: string;
   chapa: string;
@@ -112,4 +118,18 @@ export interface Devolucion {
   cajas: Cajas;
   cajas_rotas: Cajas;
   ajuste?: string;
+}
+
+export interface Cierre {
+  fecha: string;
+  cierre_cd: {
+    centro_distribucion: string;
+    ajuste_deuda: Cajas;
+    cajas_rotas: Cajas;
+    tapas_rotas: Cajas;
+  }[];
+  cierre_almacen: {
+    almacen: string;
+    ajuste_stock: Cajas;
+  }[];
 }

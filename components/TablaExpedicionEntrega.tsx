@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-interface ComparacionItem {
+export interface ItemExpedicionEntrega {
   chapa: string;
   centro_distribucion: string;
   almacen: string;
@@ -11,9 +11,15 @@ interface ComparacionItem {
   alerta: boolean;
 }
 
-export default function TablaExpedicionEntrega() {
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
-  const [datos, setDatos] = useState<ComparacionItem[]>([]);
+export default function TablaExpedicionEntrega({
+  fecha,
+  datos = [],
+  setDatos,
+}: Readonly<{
+  fecha: string;
+  datos: ItemExpedicionEntrega[];
+  setDatos: (datos: ItemExpedicionEntrega[]) => void;
+}>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,22 +53,6 @@ export default function TablaExpedicionEntrega() {
         Expedición - Entrega
       </h2>
 
-      <div className="mb-4">
-        <label
-          htmlFor="fecha"
-          className="block text-gray-700 font-semibold mb-2"
-        >
-          Fecha
-        </label>
-        <input
-          id="fecha"
-          type="date"
-          value={fecha}
-          onChange={(e) => setFecha(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
           {error}
@@ -79,10 +69,10 @@ export default function TablaExpedicionEntrega() {
                 <th colSpan={3} className="border p-2 text-left">
                   Centro de Distribución
                 </th>
-                <th colSpan={5} className="border p-2 text-center bg-blue-50">
+                <th colSpan={5} className="border p-2 text-center bg-green-50">
                   Expedición
                 </th>
-                <th colSpan={5} className="border p-2 text-center bg-green-50">
+                <th colSpan={5} className="border p-2 text-center bg-sky-50">
                   Entrega
                 </th>
               </tr>
@@ -106,7 +96,7 @@ export default function TablaExpedicionEntrega() {
               {datos.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={10}
+                    colSpan={16}
                     className="border p-4 text-center text-gray-500"
                   >
                     No hay datos para esta fecha

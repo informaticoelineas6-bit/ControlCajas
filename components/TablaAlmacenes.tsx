@@ -8,9 +8,11 @@ export default function TablaAlmacenes() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [form, setForm] = useState<Partial<Almacen>>({
+  const [form, setForm] = useState<Partial<any>>({
     nombre: "",
-    stock: 0,
+    stock_blancas: 0,
+    stock_negras: 0,
+    stock_verdes: 0,
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +39,7 @@ export default function TablaAlmacenes() {
   };
 
   const resetForm = () => {
-    setForm({ nombre: "", stock: 0 });
+    setForm({ nombre: "", stock_blancas: 0, stock_negras: 0, stock_verdes: 0 });
     setEditingId(null);
     setError("");
   };
@@ -57,7 +59,15 @@ export default function TablaAlmacenes() {
     setSubmitting(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const body = editingId ? { _id: editingId, ...form } : form;
+      const body = {
+        _id: editingId || undefined,
+        nombre: form.nombre,
+        stock: {
+          blancas: Number(form.stock_blancas) || 0,
+          negras: Number(form.stock_negras) || 0,
+          verdes: Number(form.stock_verdes) || 0,
+        },
+      };
       const res = await fetch("/api/almacenes", {
         method,
         headers: { "Content-Type": "application/json" },
@@ -78,7 +88,13 @@ export default function TablaAlmacenes() {
   };
 
   const startEdit = (a: Almacen) => {
-    setForm(a);
+    const transformed = {
+      nombre: a.nombre,
+      stock_blancas: a.stock?.blancas || 0,
+      stock_negras: a.stock?.negras || 0,
+      stock_verdes: a.stock?.verdes || 0,
+    };
+    setForm(transformed);
     setEditingId(a._id);
   };
 
@@ -122,15 +138,43 @@ export default function TablaAlmacenes() {
             />
           </div>
           <div>
-            <label htmlFor="stock" className="block text-gray-700">
-              Stock
+            <label htmlFor="stock_blancas" className="block text-gray-700">
+              Stock (blancas)
             </label>
             <input
-              id="stock"
-              name="stock"
+              id="stock_blancas"
+              name="stock_blancas"
               type="number"
               min="0"
-              value={form.stock || 0}
+              value={form.stock_blancas}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
+          <div>
+            <label htmlFor="stock_negras" className="block text-gray-700">
+              Stock (negras)
+            </label>
+            <input
+              id="stock_negras"
+              name="stock_negras"
+              type="number"
+              min="0"
+              value={form.stock_negras}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
+          <div>
+            <label htmlFor="stock_verdes" className="block text-gray-700">
+              Stock (verdes)
+            </label>
+            <input
+              id="stock_verdes"
+              name="stock_verdes"
+              type="number"
+              min="0"
+              value={form.stock_verdes}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             />
@@ -174,7 +218,12 @@ export default function TablaAlmacenes() {
               {almacenes.map((a) => (
                 <tr key={a._id} className="hover:bg-gray-100">
                   <td className="border p-2">{a.nombre}</td>
-                  <td className="border p-2">{a.stock || 0}</td>
+                  <td
+                    title={`Blancas: ${a.stock?.blancas || 0}, Negras: ${a.stock?.negras || 0}, Verdes: ${a.stock?.verdes || 0}`}
+                    className="border p-2"
+                  >
+                    {a.stock?.blancas + a.stock?.negras + a.stock?.verdes}
+                  </td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => startEdit(a)}

@@ -1,6 +1,12 @@
 "use client";
 
-import { CentroDistribucion, Usuario, Vehiculo } from "@/lib/constants";
+import {
+  Ajuste,
+  Cajas,
+  CentroDistribucion,
+  Usuario,
+  Vehiculo,
+} from "@/lib/constants";
 import { useState, useEffect } from "react";
 
 interface FormularioEventoProps {
@@ -26,22 +32,14 @@ export default function FormularioEvento({
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
-  type Caja = { blancas: number; negras: number; verdes: number };
-  type Ajuste = {
-    cajas: Caja;
-    cajas_rotas: Caja;
-    tapas_rotas: Caja;
-    nombre?: string;
-  };
-
   const [formData, setFormData] = useState<{
     almacen?: string;
     centro_distribucion: string;
     fecha: string;
     chapa: string;
-    cajas: Caja;
-    cajas_rotas: Caja;
-    tapas_rotas: Caja;
+    cajas: Cajas;
+    cajas_rotas: Cajas;
+    tapas_rotas: Cajas;
     ajuste: Ajuste | null;
   }>({
     almacen: "",
@@ -255,6 +253,7 @@ export default function FormularioEvento({
         if (!isAdjustment) {
           setTipoEvento("");
           setFormData({
+            almacen: "",
             centro_distribucion: "",
             fecha: new Date().toISOString().split("T")[0],
             chapa: "",
@@ -295,8 +294,8 @@ export default function FormularioEvento({
     }
   })();
 
-  const mostrarChapa = ["Entrega", "Recogida"].includes(tipoEvento);
-  const mostrarCajasRotas = ["Recogida", "Devolucion"].includes(tipoEvento);
+  const mostrarChofer = ["Entrega", "Recogida"].includes(tipoEvento);
+  const mostrarRoturas = ["Recogida", "Devolucion"].includes(tipoEvento);
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -341,30 +340,32 @@ export default function FormularioEvento({
                 )}
               </div>
 
-              <div>
-                <label
-                  htmlFor="almacen"
-                  className="block text-gray-700 font-semibold mb-2"
-                >
-                  Almacén *
-                </label>
-                <select
-                  id="almacen"
-                  name="almacen"
-                  value={formData.almacen}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isAdjustment}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Selecciona un almacén</option>
-                  {almacenes.map((almacen) => (
-                    <option key={almacen._id} value={almacen.nombre}>
-                      {almacen.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {!mostrarChofer && (
+                <div>
+                  <label
+                    htmlFor="almacen"
+                    className="block text-gray-700 font-semibold mb-2"
+                  >
+                    Almacén *
+                  </label>
+                  <select
+                    id="almacen"
+                    name="almacen"
+                    value={formData.almacen}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isAdjustment}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Selecciona un almacén</option>
+                    {almacenes.map((almacen) => (
+                      <option key={almacen._id} value={almacen.nombre}>
+                        {almacen.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label
@@ -391,7 +392,7 @@ export default function FormularioEvento({
                 </select>
               </div>
 
-              {mostrarChapa && (
+              {mostrarChofer && (
                 <div>
                   <label
                     htmlFor="chapa"
@@ -428,7 +429,7 @@ export default function FormularioEvento({
                 isAdjustment,
               )}
 
-              {mostrarCajasRotas &&
+              {mostrarRoturas &&
                 formCajas(
                   formData.cajas_rotas,
                   "Cajas Rotas",
@@ -436,7 +437,7 @@ export default function FormularioEvento({
                   isAdjustment,
                 )}
 
-              {mostrarCajasRotas &&
+              {mostrarRoturas &&
                 formCajas(
                   formData.tapas_rotas,
                   "Tapas Rotas",
@@ -456,7 +457,7 @@ export default function FormularioEvento({
                     "ajuste_cajas",
                   )}
 
-                  {mostrarCajasRotas &&
+                  {mostrarRoturas &&
                     formCajas(
                       formData.ajuste?.cajas_rotas || {
                         blancas: 0,
@@ -467,7 +468,7 @@ export default function FormularioEvento({
                       "ajuste_cajas_rotas",
                     )}
 
-                  {mostrarCajasRotas &&
+                  {mostrarRoturas &&
                     formCajas(
                       formData.ajuste?.tapas_rotas || {
                         blancas: 0,

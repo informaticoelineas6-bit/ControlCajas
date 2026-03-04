@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-interface ItemRecogidaDevolucion {
+export interface ItemRecogidaDevolucion {
   centro_distribucion: string;
   almacen: string;
   chapa: string;
@@ -12,9 +12,15 @@ interface ItemRecogidaDevolucion {
   rotura: boolean;
 }
 
-export default function TablaRecogidaDevolucion() {
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
-  const [datos, setDatos] = useState<ItemRecogidaDevolucion[]>([]);
+export default function TablaRecogidaDevolucion({
+  fecha,
+  datos = [],
+  setDatos,
+}: Readonly<{
+  fecha: string;
+  datos: ItemRecogidaDevolucion[];
+  setDatos: (datos: ItemRecogidaDevolucion[]) => void;
+}>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -48,22 +54,6 @@ export default function TablaRecogidaDevolucion() {
         Recogida - Devolución
       </h2>
 
-      <div className="mb-4">
-        <label
-          htmlFor="fechaDevolucionRecogida"
-          className="block text-gray-700 font-semibold mb-2"
-        >
-          Fecha
-        </label>
-        <input
-          id="fechaDevolucionRecogida"
-          type="date"
-          value={fecha}
-          onChange={(e) => setFecha(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
           {error}
@@ -80,11 +70,14 @@ export default function TablaRecogidaDevolucion() {
                 <th colSpan={3} className="border p-2 text-left">
                   Centro de Distribución
                 </th>
-                <th colSpan={5} className="border p-2 text-center bg-blue-50">
+                <th colSpan={5} className="border p-2 text-center bg-indigo-50">
                   Recogida
                 </th>
-                <th colSpan={5} className="border p-2 text-center bg-orange-50">
+                <th colSpan={5} className="border p-2 text-center bg-amber-50">
                   Devolución
+                </th>
+                <th colSpan={2} className="border p-2 text-center bg-rose-50">
+                  Roturas
                 </th>
               </tr>
               <tr className="bg-gray-100 text-xs">
@@ -101,19 +94,15 @@ export default function TablaRecogidaDevolucion() {
                 <th className="border p-1">Blancas</th>
                 <th className="border p-1">Negras</th>
                 <th className="border p-1">Verdes</th>
-                {/* <th className="border p-1">B</th>
-                <th className="border p-1">N</th>
-                <th className="border p-1">V</th>
-                <th className="border p-1">B</th>
-                <th className="border p-1">N</th>
-                <th className="border p-1">V</th> */}
+                <th className="border p-1">R. Recogida</th>
+                <th className="border p-1">R. Devolución</th>
               </tr>
             </thead>
             <tbody>
               {datos.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={10}
+                    colSpan={16}
                     className="border p-4 text-center text-gray-500"
                   >
                     No hay datos para esta fecha
@@ -172,26 +161,40 @@ export default function TablaRecogidaDevolucion() {
                     <td className="border p-1 text-center text-xs">
                       {item.devolucion?.cajas?.verdes ?? "-"}
                     </td>
-                    {/* Dev. Cajas Rotas
-                    <td className="border p-1 text-center text-xs">
-                      {item.devolucion?.cajas_rotas?.blancas ?? "-"}
+                    <td
+                      className="border p-1 text-center text-xs"
+                      title={
+                        item.recogida
+                          ? `Cajas rotas — blancas: ${item.recogida.cajas_rotas?.blancas ?? 0}, negras: ${item.recogida.cajas_rotas?.negras ?? 0}, verdes: ${item.recogida.cajas_rotas?.verdes ?? 0}\nTapas rotas — blancas: ${item.recogida.tapas_rotas?.blancas ?? 0}, negras: ${item.recogida.tapas_rotas?.negras ?? 0}, verdes: ${item.recogida.tapas_rotas?.verdes ?? 0}`
+                          : undefined
+                      }
+                    >
+                      {item.recogida
+                        ? (item.recogida.cajas_rotas?.blancas ?? 0) +
+                          (item.recogida.cajas_rotas?.negras ?? 0) +
+                          (item.recogida.cajas_rotas?.verdes ?? 0) +
+                          (item.recogida.tapas_rotas?.blancas ?? 0) +
+                          (item.recogida.tapas_rotas?.negras ?? 0) +
+                          (item.recogida.tapas_rotas?.verdes ?? 0)
+                        : "-"}
                     </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.devolucion?.cajas_rotas?.negras ?? "-"}
+                    <td
+                      className="border p-1 text-center text-xs"
+                      title={
+                        item.devolucion
+                          ? `Cajas rotas — blancas: ${item.devolucion.cajas_rotas?.blancas ?? 0}, negras: ${item.devolucion.cajas_rotas?.negras ?? 0}, verdes: ${item.devolucion.cajas_rotas?.verdes ?? 0}\nTapas rotas — blancas: ${item.devolucion.tapas_rotas?.blancas ?? 0}, negras: ${item.devolucion.tapas_rotas?.negras ?? 0}, verdes: ${item.devolucion.tapas_rotas?.verdes ?? 0}`
+                          : undefined
+                      }
+                    >
+                      {item.devolucion
+                        ? (item.devolucion.cajas_rotas?.blancas ?? 0) +
+                          (item.devolucion.cajas_rotas?.negras ?? 0) +
+                          (item.devolucion.cajas_rotas?.verdes ?? 0) +
+                          (item.devolucion.tapas_rotas?.blancas ?? 0) +
+                          (item.devolucion.tapas_rotas?.negras ?? 0) +
+                          (item.devolucion.tapas_rotas?.verdes ?? 0)
+                        : "-"}
                     </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.devolucion?.cajas_rotas?.verdes ?? "-"}
-                    </td>
-                    {/* Rec. Cajas Rotas
-                    <td className="border p-1 text-center text-xs">
-                      {item.recogida?.cajas_rotas?.blancas ?? "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.recogida?.cajas_rotas?.negras ?? "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.recogida?.cajas_rotas?.verdes ?? "-"}
-                    </td> */}
                   </tr>
                 ))
               )}

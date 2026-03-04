@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       tapas_rotas,
     } = data;
 
-    if (!tipo_evento || !centro_distribucion || !almacen || !fecha || !nombre) {
+    if (!tipo_evento || !centro_distribucion || !fecha || !nombre) {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
     }
 
@@ -52,7 +52,6 @@ export async function POST(request: NextRequest) {
     let coleccion;
     let documento: any = {
       centro_distribucion,
-      almacen,
       fecha,
       nombre,
       cajas: cajas || { blancas: 0, negras: 0, verdes: 0 },
@@ -75,6 +74,7 @@ export async function POST(request: NextRequest) {
       coleccion = db.collection(tipo_evento);
     } else if (tipo_evento === "Expedicion" || tipo_evento === "Devolucion") {
       if (tipo_evento === "Devolucion") {
+        documento.almacen = almacen;
         documento.cajas_rotas = cajas_rotas || {
           blancas: 0,
           negras: 0,

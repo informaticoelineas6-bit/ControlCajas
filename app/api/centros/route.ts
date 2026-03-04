@@ -45,7 +45,10 @@ export async function PUT(request: NextRequest) {
     }
     const { db } = await connectToDatabase();
     const centros = db.collection("CentroDistribucion");
-    await centros.updateOne({ _id: ObjectId.createFromHexString(_id) }, { $set: data });
+    await centros.updateOne(
+      { _id: ObjectId.createFromHexString(_id) },
+      { $set: data },
+    );
     return NextResponse.json({ _id, ...data });
   } catch (error) {
     console.error("Error updating centro:", error);

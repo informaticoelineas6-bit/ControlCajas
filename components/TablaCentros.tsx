@@ -8,9 +8,11 @@ export default function TablaCentros() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [form, setForm] = useState<Partial<CentroDistribucion>>({
+  const [form, setForm] = useState<Partial<any>>({
     nombre: "",
-    deuda: 0,
+    deuda_blancas: 0,
+    deuda_negras: 0,
+    deuda_verdes: 0,
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +39,7 @@ export default function TablaCentros() {
   };
 
   const resetForm = () => {
-    setForm({ nombre: "", deuda: 0 });
+    setForm({ nombre: "", deuda_blancas: 0, deuda_negras: 0, deuda_verdes: 0 });
     setEditingId(null);
     setError("");
   };
@@ -57,7 +59,15 @@ export default function TablaCentros() {
     setSubmitting(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const body = editingId ? { _id: editingId, ...form } : form;
+      const body = {
+        _id: editingId || undefined,
+        nombre: form.nombre,
+        deuda: {
+          blancas: Number(form.deuda_blancas) || 0,
+          negras: Number(form.deuda_negras) || 0,
+          verdes: Number(form.deuda_verdes) || 0,
+        },
+      };
       const res = await fetch("/api/centros", {
         method,
         headers: { "Content-Type": "application/json" },
@@ -78,7 +88,13 @@ export default function TablaCentros() {
   };
 
   const startEdit = (c: CentroDistribucion) => {
-    setForm(c);
+    const transformed = {
+      nombre: c.nombre,
+      deuda_blancas: c.deuda?.blancas || 0,
+      deuda_negras: c.deuda?.negras || 0,
+      deuda_verdes: c.deuda?.verdes || 0,
+    };
+    setForm(transformed);
     setEditingId(c._id);
   };
 
@@ -124,15 +140,43 @@ export default function TablaCentros() {
             />
           </div>
           <div>
-            <label htmlFor="deuda" className="block text-gray-700">
-              Deuda
+            <label htmlFor="deuda_blancas" className="block text-gray-700">
+              Deuda (blancas)
             </label>
             <input
-              id="deuda"
-              name="deuda"
+              id="deuda_blancas"
+              name="deuda_blancas"
               type="number"
               min="0"
-              value={form.deuda || 0}
+              value={form.deuda_blancas}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
+          <div>
+            <label htmlFor="deuda_negras" className="block text-gray-700">
+              Deuda (negras)
+            </label>
+            <input
+              id="deuda_negras"
+              name="deuda_negras"
+              type="number"
+              min="0"
+              value={form.deuda_negras}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
+          <div>
+            <label htmlFor="deuda_verdes" className="block text-gray-700">
+              Deuda (verdes)
+            </label>
+            <input
+              id="deuda_verdes"
+              name="deuda_verdes"
+              type="number"
+              min="0"
+              value={form.deuda_verdes}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             />
@@ -176,7 +220,12 @@ export default function TablaCentros() {
               {centros.map((c) => (
                 <tr key={c._id} className="hover:bg-gray-100">
                   <td className="border p-2">{c.nombre}</td>
-                  <td className="border p-2">{c.deuda || 0}</td>
+                  <td
+                    title={`Blancas: ${c.deuda?.blancas || 0}, Negras: ${c.deuda?.negras || 0}, Verdes: ${c.deuda?.verdes || 0}`}
+                    className="border p-2"
+                  >
+                    {c.deuda?.blancas + c.deuda?.negras + c.deuda?.verdes}
+                  </td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => startEdit(c)}

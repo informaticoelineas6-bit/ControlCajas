@@ -3,7 +3,7 @@
 import { Recogida } from "@/lib/constants";
 import { useState, useEffect } from "react";
 
-export default function TablaRecogidaSimple({
+export default function TablaRecogida({
   fecha,
   usuario,
   onAjustar,
@@ -51,21 +51,22 @@ export default function TablaRecogidaSimple({
             <thead>
               <tr className="bg-gray-200">
                 <th
-                  colSpan={7}
-                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-blue-50"
+                  colSpan={6}
+                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-indigo-50"
                 >
                   Recogidas
                 </th>
-                <th
-                  colSpan={2}
-                  className="text-2xl font-bold border p-2 text-center text-gray-800 bg-slate-50"
-                >
-                  Ajuste
-                </th>
+                {usuario.rol === "informatico" && (
+                  <th
+                    colSpan={2}
+                    className="text-2xl font-bold border p-2 text-center text-gray-800 bg-slate-50"
+                  >
+                    Ajuste
+                  </th>
+                )}
               </tr>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Centro</th>
-                <th className="border p-2 text-left">Almacén</th>
                 <th className="border p-2 text-left">Chofer</th>
                 <th className="border p-2 text-left">Chapa</th>
                 <th className="border p-2 text-center">Blancas</th>
@@ -98,7 +99,6 @@ export default function TablaRecogidaSimple({
                     <td className="border p-2">
                       {d.centro_distribucion ?? "-"}
                     </td>
-                    <td className="border p-2">{d.almacen ?? "-"}</td>
                     <td className="border p-2">{d.nombre ?? "-"}</td>
                     <td className="border p-2">{d.chapa ?? "-"}</td>
                     <td className="border p-2 text-center">

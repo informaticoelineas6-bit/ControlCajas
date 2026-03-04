@@ -125,13 +125,13 @@ export async function GET(request: NextRequest) {
         await db.collection("Expedicion").find({ fecha }).toArray()
       ).map(applyAjuste);
 
-      console.log("Expediciones:", expediciones); // Debug: Ver expediciones obtenidas
+      // console.log("Expediciones:", expediciones); // Debug: Ver expediciones obtenidas
 
       const entregas = (
         await db.collection("Entrega").find({ fecha }).toArray()
       ).map(applyAjuste);
 
-      console.log("Entregas:", entregas); // Debug: Ver entregas obtenidas
+      // console.log("Entregas:", entregas); // Debug: Ver entregas obtenidas
 
       // Agrupar por centro de distribución
       const centrosExp = new Map();
@@ -202,13 +202,13 @@ export async function GET(request: NextRequest) {
         await db.collection("Recogida").find({ fecha }).toArray()
       ).map(applyAjuste);
 
-      console.log("Recogidas:", recogidas); // Debug: Ver recogidas obtenidas
+      // console.log("Recogidas:", recogidas); // Debug: Ver recogidas obtenidas
 
       const devoluciones = (
         await db.collection("Devolucion").find({ fecha }).toArray()
       ).map(applyAjuste);
 
-      console.log("Devoluciones:", devoluciones); // Debug: Ver devoluciones obtenidas
+      // console.log("Devoluciones:", devoluciones); // Debug: Ver devoluciones obtenidas
 
       // Agrupar por centro de distribución
       const centrosRec = new Map();
