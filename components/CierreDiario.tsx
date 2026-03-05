@@ -25,7 +25,7 @@ export default function CierreDiario({
 
   useEffect(() => {
     fetchDatos();
-  }, [fecha, expedicionData, recogidaData]);
+  }, [expedicionData, recogidaData]); //TODO: Ver cómo hacer que se ejecute una sola vez; alzar la dependencia.
 
   const fetchDatos = async () => {
     setLoading(true);
@@ -212,166 +212,174 @@ export default function CierreDiario({
     }
   };
 
-  if (loading) {
-    return <p className="text-gray-500">Cargando...</p>;
-  }
-
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Cierre Diario</h2>
-
-      {error && (
+      {error && !loading && (
         <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
-
-      {tieneAlertas() && (
+      {tieneAlertas() && !loading && (
         <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
           ⚠️ Existen inconsistencias en los datos. No se puede crear un nuevo
           cierre hasta que se resuelvan.
         </div>
       )}
 
-      {existente ? (
-        <div className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded mb-4">
-          ✓ Día cerrado. No se pueden hacer más cambios.
-        </div>
+      {loading ? (
+        <p className="text-gray-500">Cargando...</p>
       ) : (
-        <button
-          onClick={handleCrearCierre}
-          disabled={tieneAlertas() || loading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded mb-4"
-        >
-          {loading ? "Creando..." : "Crear Cierre"}
-        </button>
+        <div className="space-y-8">
+          {existente ? (
+            <div className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded mb-4">
+              ✓ Día cerrado. No se pueden hacer más cambios.
+            </div>
+          ) : (
+            <button
+              onClick={handleCrearCierre}
+              disabled={tieneAlertas() || loading}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded mb-4"
+            >
+              {loading ? "Creando..." : "Crear Cierre"}
+            </button>
+          )}
+
+          {/* Tabla de Almacenes */}
+          <div>
+            <h3 className="text-xl font-bold mb-3 text-gray-700">
+              Almacenes - Ajuste de Stock
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-gray-200">
+                    <th className="border p-2 text-left">Almacén</th>
+                    <th className="border p-2 text-center">Blancas</th>
+                    <th className="border p-2 text-center">Negras</th>
+                    <th className="border p-2 text-center">Verdes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cierre.cierre_almacen.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="border p-4 text-center text-gray-500"
+                      >
+                        No hay datos
+                      </td>
+                    </tr>
+                  ) : (
+                    cierre.cierre_almacen.map((c) => (
+                      <tr key={c.almacen} className="hover:bg-gray-100">
+                        <td className="border p-2 font-semibold">
+                          {c.almacen}
+                        </td>
+                        <td className={"border p-2 text-center"}>
+                          {c.ajuste_stock.blancas}
+                        </td>
+                        <td className={"border p-2 text-center"}>
+                          {c.ajuste_stock.negras}
+                        </td>
+                        <td className={"border p-2 text-center"}>
+                          {c.ajuste_stock.verdes}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Tabla de Centros de Distribución */}
+          <div>
+            <h3 className="text-xl font-bold mb-3 text-gray-700">
+              Centros de Distribución - Ajuste de Deuda
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-gray-200">
+                    <th className="border p-2 text-left">
+                      Centro Distribución
+                    </th>
+                    <th
+                      colSpan={3}
+                      className="border p-2 text-center bg-blue-50"
+                    >
+                      Ajuste Deuda
+                    </th>
+                    <th
+                      colSpan={2}
+                      className="border p-2 text-center bg-rose-50"
+                    >
+                      Roturas
+                    </th>
+                  </tr>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left"></th>
+                    <th className="border p-2 text-center">Blancas</th>
+                    <th className="border p-2 text-center">Negras</th>
+                    <th className="border p-2 text-center">Verdes</th>
+                    <th className="border p-2 text-center">Cajas</th>
+                    <th className="border p-2 text-center">Tapas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cierre.cierre_cd.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="border p-4 text-center text-gray-500"
+                      >
+                        No hay datos
+                      </td>
+                    </tr>
+                  ) : (
+                    cierre.cierre_cd.map((c) => (
+                      <tr
+                        key={c.centro_distribucion}
+                        className="hover:bg-gray-100"
+                      >
+                        <td className="border p-2 font-semibold">
+                          {c.centro_distribucion}
+                        </td>
+                        <td className={"border p-2 text-center"}>
+                          {c.ajuste_deuda.blancas}
+                        </td>
+                        <td className={"border p-2 text-center"}>
+                          {c.ajuste_deuda.negras}
+                        </td>
+                        <td className={"border p-2 text-center"}>
+                          {c.ajuste_deuda.verdes}
+                        </td>
+                        <td
+                          title={`Blancas: ${c.cajas_rotas.blancas}, Negras: ${c.cajas_rotas.negras}, Verdes: ${c.cajas_rotas.verdes}`}
+                          className="border p-2 text-center"
+                        >
+                          {c.cajas_rotas.blancas +
+                            c.cajas_rotas.negras +
+                            c.cajas_rotas.verdes}
+                        </td>
+                        <td
+                          title={`Blancas: ${c.tapas_rotas.blancas}, Negras: ${c.tapas_rotas.negras}, Verdes: ${c.tapas_rotas.verdes}`}
+                          className="border p-2 text-center"
+                        >
+                          {c.tapas_rotas.blancas +
+                            c.tapas_rotas.negras +
+                            c.tapas_rotas.verdes}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
-
-      <div className="space-y-8">
-        {/* Tabla de Almacenes */}
-        <div>
-          <h3 className="text-xl font-bold mb-3 text-gray-700">
-            Almacenes - Ajuste de Stock
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-gray-200">
-                  <th className="border p-2 text-left">Almacén</th>
-                  <th className="border p-2 text-center">Blancas</th>
-                  <th className="border p-2 text-center">Negras</th>
-                  <th className="border p-2 text-center">Verdes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cierre.cierre_almacen.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="border p-4 text-center text-gray-500"
-                    >
-                      No hay datos
-                    </td>
-                  </tr>
-                ) : (
-                  cierre.cierre_almacen.map((c) => (
-                    <tr key={c.almacen} className="hover:bg-gray-100">
-                      <td className="border p-2 font-semibold">{c.almacen}</td>
-                      <td className={"border p-2 text-center"}>
-                        {c.ajuste_stock.blancas}
-                      </td>
-                      <td className={"border p-2 text-center"}>
-                        {c.ajuste_stock.negras}
-                      </td>
-                      <td className={"border p-2 text-center"}>
-                        {c.ajuste_stock.verdes}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Tabla de Centros de Distribución */}
-        <div>
-          <h3 className="text-xl font-bold mb-3 text-gray-700">
-            Centros de Distribución - Ajuste de Deuda
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-gray-200">
-                  <th className="border p-2 text-left">Centro Distribución</th>
-                  <th colSpan={3} className="border p-2 text-center bg-blue-50">
-                    Ajuste Deuda
-                  </th>
-                  <th colSpan={2} className="border p-2 text-center bg-rose-50">
-                    Roturas
-                  </th>
-                </tr>
-                <tr className="bg-gray-100">
-                  <th className="border p-2 text-left"></th>
-                  <th className="border p-2 text-center">Blancas</th>
-                  <th className="border p-2 text-center">Negras</th>
-                  <th className="border p-2 text-center">Verdes</th>
-                  <th className="border p-2 text-center">Cajas</th>
-                  <th className="border p-2 text-center">Tapas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cierre.cierre_cd.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="border p-4 text-center text-gray-500"
-                    >
-                      No hay datos
-                    </td>
-                  </tr>
-                ) : (
-                  cierre.cierre_cd.map((c) => (
-                    <tr
-                      key={c.centro_distribucion}
-                      className="hover:bg-gray-100"
-                    >
-                      <td className="border p-2 font-semibold">
-                        {c.centro_distribucion}
-                      </td>
-                      <td className={"border p-2 text-center"}>
-                        {c.ajuste_deuda.blancas}
-                      </td>
-                      <td className={"border p-2 text-center"}>
-                        {c.ajuste_deuda.negras}
-                      </td>
-                      <td className={"border p-2 text-center"}>
-                        {c.ajuste_deuda.verdes}
-                      </td>
-                      <td
-                        title={`Blancas: ${c.cajas_rotas.blancas}, Negras: ${c.cajas_rotas.negras}, Verdes: ${c.cajas_rotas.verdes}`}
-                        className="border p-2 text-center"
-                      >
-                        {c.cajas_rotas.blancas +
-                          c.cajas_rotas.negras +
-                          c.cajas_rotas.verdes}
-                      </td>
-                      <td
-                        title={`Blancas: ${c.tapas_rotas.blancas}, Negras: ${c.tapas_rotas.negras}, Verdes: ${c.tapas_rotas.verdes}`}
-                        className="border p-2 text-center"
-                      >
-                        {c.tapas_rotas.blancas +
-                          c.tapas_rotas.negras +
-                          c.tapas_rotas.verdes}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

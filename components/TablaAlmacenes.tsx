@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { Almacen } from "@/lib/constants";
 
-export default function TablaAlmacenes() {
+export default function TablaAlmacenes({
+  usuario,
+}: Readonly<{ usuario: any }>) {
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -67,6 +69,7 @@ export default function TablaAlmacenes() {
           negras: Number(form.stock_negras) || 0,
           verdes: Number(form.stock_verdes) || 0,
         },
+        ajuste: editingId ? usuario.nombre : undefined,
       };
       const res = await fetch("/api/almacenes", {
         method,
@@ -145,7 +148,6 @@ export default function TablaAlmacenes() {
               id="stock_blancas"
               name="stock_blancas"
               type="number"
-              min="0"
               value={form.stock_blancas}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
@@ -159,7 +161,6 @@ export default function TablaAlmacenes() {
               id="stock_negras"
               name="stock_negras"
               type="number"
-              min="0"
               value={form.stock_negras}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
@@ -173,7 +174,6 @@ export default function TablaAlmacenes() {
               id="stock_verdes"
               name="stock_verdes"
               type="number"
-              min="0"
               value={form.stock_verdes}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
@@ -210,7 +210,10 @@ export default function TablaAlmacenes() {
             <thead>
               <tr className="bg-gray-200">
                 <th className="border p-2 text-left">Nombre</th>
-                <th className="border p-2 text-left">Stock</th>
+                <th className="border p-2 text-left">Stock (blancas)</th>
+                <th className="border p-2 text-left">Stock (negras)</th>
+                <th className="border p-2 text-left">Stock (verdes)</th>
+                <th className="border p-2 text-center">Editado por</th>
                 <th className="border p-2 text-center">Acciones</th>
               </tr>
             </thead>
@@ -218,12 +221,10 @@ export default function TablaAlmacenes() {
               {almacenes.map((a) => (
                 <tr key={a._id} className="hover:bg-gray-100">
                   <td className="border p-2">{a.nombre}</td>
-                  <td
-                    title={`Blancas: ${a.stock?.blancas || 0}, Negras: ${a.stock?.negras || 0}, Verdes: ${a.stock?.verdes || 0}`}
-                    className="border p-2"
-                  >
-                    {a.stock?.blancas + a.stock?.negras + a.stock?.verdes}
-                  </td>
+                  <td className="border p-2">{a.stock.blancas ?? 0}</td>
+                  <td className="border p-2">{a.stock.negras ?? 0}</td>
+                  <td className="border p-2">{a.stock.verdes ?? 0}</td>
+                  <td className="border p-2">{a.ajuste ?? "-"}</td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => startEdit(a)}
@@ -243,7 +244,7 @@ export default function TablaAlmacenes() {
               {almacenes.length === 0 && (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={6}
                     className="border p-4 text-center text-gray-500"
                   >
                     No hay almacenes registrados

@@ -125,13 +125,9 @@ export async function GET(request: NextRequest) {
         await db.collection("Expedicion").find({ fecha }).toArray()
       ).map(applyAjuste);
 
-      // console.log("Expediciones:", expediciones); // Debug: Ver expediciones obtenidas
-
       const entregas = (
         await db.collection("Entrega").find({ fecha }).toArray()
       ).map(applyAjuste);
-
-      // console.log("Entregas:", entregas); // Debug: Ver entregas obtenidas
 
       // Agrupar por centro de distribución
       const centrosExp = new Map();
@@ -167,7 +163,6 @@ export async function GET(request: NextRequest) {
         if (!centrosExp.has(centro)) {
           centrosExp.set(centro, {
             centro_distribucion: centro,
-            almacen: current.almacen,
             chapa: current.chapa,
             expedicion: null,
             entrega: {
@@ -179,7 +174,6 @@ export async function GET(request: NextRequest) {
           });
         } else {
           const item = centrosExp.get(centro);
-          item.almacen = appendNombre(item.almacen, current.almacen);
           item.chapa = appendNombre(item.chapa, current.chapa);
           item.entrega = {
             nombre: appendNombre(item.entrega?.nombre, current.nombre),
@@ -202,13 +196,9 @@ export async function GET(request: NextRequest) {
         await db.collection("Recogida").find({ fecha }).toArray()
       ).map(applyAjuste);
 
-      // console.log("Recogidas:", recogidas); // Debug: Ver recogidas obtenidas
-
       const devoluciones = (
         await db.collection("Devolucion").find({ fecha }).toArray()
       ).map(applyAjuste);
-
-      // console.log("Devoluciones:", devoluciones); // Debug: Ver devoluciones obtenidas
 
       // Agrupar por centro de distribución
       const centrosRec = new Map();
@@ -218,7 +208,6 @@ export async function GET(request: NextRequest) {
         if (!centrosRec.has(centro)) {
           centrosRec.set(centro, {
             centro_distribucion: centro,
-            almacen: current.almacen,
             chapa: current.chapa,
             recogida: {
               nombre: current.nombre,
@@ -233,7 +222,6 @@ export async function GET(request: NextRequest) {
           });
         } else {
           const item = centrosRec.get(centro);
-          item.almacen = appendNombre(item.almacen, current.almacen);
           item.chapa = appendNombre(item.chapa, current.chapa);
           item.recogida = {
             nombre: appendNombre(item.recogida?.nombre, current.nombre),

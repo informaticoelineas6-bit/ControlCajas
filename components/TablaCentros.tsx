@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { CentroDistribucion } from "@/lib/constants";
 
-export default function TablaCentros() {
+export default function TablaCentros({ usuario }: Readonly<{ usuario: any }>) {
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -67,6 +67,7 @@ export default function TablaCentros() {
           negras: Number(form.deuda_negras) || 0,
           verdes: Number(form.deuda_verdes) || 0,
         },
+        ajuste: editingId ? usuario.nombre : undefined,
       };
       const res = await fetch("/api/centros", {
         method,
@@ -147,7 +148,6 @@ export default function TablaCentros() {
               id="deuda_blancas"
               name="deuda_blancas"
               type="number"
-              min="0"
               value={form.deuda_blancas}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
@@ -161,7 +161,6 @@ export default function TablaCentros() {
               id="deuda_negras"
               name="deuda_negras"
               type="number"
-              min="0"
               value={form.deuda_negras}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
@@ -175,7 +174,6 @@ export default function TablaCentros() {
               id="deuda_verdes"
               name="deuda_verdes"
               type="number"
-              min="0"
               value={form.deuda_verdes}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
@@ -212,7 +210,10 @@ export default function TablaCentros() {
             <thead>
               <tr className="bg-gray-200">
                 <th className="border p-2 text-left">Nombre</th>
-                <th className="border p-2 text-left">Deuda</th>
+                <th className="border p-2 text-left">Deuda (blancas)</th>
+                <th className="border p-2 text-left">Deuda (negras)</th>
+                <th className="border p-2 text-left">Deuda (verdes)</th>
+                <th className="border p-2 text-left">Editado por</th>
                 <th className="border p-2 text-center">Acciones</th>
               </tr>
             </thead>
@@ -220,12 +221,10 @@ export default function TablaCentros() {
               {centros.map((c) => (
                 <tr key={c._id} className="hover:bg-gray-100">
                   <td className="border p-2">{c.nombre}</td>
-                  <td
-                    title={`Blancas: ${c.deuda?.blancas || 0}, Negras: ${c.deuda?.negras || 0}, Verdes: ${c.deuda?.verdes || 0}`}
-                    className="border p-2"
-                  >
-                    {c.deuda?.blancas + c.deuda?.negras + c.deuda?.verdes}
-                  </td>
+                  <td className="border p-2">{c.deuda.blancas ?? 0}</td>
+                  <td className="border p-2">{c.deuda.negras ?? 0}</td>
+                  <td className="border p-2">{c.deuda.verdes ?? 0}</td>
+                  <td className="border p-2">{c.ajuste || "-"}</td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => startEdit(c)}
@@ -245,7 +244,7 @@ export default function TablaCentros() {
               {centros.length === 0 && (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={6}
                     className="border p-4 text-center text-gray-500"
                   >
                     No hay centros registrados

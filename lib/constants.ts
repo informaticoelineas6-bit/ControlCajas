@@ -50,12 +50,14 @@ export interface Almacen {
   _id: string;
   nombre: string;
   stock: Cajas;
+  ajuste?: string;
 }
 
 export interface CentroDistribucion {
   _id: string;
   nombre: string;
   deuda: Cajas;
+  ajuste?: string;
 }
 
 export interface Vehiculo {
@@ -64,6 +66,7 @@ export interface Vehiculo {
   chapa: string;
   marca: string;
   modelo: string;
+  ajuste?: string;
 }
 
 export interface Cajas {

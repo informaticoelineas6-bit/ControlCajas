@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
       }
       coleccion = db.collection(tipo_evento);
     } else if (tipo_evento === "Expedicion" || tipo_evento === "Devolucion") {
+      documento.almacen = almacen;
       if (tipo_evento === "Devolucion") {
-        documento.almacen = almacen;
         documento.cajas_rotas = cajas_rotas || {
           blancas: 0,
           negras: 0,

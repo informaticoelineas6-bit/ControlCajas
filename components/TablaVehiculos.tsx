@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { Vehiculo } from "@/lib/constants";
 
-export default function TablaVehiculos() {
+export default function TablaVehiculos({
+  usuario,
+}: Readonly<{ usuario: any }>) {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -62,7 +64,13 @@ export default function TablaVehiculos() {
     setSubmitting(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const body = editingId ? { _id: editingId, ...form } : form;
+      const body = editingId
+        ? {
+            _id: editingId,
+            ...form,
+            ajuste: editingId ? usuario.nombre : undefined,
+          }
+        : form;
       const res = await fetch("/api/vehiculos", {
         method,
         headers: { "Content-Type": "application/json" },
@@ -198,6 +206,7 @@ export default function TablaVehiculos() {
                 <th className="border p-2 text-left">Chapa</th>
                 <th className="border p-2 text-left">Marca</th>
                 <th className="border p-2 text-left">Modelo</th>
+                <th className="border p-2 text-left">Editado por</th>
                 <th className="border p-2 text-center">Acciones</th>
               </tr>
             </thead>
@@ -208,6 +217,7 @@ export default function TablaVehiculos() {
                   <td className="border p-2">{v.chapa || "-"}</td>
                   <td className="border p-2">{v.marca || "-"}</td>
                   <td className="border p-2">{v.modelo || "-"}</td>
+                  <td className="border p-2">{v.ajuste || "-"}</td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => startEdit(v)}

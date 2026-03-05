@@ -194,9 +194,9 @@ export default function Dashboard() {
       case "administracion":
         return usuario?.rol === "informatico" ? (
           <div className="space-y-8 bg-white rounded-lg shadow p-6">
-            <TablaVehiculos />
-            <TablaAlmacenes />
-            <TablaCentros />
+            <TablaVehiculos usuario={usuario} />
+            <TablaAlmacenes usuario={usuario} />
+            <TablaCentros usuario={usuario} />
           </div>
         ) : (
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
