@@ -224,7 +224,7 @@ export default function TablaAlmacenes({
                   <td className="border p-2">{a.stock.blancas ?? 0}</td>
                   <td className="border p-2">{a.stock.negras ?? 0}</td>
                   <td className="border p-2">{a.stock.verdes ?? 0}</td>
-                  <td className="border p-2">{a.ajuste ?? "-"}</td>
+                  <td className="border p-2">{a.ajuste || "-"}</td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => startEdit(a)}

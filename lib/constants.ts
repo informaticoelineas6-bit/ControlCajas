@@ -64,8 +64,8 @@ export interface Vehiculo {
   _id: string;
   categoria: string;
   chapa: string;
-  marca: string;
-  modelo: string;
+  marca?: string;
+  modelo?: string;
   ajuste?: string;
 }
 

@@ -25,7 +25,13 @@ export default function CierreDiario({
 
   useEffect(() => {
     fetchDatos();
-  }, [expedicionData, recogidaData]); //TODO: Ver cómo hacer que se ejecute una sola vez; alzar la dependencia.
+  }, [fecha]);
+
+  useEffect(() => {
+    if (!loading && !existente) {
+      setCierre(nuevoCierre());
+    }
+  }, [expedicionData, recogidaData]);
 
   const fetchDatos = async () => {
     setLoading(true);
@@ -39,9 +45,7 @@ export default function CierreDiario({
       if (respCierre.ok && dataCierre) {
         setCierre(dataCierre);
         setExistente(true);
-      } else if (respCierre.ok) {
-        setCierre(nuevoCierre());
-      } else {
+      } else if (!respCierre.ok) {
         const errData = await respCierre.json();
         setError(errData.error || "Error al cargar cierre");
       }

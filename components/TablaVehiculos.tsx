@@ -213,8 +213,8 @@ export default function TablaVehiculos({
             <tbody>
               {vehiculos.map((v) => (
                 <tr key={v._id} className="hover:bg-gray-100">
-                  <td className="border p-2">{v.categoria || "-"}</td>
-                  <td className="border p-2">{v.chapa || "-"}</td>
+                  <td className="border p-2">{v.categoria ?? "-"}</td>
+                  <td className="border p-2">{v.chapa ?? "-"}</td>
                   <td className="border p-2">{v.marca || "-"}</td>
                   <td className="border p-2">{v.modelo || "-"}</td>
                   <td className="border p-2">{v.ajuste || "-"}</td>
