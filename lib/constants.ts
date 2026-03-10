@@ -44,6 +44,8 @@ export interface Usuario {
   _id: string;
   nombre: string;
   rol: (typeof ROLES)[keyof typeof ROLES];
+  habilitado?: boolean;
+  ajuste?: string;
 }
 
 export interface Almacen {
@@ -57,6 +59,7 @@ export interface CentroDistribucion {
   _id: string;
   nombre: string;
   deuda: Cajas;
+  rotacion: number;
   ajuste?: string;
 }
 

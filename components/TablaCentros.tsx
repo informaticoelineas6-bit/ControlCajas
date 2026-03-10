@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CentroDistribucion } from "@/lib/constants";
+import { CentroDistribucion, Usuario } from "@/lib/constants";
 
-export default function TablaCentros({ usuario }: Readonly<{ usuario: any }>) {
+export default function TablaCentros({
+  usuario,
+}: Readonly<{ usuario: Usuario }>) {
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -179,6 +181,19 @@ export default function TablaCentros({ usuario }: Readonly<{ usuario: any }>) {
               className="w-full px-3 py-2 border rounded"
             />
           </div>
+          <div className="sm:cols-span-2">
+            <label htmlFor="rotacion" className="block text-gray-700">
+              Rotación (días)
+            </label>
+            <input
+              id="rotacion"
+              name="rotacion"
+              type="number"
+              value={form.rotacion || 0}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
         </div>
         <div className="mt-2">
           <button
@@ -213,6 +228,7 @@ export default function TablaCentros({ usuario }: Readonly<{ usuario: any }>) {
                 <th className="border p-2 text-left">Deuda (blancas)</th>
                 <th className="border p-2 text-left">Deuda (negras)</th>
                 <th className="border p-2 text-left">Deuda (verdes)</th>
+                <th className="border p-2 text-left">Rotación (días)</th>
                 <th className="border p-2 text-left">Editado por</th>
                 <th className="border p-2 text-center">Acciones</th>
               </tr>
@@ -224,6 +240,7 @@ export default function TablaCentros({ usuario }: Readonly<{ usuario: any }>) {
                   <td className="border p-2">{c.deuda.blancas ?? 0}</td>
                   <td className="border p-2">{c.deuda.negras ?? 0}</td>
                   <td className="border p-2">{c.deuda.verdes ?? 0}</td>
+                  <td className="border p-2">{c.rotacion ?? 0}</td>
                   <td className="border p-2">{c.ajuste || "-"}</td>
                   <td className="border p-2 text-center">
                     <button

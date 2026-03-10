@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Vehiculo } from "@/lib/constants";
+import { Usuario, Vehiculo } from "@/lib/constants";
 
 export default function TablaVehiculos({
   usuario,
-}: Readonly<{ usuario: any }>) {
+}: Readonly<{ usuario: Usuario }>) {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

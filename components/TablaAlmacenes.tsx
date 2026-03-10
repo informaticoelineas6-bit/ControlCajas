@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Almacen } from "@/lib/constants";
+import { Almacen, Usuario } from "@/lib/constants";
 
 export default function TablaAlmacenes({
   usuario,
-}: Readonly<{ usuario: any }>) {
+}: Readonly<{ usuario: Usuario }>) {
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

@@ -19,6 +19,7 @@ import TablaAlmacenes from "@/components/TablaAlmacenes";
 import TablaCentros from "@/components/TablaCentros";
 import { Usuario } from "@/lib/constants";
 import CierreDiario from "@/components/CierreDiario";
+import TablaUsuarios from "@/components/TablaUsuarios";
 
 interface Evento {
   _id: string;
@@ -31,7 +32,7 @@ export default function Dashboard() {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [activeTab, setActiveTab] = useState<
     "eventos" | "mis_eventos" | "ver_eventos" | "administracion"
-  >("eventos");
+  >(usuario?.rol === "informatico" ? "ver_eventos" : "mis_eventos");
   const [loading, setLoading] = useState(true);
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [adjustingEvent, setAdjustingEvent] = useState<Evento | null>(null);
@@ -149,6 +150,7 @@ export default function Dashboard() {
                   onAjustar={handleAjustarClick}
                 />
               )}
+              {/*TODO: Transferencias*/}
             </div>
           </div>
         );
@@ -197,6 +199,7 @@ export default function Dashboard() {
             <TablaVehiculos usuario={usuario} />
             <TablaAlmacenes usuario={usuario} />
             <TablaCentros usuario={usuario} />
+            <TablaUsuarios usuario={usuario} />
           </div>
         ) : (
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">

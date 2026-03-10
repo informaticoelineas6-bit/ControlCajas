@@ -386,7 +386,14 @@ export default function FormularioEvento({
                   <option value="">Selecciona un centro</option>
                   {centros.map((centro) => (
                     <option key={centro._id} value={centro.nombre}>
-                      {centro.nombre}
+                      {centro.nombre +
+                        (tipoEvento === "Recogida"
+                          ? " (deuda: " +
+                            centro.deuda.blancas +
+                            centro.deuda.negras +
+                            centro.deuda.verdes +
+                            ")"
+                          : "")}
                     </option>
                   ))}
                 </select>
@@ -532,10 +539,10 @@ export default function FormularioEvento({
               onChange={handleInputChange}
               disabled={disabled}
               className={
-                object.blancas === 0
+                (object.blancas === 0
                   ? "border-gray-300 "
-                  : "border-gray-500 " +
-                    "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  : "border-gray-500 ") +
+                "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               }
             />
           </div>
@@ -554,10 +561,10 @@ export default function FormularioEvento({
               onChange={handleInputChange}
               disabled={disabled}
               className={
-                object.negras === 0
+                (object.negras === 0
                   ? "border-gray-300 "
-                  : "border-gray-500 " +
-                    "w-full px-2 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  : "border-gray-500 ") +
+                "w-full px-2 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               }
             />
           </div>
@@ -576,10 +583,11 @@ export default function FormularioEvento({
               onChange={handleInputChange}
               disabled={disabled}
               className={
-                object.verdes === 0
+                (object.verdes === 0
                   ? "border-gray-300 "
-                  : "border-gray-500 " +
-                    "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  : "border-gray-500 ") +
+                "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" +
+                (prefix.includes("tapas") ? " hidden" : "")
               }
             />
           </div>

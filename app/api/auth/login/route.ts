@@ -25,6 +25,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!usuario.habilitado) {
+      return NextResponse.json(
+        {
+          error:
+            "Su usuario aún no ha sido autorizado, póngase en contacto con un administrador del sistema",
+        },
+        { status: 403 },
+      );
+    }
+
     const passwordMatch = await comparePassword(contrasena, usuario.contrasena);
 
     if (!passwordMatch) {
