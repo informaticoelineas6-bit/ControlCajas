@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+import { COLECCIONES } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -122,11 +123,11 @@ export async function GET(request: NextRequest) {
     if (tipo === "expedicion_entrega") {
       // Obtener expediciones y entregas
       const expediciones = (
-        await db.collection("Expedicion").find({ fecha }).toArray()
+        await db.collection(COLECCIONES.EXPEDICION).find({ fecha }).toArray()
       ).map(applyAjuste);
 
       const entregas = (
-        await db.collection("Entrega").find({ fecha }).toArray()
+        await db.collection(COLECCIONES.ENTREGA).find({ fecha }).toArray()
       ).map(applyAjuste);
 
       // Agrupar por centro de distribución
@@ -193,11 +194,11 @@ export async function GET(request: NextRequest) {
     } else if (tipo === "devolucion_recogida") {
       // Obtener devoluciones y recogidas
       const recogidas = (
-        await db.collection("Recogida").find({ fecha }).toArray()
+        await db.collection(COLECCIONES.RECOGIDA).find({ fecha }).toArray()
       ).map(applyAjuste);
 
       const devoluciones = (
-        await db.collection("Devolucion").find({ fecha }).toArray()
+        await db.collection(COLECCIONES.DEVOLUCION).find({ fecha }).toArray()
       ).map(applyAjuste);
 
       // Agrupar por centro de distribución

@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { hashPassword } from "@/lib/auth";
+import { COLECCIONES } from "@/lib/constants";
 
-const ROLES_VALIDOS = new Set(["informatico", "chofer", "almacenero", "expedidor"]);
+const ROLES_VALIDOS = new Set([
+  "informatico",
+  "chofer",
+  "almacenero",
+  "expedidor",
+]);
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
-    const usuarios = db.collection("Usuario");
+    const usuarios = db.collection(COLECCIONES.USUARIO);
 
     const usuarioExistente = await usuarios.findOne({ nombre });
     if (usuarioExistente) {

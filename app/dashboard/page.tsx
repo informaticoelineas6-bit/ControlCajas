@@ -20,6 +20,7 @@ import TablaCentros from "@/components/TablaCentros";
 import { Usuario } from "@/lib/constants";
 import CierreDiario from "@/components/CierreDiario";
 import TablaUsuarios from "@/components/TablaUsuarios";
+import TablaInformacion from "@/components/TablaInformacion";
 
 interface Evento {
   _id: string;
@@ -31,8 +32,8 @@ export default function Dashboard() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "eventos" | "mis_eventos" | "ver_eventos" | "administracion"
-  >(usuario?.rol === "informatico" ? "ver_eventos" : "mis_eventos");
+    "eventos" | "mis_eventos" | "ver_eventos" | "informacion" | "administracion"
+  >(usuario?.rol === "informatico" ? "informacion" : "mis_eventos");
   const [loading, setLoading] = useState(true);
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [adjustingEvent, setAdjustingEvent] = useState<Evento | null>(null);
@@ -193,6 +194,16 @@ export default function Dashboard() {
             Sólo los informáticos pueden ver los eventos
           </div>
         );
+      case "informacion":
+        return usuario?.rol === "informatico" ? (
+          <div className="space-y-8 bg-white rounded-lg shadow p-6">
+            <TablaInformacion />
+          </div>
+        ) : (
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
+            Sólo los informáticos pueden ver esta información
+          </div>
+        );
       case "administracion":
         return usuario?.rol === "informatico" ? (
           <div className="space-y-8 bg-white rounded-lg shadow p-6">
@@ -221,6 +232,18 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6">
           <div className="flex gap-4 border-b">
+            {usuario.rol === "informatico" && (
+              <button
+                onClick={() => setActiveTab("informacion")}
+                className={`px-4 py-2 font-semibold border-b-2 transition ${
+                  activeTab === "informacion"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                Información general
+              </button>
+            )}
             {usuario.rol !== "informatico" && (
               <button
                 onClick={() => setActiveTab("eventos")}
@@ -234,6 +257,16 @@ export default function Dashboard() {
               </button>
             )}
             <button
+              onClick={() => setActiveTab("ver_eventos")}
+              className={`px-4 py-2 font-semibold border-b-2 transition ${
+                activeTab === "ver_eventos"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              Eventos del día
+            </button>
+            <button
               onClick={() => setActiveTab("mis_eventos")}
               className={`px-4 py-2 font-semibold border-b-2 transition ${
                 activeTab === "mis_eventos"
@@ -242,32 +275,20 @@ export default function Dashboard() {
               }`}
             >
               {usuario.rol === "informatico"
-                ? "Eventos del día"
+                ? "Listado de eventos"
                 : "Mis Eventos"}
             </button>
             {usuario.rol === "informatico" && (
-              <>
-                <button
-                  onClick={() => setActiveTab("ver_eventos")}
-                  className={`px-4 py-2 font-semibold border-b-2 transition ${
-                    activeTab === "ver_eventos"
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-600 hover:text-gray-800"
-                  }`}
-                >
-                  Resumen de Eventos
-                </button>
-                <button
-                  onClick={() => setActiveTab("administracion")}
-                  className={`px-4 py-2 font-semibold border-b-2 transition ${
-                    activeTab === "administracion"
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-600 hover:text-gray-800"
-                  }`}
-                >
-                  Administración
-                </button>
-              </>
+              <button
+                onClick={() => setActiveTab("administracion")}
+                className={`px-4 py-2 font-semibold border-b-2 transition ${
+                  activeTab === "administracion"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                Administración
+              </button>
             )}
           </div>
         </div>

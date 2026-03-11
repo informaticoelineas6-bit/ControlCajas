@@ -58,6 +58,11 @@ export interface Almacen {
 export interface CentroDistribucion {
   _id: string;
   nombre: string;
+  habilitado: {
+    blancas: boolean;
+    negras: boolean;
+    verdes: boolean;
+  }
   deuda: Cajas;
   rotacion: number;
   ajuste?: string;

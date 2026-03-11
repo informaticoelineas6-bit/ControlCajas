@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { COLECCIONES } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
     const { db } = await connectToDatabase();
-    const almacenes = db.collection("Almacen");
+    const almacenes = db.collection(COLECCIONES.ALMACEN);
     const listaAlmacenes = await almacenes.find({}).toArray();
     return NextResponse.json(listaAlmacenes);
   } catch (error) {
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { db } = await connectToDatabase();
-    const almacenes = db.collection("Almacen");
+    const almacenes = db.collection(COLECCIONES.ALMACEN);
     const result = await almacenes.insertOne(body);
     return NextResponse.json({ _id: result.insertedId, ...body });
   } catch (error) {
@@ -44,7 +45,7 @@ export async function PUT(request: NextRequest) {
       );
     }
     const { db } = await connectToDatabase();
-    const almacenes = db.collection("Almacen");
+    const almacenes = db.collection(COLECCIONES.ALMACEN);
     await almacenes.updateOne(
       { _id: ObjectId.createFromHexString(_id) },
       { $set: data },
@@ -70,7 +71,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
     const { db } = await connectToDatabase();
-    const almacenes = db.collection("Almacen");
+    const almacenes = db.collection(COLECCIONES.ALMACEN);
     await almacenes.deleteOne({ _id: ObjectId.createFromHexString(id) });
     return NextResponse.json({ success: true });
   } catch (error) {

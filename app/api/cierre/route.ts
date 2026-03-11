@@ -1,3 +1,4 @@
+import { COLECCIONES } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
-    const cierre = await db.collection("Cierre").findOne({ fecha });
+    const cierre = await db.collection(COLECCIONES.CIERRE).findOne({ fecha });
 
     if (cierre) {
       return NextResponse.json(cierre);
@@ -38,7 +39,9 @@ export async function POST(request: NextRequest) {
 
     // Verificar si ya existe un cierre para esta fecha
     const { db } = await connectToDatabase();
-    const cierreExistente = await db.collection("Cierre").findOne({ fecha });
+    const cierreExistente = await db
+      .collection(COLECCIONES.CIERRE)
+      .findOne({ fecha });
 
     if (cierreExistente) {
       return NextResponse.json(
@@ -53,7 +56,9 @@ export async function POST(request: NextRequest) {
       cierre_cd,
     };
 
-    const resultado = await db.collection("Cierre").insertOne(nuevoCierre);
+    const resultado = await db
+      .collection(COLECCIONES.CIERRE)
+      .insertOne(nuevoCierre);
 
     if (resultado.insertedId) {
       return NextResponse.json(nuevoCierre, { status: 201 });

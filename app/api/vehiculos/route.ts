@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { COLECCIONES } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
     const { db } = await connectToDatabase();
-    const vehiculos = db.collection("Vehiculo");
+    const vehiculos = db.collection(COLECCIONES.VEHICULO);
     const listaVehiculos = await vehiculos.find({}).toArray();
     return NextResponse.json(listaVehiculos);
   } catch (error) {
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { db } = await connectToDatabase();
-    const vehiculos = db.collection("Vehiculo");
+    const vehiculos = db.collection(COLECCIONES.VEHICULO);
     const result = await vehiculos.insertOne(body);
     return NextResponse.json({ _id: result.insertedId, ...body });
   } catch (error) {
@@ -44,7 +45,7 @@ export async function PUT(request: NextRequest) {
       );
     }
     const { db } = await connectToDatabase();
-    const vehiculos = db.collection("Vehiculo");
+    const vehiculos = db.collection(COLECCIONES.VEHICULO);
     await vehiculos.updateOne(
       { _id: ObjectId.createFromHexString(_id) },
       { $set: data },
@@ -70,7 +71,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
     const { db } = await connectToDatabase();
-    const vehiculos = db.collection("Vehiculo");
+    const vehiculos = db.collection(COLECCIONES.VEHICULO);
     await vehiculos.deleteOne({ _id: new ObjectId(id) });
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { comparePassword } from "@/lib/auth";
+import { COLECCIONES } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
-    const usuarios = db.collection("Usuario");
+    const usuarios = db.collection(COLECCIONES.USUARIO);
 
     const usuario = await usuarios.findOne({ nombre });
 

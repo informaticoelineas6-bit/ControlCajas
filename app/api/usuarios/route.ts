@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { Usuario } from "@/lib/constants";
+import { COLECCIONES, Usuario } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
     const { db } = await connectToDatabase();
-    const usuarios = db.collection("Usuario");
-    const listaUsuarios = (await usuarios.find({}).toArray()).map((u: Usuario) => ({
-      _id: u._id.toString(),
-      nombre: u.nombre,
-      rol: u.rol,
-      habilitado: u.habilitado,
-      ajuste: u.ajuste,
-    }));
+    const usuarios = db.collection(COLECCIONES.USUARIO);
+    const listaUsuarios = (await usuarios.find({}).toArray()).map(
+      (u: Usuario) => ({
+        _id: u._id.toString(),
+        nombre: u.nombre,
+        rol: u.rol,
+        habilitado: u.habilitado,
+        ajuste: u.ajuste,
+      }),
+    );
     return NextResponse.json(listaUsuarios);
   } catch (error) {
     console.error("Error fetching usuarios:", error);
@@ -35,7 +37,7 @@ export async function PUT(request: NextRequest) {
       );
     }
     const { db } = await connectToDatabase();
-    const usuarios = db.collection("Usuario");
+    const usuarios = db.collection(COLECCIONES.USUARIO);
     await usuarios.updateOne(
       { _id: ObjectId.createFromHexString(_id) },
       { $set: data },
