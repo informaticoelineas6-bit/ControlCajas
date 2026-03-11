@@ -15,6 +15,10 @@ export async function GET(request: NextRequest) {
   try {
     const { db } = await connectToDatabase();
     const today = new Date().toISOString().split("T")[0];
+    const parseDate = (value: string) => {
+      const [year, month, day] = value.split("-").map(Number);
+      return new Date(Date.UTC(year, month - 1, day));
+    };
     const centros = db.collection(COLECCIONES.CENTRO_DISTRIBUCION);
     const almacenes = db.collection(COLECCIONES.ALMACEN);
     const expediciones = db.collection(COLECCIONES.EXPEDICION);
@@ -22,44 +26,80 @@ export async function GET(request: NextRequest) {
     const recogidas = db.collection(COLECCIONES.RECOGIDA);
     const devoluciones = db.collection(COLECCIONES.DEVOLUCION);
 
-    let centrosData = (await centros.find().toArray()) as CentroDistribucion[];
-    let almacenesData = (await almacenes.find().toArray()) as Almacen[];
-    let expedicionesData = (await expediciones
+    const centrosData = (await centros
+      .find()
+      .toArray()) as CentroDistribucion[];
+    const almacenesData = (await almacenes.find().toArray()) as Almacen[];
+    const expedicionesData = (await expediciones
       .find({ fecha: today })
       .toArray()) as Expedicion[];
-    let entregasData = (await entregas.find({}).toArray()).sort(
+    const entregasData = (await entregas.find({}).toArray()).sort(
       (a: Entrega, b: Entrega) => b.fecha.localeCompare(a.fecha),
     ) as Entrega[];
-    let recogidasData = (await recogidas
+    const recogidasData = (await recogidas
       .find({ fecha: today })
       .toArray()) as Recogida[];
-    let devolucionesData = (await devoluciones
+    const devolucionesData = (await devoluciones
       .find({ fecha: today })
       .toArray()) as Devolucion[];
 
     const dashboardData = [];
 
-    for (let centro of centrosData) {
+    for (const centro of centrosData) {
       let iteration = {
         nombre: centro.nombre,
         deuda: centro.deuda,
         rotacion: centro.rotacion,
         fechaRot: "Sin fecha",
+        estadoRot: "En tiempo" as
+          | "Pendiente"
+          | "Retrasada"
+          | "En tiempo"
+          | "Cumplida",
       };
       const entregasFiltrado = entregasData.filter(
         (entrega) => entrega.centro_distribucion === centro.nombre,
       );
-      let deuda = centro.deuda || { blancas: 0, negras: 0, verdes: 0 };
 
-      for (let entrega of entregasFiltrado) {
+      let deuda = {
+        blancas: centro.deuda.blancas,
+        negras: centro.deuda.negras,
+        verdes: centro.deuda.verdes,
+      };
+      for (const entrega of entregasFiltrado) {
         iteration.fechaRot = entrega.fecha;
-        if (deuda.blancas > 0 || deuda.negras > 0 || deuda.verdes > 0) {
+        if (deuda.blancas >= 0 && deuda.negras >= 0 && deuda.verdes >= 0) {
           deuda.blancas -= entrega.cajas.blancas;
           deuda.negras -= entrega.cajas.negras;
           deuda.verdes -= entrega.cajas.verdes;
         } else {
           break;
         }
+        console.log(centro.deuda);
+      }
+
+      if (
+        centro.deuda.blancas + centro.deuda.negras + centro.deuda.verdes <=
+        0
+      ) {
+        iteration.estadoRot = "Cumplida";
+      } else if (iteration.fechaRot != "Sin fecha") {
+        const fechaRotDate = parseDate(iteration.fechaRot);
+        const todayDate = parseDate(today);
+        const fechaLimite = new Date(fechaRotDate);
+        fechaLimite.setUTCDate(
+          fechaLimite.getUTCDate() + (centro.rotacion ?? 0),
+        );
+
+        if (fechaLimite > todayDate) {
+          iteration.estadoRot = "Pendiente";
+        } else if (fechaLimite < todayDate) {
+          iteration.estadoRot = "Retrasada";
+        } else {
+          iteration.estadoRot = "En tiempo";
+        }
+      } else {
+        iteration.estadoRot = "En tiempo";
       }
 
       dashboardData.push(iteration);

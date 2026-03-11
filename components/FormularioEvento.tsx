@@ -4,6 +4,7 @@ import {
   Ajuste,
   Cajas,
   CentroDistribucion,
+  CajasHabilitadas,
   Usuario,
   Vehiculo,
 } from "@/lib/constants";
@@ -31,16 +32,21 @@ export default function FormularioEvento({
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [habilitado, setHabilitado] = useState<CajasHabilitadas>({
+    blancas: false,
+    negras: false,
+    verdes: false,
+  });
 
   const [formData, setFormData] = useState<{
     almacen?: string;
     centro_distribucion: string;
     fecha: string;
-    chapa: string;
+    chapa?: string;
     cajas: Cajas;
     cajas_rotas: Cajas;
     tapas_rotas: Cajas;
-    ajuste: Ajuste | null;
+    ajuste?: Ajuste;
   }>({
     almacen: "",
     centro_distribucion: "",
@@ -49,7 +55,7 @@ export default function FormularioEvento({
     cajas: { blancas: 0, negras: 0, verdes: 0 },
     cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
     tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-    ajuste: null,
+    ajuste: undefined,
   });
 
   useEffect(() => {
@@ -90,6 +96,13 @@ export default function FormularioEvento({
       });
     }
   }, [initialData]);
+
+  useEffect(() => {
+    setHabilitado(
+      centros.find((c) => c.nombre === formData.centro_distribucion)
+        ?.habilitado ?? { blancas: true, negras: true, verdes: true },
+    );
+  }, [formData.centro_distribucion]);
 
   const fetchAlmacenes = async () => {
     try {
@@ -260,7 +273,7 @@ export default function FormularioEvento({
             cajas: { blancas: 0, negras: 0, verdes: 0 },
             cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
             tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-            ajuste: null,
+            ajuste: undefined,
           });
         } else if (isAdjustment && onAdjustmentSaved) {
           setTimeout(() => {
@@ -524,73 +537,78 @@ export default function FormularioEvento({
       <div className="bg-gray-50 p-4 rounded">
         <h3 className="font-semibold text-gray-800 mb-3">{title}</h3>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <div className="grid grid-cols-2 gap-2">
-            <label
-              htmlFor={`${prefix}_blancas`}
-              className="border border-gray-500 bg-white text-gray-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
-            >
-              Blancas
-            </label>
-            <input
-              type="number"
-              id={`${prefix}_blancas`}
-              name={`${prefix}_blancas`}
-              value={object.blancas}
-              onChange={handleInputChange}
-              disabled={disabled}
-              className={
-                (object.blancas === 0
-                  ? "border-gray-300 "
-                  : "border-gray-500 ") +
-                "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              }
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <label
-              htmlFor={`${prefix}_negras`}
-              className="border border-gray-500 bg-gray-800 text-white font-bold py-2 px-3 rounded flex items-center justify-center text-center"
-            >
-              Negras
-            </label>
-            <input
-              type="number"
-              id={`${prefix}_negras`}
-              name={`${prefix}_negras`}
-              value={object.negras}
-              onChange={handleInputChange}
-              disabled={disabled}
-              className={
-                (object.negras === 0
-                  ? "border-gray-300 "
-                  : "border-gray-500 ") +
-                "w-full px-2 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              }
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <label
-              htmlFor={`${prefix}_verdes`}
-              className="border border-gray-500 bg-green-100 text-green-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
-            >
-              Verdes
-            </label>
-            <input
-              type="number"
-              id={`${prefix}_verdes`}
-              name={`${prefix}_verdes`}
-              value={object.verdes}
-              onChange={handleInputChange}
-              disabled={disabled}
-              className={
-                (object.verdes === 0
-                  ? "border-gray-300 "
-                  : "border-gray-500 ") +
-                "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" +
-                (prefix.includes("tapas") ? " hidden" : "")
-              }
-            />
-          </div>
+          {habilitado.blancas && (
+            <div className="grid grid-cols-2 gap-2">
+              <label
+                htmlFor={`${prefix}_blancas`}
+                className="border border-gray-500 bg-white text-gray-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+              >
+                Blancas
+              </label>
+              <input
+                type="number"
+                id={`${prefix}_blancas`}
+                name={`${prefix}_blancas`}
+                value={object.blancas}
+                onChange={handleInputChange}
+                disabled={disabled}
+                className={
+                  (object.blancas === 0
+                    ? "border-gray-300 "
+                    : "border-gray-500 ") +
+                  "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                }
+              />
+            </div>
+          )}
+          {habilitado.negras && (
+            <div className="grid grid-cols-2 gap-2">
+              <label
+                htmlFor={`${prefix}_negras`}
+                className="border border-gray-500 bg-gray-800 text-white font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+              >
+                Negras
+              </label>
+              <input
+                type="number"
+                id={`${prefix}_negras`}
+                name={`${prefix}_negras`}
+                value={object.negras}
+                onChange={handleInputChange}
+                disabled={disabled}
+                className={
+                  (object.negras === 0
+                    ? "border-gray-300 "
+                    : "border-gray-500 ") +
+                  "w-full px-2 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                }
+              />
+            </div>
+          )}
+          {habilitado.verdes && !prefix.includes("tapas") && (
+            <div className="grid grid-cols-2 gap-2">
+              <label
+                htmlFor={`${prefix}_verdes`}
+                className="border border-gray-500 bg-green-100 text-green-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+              >
+                Verdes
+              </label>
+              <input
+                type="number"
+                id={`${prefix}_verdes`}
+                name={`${prefix}_verdes`}
+                value={object.verdes}
+                onChange={handleInputChange}
+                disabled={disabled}
+                className={
+                  (object.verdes === 0
+                    ? "border-gray-300 "
+                    : "border-gray-500 ") +
+                  "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                }
+              />
+            </div>
+          )}
         </div>
       </div>
     );

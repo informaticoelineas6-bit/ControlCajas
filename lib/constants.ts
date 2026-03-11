@@ -41,7 +41,7 @@ export const ERRORES = {
 };
 
 export interface Usuario {
-  _id: string;
+  _id?: string;
   nombre: string;
   rol: (typeof ROLES)[keyof typeof ROLES];
   habilitado?: boolean;
@@ -49,27 +49,30 @@ export interface Usuario {
 }
 
 export interface Almacen {
-  _id: string;
+  _id?: string;
   nombre: string;
+  habilitado: CajasHabilitadas;
   stock: Cajas;
   ajuste?: string;
 }
 
 export interface CentroDistribucion {
-  _id: string;
+  _id?: string;
   nombre: string;
-  habilitado: {
-    blancas: boolean;
-    negras: boolean;
-    verdes: boolean;
-  }
+  habilitado: CajasHabilitadas;
   deuda: Cajas;
   rotacion: number;
   ajuste?: string;
 }
 
+export interface CajasHabilitadas {
+  blancas: boolean;
+  negras: boolean;
+  verdes: boolean;
+}
+
 export interface Vehiculo {
-  _id: string;
+  _id?: string;
   categoria: string;
   chapa: string;
   marca?: string;

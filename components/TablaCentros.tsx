@@ -15,6 +15,10 @@ export default function TablaCentros({
     deuda_blancas: 0,
     deuda_negras: 0,
     deuda_verdes: 0,
+    rotacion: 0,
+    habilitado_blancas: true,
+    habilitado_negras: true,
+    habilitado_verdes: true,
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -41,14 +45,35 @@ export default function TablaCentros({
   };
 
   const resetForm = () => {
-    setForm({ nombre: "", deuda_blancas: 0, deuda_negras: 0, deuda_verdes: 0 });
+    setForm({
+      nombre: "",
+      deuda_blancas: 0,
+      deuda_negras: 0,
+      deuda_verdes: 0,
+      rotacion: 0,
+      habilitado_blancas: true,
+      habilitado_negras: true,
+      habilitado_verdes: true,
+    });
     setEditingId(null);
     setError("");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox") {
+      const fieldName = name.replace("habilitado_", "deuda_");
+      setForm((f) => ({
+        ...f,
+        [name]: checked,
+        [fieldName]: 0, // reset deuda to 0 when checkbox is toggled
+      }));
+    } else {
+      setForm((f) => ({
+        ...f,
+        [name]: value,
+      }));
+    }
     setError("");
   };
 
@@ -61,14 +86,22 @@ export default function TablaCentros({
     setSubmitting(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const body = {
+      const body: CentroDistribucion = {
         _id: editingId || undefined,
         nombre: form.nombre,
         deuda: {
-          blancas: Number(form.deuda_blancas) || 0,
-          negras: Number(form.deuda_negras) || 0,
-          verdes: Number(form.deuda_verdes) || 0,
+          blancas: form.habilitado_blancas
+            ? Number(form.deuda_blancas) || 0
+            : 0,
+          negras: form.habilitado_negras ? Number(form.deuda_negras) || 0 : 0,
+          verdes: form.habilitado_verdes ? Number(form.deuda_verdes) || 0 : 0,
         },
+        habilitado: {
+          blancas: form.habilitado_blancas,
+          negras: form.habilitado_negras,
+          verdes: form.habilitado_verdes,
+        },
+        rotacion: Number(form.rotacion) || 0,
         ajuste: editingId ? usuario.nombre : undefined,
       };
       const res = await fetch("/api/centros", {
@@ -96,9 +129,13 @@ export default function TablaCentros({
       deuda_blancas: c.deuda?.blancas || 0,
       deuda_negras: c.deuda?.negras || 0,
       deuda_verdes: c.deuda?.verdes || 0,
+      rotacion: c.rotacion || 0,
+      habilitado_blancas: c.habilitado?.blancas ?? true,
+      habilitado_negras: c.habilitado?.negras ?? true,
+      habilitado_verdes: c.habilitado?.verdes ?? true,
     };
     setForm(transformed);
-    setEditingId(c._id);
+    setEditingId(c._id!);
   };
 
   const handleDelete = async (centro: CentroDistribucion) => {
@@ -144,39 +181,69 @@ export default function TablaCentros({
           </div>
           <div>
             <label htmlFor="deuda_blancas" className="block text-gray-700">
-              Deuda (blancas)
+              <span className="flex items-center gap-2">
+                <input
+                  id="habilitado_blancas"
+                  name="habilitado_blancas"
+                  type="checkbox"
+                  checked={form.habilitado_blancas}
+                  onChange={handleInputChange}
+                />
+                Deuda (blancas)
+              </span>
             </label>
             <input
               id="deuda_blancas"
               name="deuda_blancas"
               type="number"
               value={form.deuda_blancas}
+              disabled={!form.habilitado_blancas}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             />
           </div>
           <div>
             <label htmlFor="deuda_negras" className="block text-gray-700">
-              Deuda (negras)
+              <span className="flex items-center gap-2">
+                <input
+                  id="habilitado_negras"
+                  name="habilitado_negras"
+                  type="checkbox"
+                  checked={form.habilitado_negras}
+                  onChange={handleInputChange}
+                />
+                Deuda (negras)
+              </span>
             </label>
             <input
               id="deuda_negras"
               name="deuda_negras"
               type="number"
               value={form.deuda_negras}
+              disabled={!form.habilitado_negras}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             />
           </div>
           <div>
             <label htmlFor="deuda_verdes" className="block text-gray-700">
-              Deuda (verdes)
+              <span className="flex items-center gap-2">
+                <input
+                  id="habilitado_verdes"
+                  name="habilitado_verdes"
+                  type="checkbox"
+                  checked={form.habilitado_verdes}
+                  onChange={handleInputChange}
+                />
+                Deuda (verdes)
+              </span>
             </label>
             <input
               id="deuda_verdes"
               name="deuda_verdes"
               type="number"
               value={form.deuda_verdes}
+              disabled={!form.habilitado_verdes}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             />

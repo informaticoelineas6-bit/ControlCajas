@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Cajas } from "@/lib/constants";
 
 export interface ItemDashboard {
@@ -9,6 +9,7 @@ export interface ItemDashboard {
     deuda: Cajas;
     rotacion: number;
     fechaRot: string;
+    estadoRot?: "pendiente" | "retrasada" | "en_tiempo" | "cumplida";
   }[];
   eventosHoy: number;
   stockTotal: number;
@@ -82,7 +83,8 @@ export default function TablaInformacion() {
                 Centros de distribución
               </h3>
               <span className="text-sm text-gray-600">
-                Total stock: {data.stockTotal} - Total deuda: {data.deudaTotal}
+                Total stock: {data.stockTotal} - Total deuda: {data.deudaTotal}{" "}
+                - Eventos hoy: {data.eventosHoy}
               </span>
             </div>
             <div className="overflow-x-auto">
@@ -97,6 +99,7 @@ export default function TablaInformacion() {
                     <th className="border p-2 text-left">
                       Fecha de última devolución
                     </th>
+                    <th className="border p-2 text-left">Estado de rotación</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -106,6 +109,9 @@ export default function TablaInformacion() {
                       <td className="border p-2">{totalCajas(centro.deuda)}</td>
                       <td className="border p-2">{centro.rotacion ?? 0}</td>
                       <td className="border p-2">{centro.fechaRot || "-"}</td>
+                      <td className="border p-2">
+                        {centro.estadoRot ?? "Desconocido"}
+                      </td>
                     </tr>
                   ))}
                   {data.dashboardData.length === 0 && (

@@ -15,6 +15,9 @@ export default function TablaAlmacenes({
     stock_blancas: 0,
     stock_negras: 0,
     stock_verdes: 0,
+    habilitado_blancas: true,
+    habilitado_negras: true,
+    habilitado_verdes: true,
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -41,14 +44,34 @@ export default function TablaAlmacenes({
   };
 
   const resetForm = () => {
-    setForm({ nombre: "", stock_blancas: 0, stock_negras: 0, stock_verdes: 0 });
+    setForm({
+      nombre: "",
+      stock_blancas: 0,
+      stock_negras: 0,
+      stock_verdes: 0,
+      habilitado_blancas: true,
+      habilitado_negras: true,
+      habilitado_verdes: true,
+    });
     setEditingId(null);
     setError("");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox") {
+      const fieldName = name.replace("habilitado_", "stock_");
+      setForm((f) => ({
+        ...f,
+        [name]: checked,
+        [fieldName]: 0, // reset stock to 0 when checkbox is toggled
+      }));
+    } else {
+      setForm((f) => ({
+        ...f,
+        [name]: value,
+      }));
+    }
     setError("");
   };
 
@@ -61,13 +84,20 @@ export default function TablaAlmacenes({
     setSubmitting(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const body = {
+      const body: Almacen = {
         _id: editingId || undefined,
         nombre: form.nombre,
         stock: {
-          blancas: Number(form.stock_blancas) || 0,
-          negras: Number(form.stock_negras) || 0,
-          verdes: Number(form.stock_verdes) || 0,
+          blancas: form.habilitado_blancas
+            ? Number(form.stock_blancas) || 0
+            : 0,
+          negras: form.habilitado_negras ? Number(form.stock_negras) || 0 : 0,
+          verdes: form.habilitado_verdes ? Number(form.stock_verdes) || 0 : 0,
+        },
+        habilitado: {
+          blancas: form.habilitado_blancas,
+          negras: form.habilitado_negras,
+          verdes: form.habilitado_verdes,
         },
         ajuste: editingId ? usuario.nombre : undefined,
       };
@@ -96,9 +126,12 @@ export default function TablaAlmacenes({
       stock_blancas: a.stock?.blancas || 0,
       stock_negras: a.stock?.negras || 0,
       stock_verdes: a.stock?.verdes || 0,
+      habilitado_blancas: a.habilitado?.blancas ?? true,
+      habilitado_negras: a.habilitado?.negras ?? true,
+      habilitado_verdes: a.habilitado?.verdes ?? true,
     };
     setForm(transformed);
-    setEditingId(a._id);
+    setEditingId(a._id!);
   };
 
   const handleDelete = async (almacen: Almacen) => {
@@ -142,39 +175,69 @@ export default function TablaAlmacenes({
           </div>
           <div>
             <label htmlFor="stock_blancas" className="block text-gray-700">
-              Stock (blancas)
+              <span className="flex items-center gap-2">
+                <input
+                  id="habilitado_blancas"
+                  name="habilitado_blancas"
+                  type="checkbox"
+                  checked={form.habilitado_blancas}
+                  onChange={handleInputChange}
+                />
+                Stock (blancas)
+              </span>
             </label>
             <input
               id="stock_blancas"
               name="stock_blancas"
               type="number"
               value={form.stock_blancas}
+              disabled={!form.habilitado_blancas}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             />
           </div>
           <div>
             <label htmlFor="stock_negras" className="block text-gray-700">
-              Stock (negras)
+              <span className="flex items-center gap-2">
+                <input
+                  id="habilitado_negras"
+                  name="habilitado_negras"
+                  type="checkbox"
+                  checked={form.habilitado_negras}
+                  onChange={handleInputChange}
+                />
+                Stock (negras)
+              </span>
             </label>
             <input
               id="stock_negras"
               name="stock_negras"
               type="number"
               value={form.stock_negras}
+              disabled={!form.habilitado_negras}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             />
           </div>
           <div>
             <label htmlFor="stock_verdes" className="block text-gray-700">
-              Stock (verdes)
+              <span className="flex items-center gap-2">
+                <input
+                  id="habilitado_verdes"
+                  name="habilitado_verdes"
+                  type="checkbox"
+                  checked={form.habilitado_verdes}
+                  onChange={handleInputChange}
+                />
+                Stock (verdes)
+              </span>
             </label>
             <input
               id="stock_verdes"
               name="stock_verdes"
               type="number"
               value={form.stock_verdes}
+              disabled={!form.habilitado_verdes}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded"
             />
