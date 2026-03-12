@@ -13,6 +13,52 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
+    function applyAjuste<T extends Record<string, any>>(item: T): T {
+      if (!item?.ajuste) {
+        return item;
+      }
+
+      return {
+        ...item,
+        cajas: item.cajas
+          ? {
+              blancas:
+                (item.cajas?.blancas ?? 0) + (item.ajuste.cajas?.blancas ?? 0),
+              negras:
+                (item.cajas?.negras ?? 0) + (item.ajuste.cajas?.negras ?? 0),
+              verdes:
+                (item.cajas?.verdes ?? 0) + (item.ajuste.cajas?.verdes ?? 0),
+            }
+          : item.cajas,
+        cajas_rotas: item.cajas_rotas
+          ? {
+              blancas:
+                (item.cajas_rotas?.blancas ?? 0) +
+                (item.ajuste.cajas_rotas?.blancas ?? 0),
+              negras:
+                (item.cajas_rotas?.negras ?? 0) +
+                (item.ajuste.cajas_rotas?.negras ?? 0),
+              verdes:
+                (item.cajas_rotas?.verdes ?? 0) +
+                (item.ajuste.cajas_rotas?.verdes ?? 0),
+            }
+          : item.cajas_rotas,
+        tapas_rotas: item.tapas_rotas
+          ? {
+              blancas:
+                (item.tapas_rotas?.blancas ?? 0) +
+                (item.ajuste.tapas_rotas?.blancas ?? 0),
+              negras:
+                (item.tapas_rotas?.negras ?? 0) +
+                (item.ajuste.tapas_rotas?.negras ?? 0),
+              verdes:
+                (item.tapas_rotas?.verdes ?? 0) +
+                (item.ajuste.tapas_rotas?.verdes ?? 0),
+            }
+          : item.tapas_rotas,
+      };
+    }
+
     const { db } = await connectToDatabase();
     const today = new Date().toISOString().split("T")[0];
     const parseDate = (value: string) => {
@@ -29,21 +75,29 @@ export async function GET(request: NextRequest) {
     const centrosData = (await centros
       .find()
       .toArray()) as CentroDistribucion[];
-    const almacenesData = (await almacenes.find().toArray()) as Almacen[];
-    const expedicionesData = (await expediciones
-      .find({ fecha: today })
-      .toArray()) as Expedicion[];
-    const entregasData = (await entregas.find({}).toArray()).sort(
-      (a: Entrega, b: Entrega) => b.fecha.localeCompare(a.fecha),
-    ) as Entrega[];
-    const recogidasData = (await recogidas
-      .find({ fecha: today })
-      .toArray()) as Recogida[];
-    const devolucionesData = (await devoluciones
-      .find({ fecha: today })
-      .toArray()) as Devolucion[];
+    const almacenesData = ((await almacenes.find().toArray()) as Almacen[]).map(
+      applyAjuste,
+    );
+    const expedicionesData = (
+      (await expediciones.find({ fecha: today }).toArray()) as Expedicion[]
+    ).map(applyAjuste);
+    const entregasData = ((await entregas.find({}).toArray()) as Entrega[])
+      .map(applyAjuste)
+      .sort((a: Entrega, b: Entrega) => b.fecha.localeCompare(a.fecha));
+    const recogidasData = (
+      (await recogidas.find({ fecha: today }).toArray()) as Recogida[]
+    ).map(applyAjuste);
+    const devolucionesData = (
+      (await devoluciones.find({ fecha: today }).toArray()) as Devolucion[]
+    ).map(applyAjuste);
 
     const dashboardData = [];
+    const movementData = [
+      ...expedicionesData.filter((evento: Expedicion) => evento.fecha === today),
+      ...entregasData.filter((evento: Entrega) => evento.fecha === today),
+      ...recogidasData.filter((evento: Recogida) => evento.fecha === today),
+      ...devolucionesData.filter((evento: Devolucion) => evento.fecha === today),
+    ];
 
     for (const centro of centrosData) {
       let iteration = {
@@ -141,6 +195,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       dashboardData,
+      movementData,
       eventosHoy,
       deudaTotal,
       stockTotal,
