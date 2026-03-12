@@ -9,7 +9,7 @@ export interface ItemDashboard {
     deuda: Cajas;
     rotacion: number;
     fechaRot: string;
-    estadoRot?: "pendiente" | "retrasada" | "en_tiempo" | "cumplida";
+    estadoRot?: "Pendiente" | "Retrasada" | "En tiempo" | "Cumplida";
   }[];
   eventosHoy: number;
   stockTotal: number;
@@ -54,6 +54,19 @@ export default function TablaInformacion() {
 
   const totalCajas = (cajas: Cajas) => {
     return (cajas.blancas ?? 0) + (cajas.negras ?? 0) + (cajas.verdes ?? 0);
+  };
+
+  const rowColor = (estado: string) => {
+    switch (estado) {
+      case "Cumplida":
+        return "bg-green-50 hover:bg-green-100";
+      case "Pendiente":
+        return "bg-yellow-50 hover:bg-yellow-100";
+      case "Retrasada":
+        return "bg-red-50 hover:bg-red-100";
+      default:
+        return "hover:bg-gray-100";
+    }
   };
 
   return (
@@ -104,7 +117,10 @@ export default function TablaInformacion() {
                 </thead>
                 <tbody>
                   {data.dashboardData.map((centro) => (
-                    <tr key={centro.nombre} className="hover:bg-gray-100">
+                    <tr
+                      key={centro.nombre}
+                      className={rowColor(centro.estadoRot ?? "")}
+                    >
                       <td className="border p-2">{centro.nombre}</td>
                       <td className="border p-2">{totalCajas(centro.deuda)}</td>
                       <td className="border p-2">{centro.rotacion ?? 0}</td>

@@ -77,9 +77,20 @@ export async function GET(request: NextRequest) {
       return actual + " + " + nuevo;
     }
 
+    function totalCajas(event: any): number {
+      return (
+        (event?.blancas ?? 0) + (event?.negras ?? 0) + (event?.verdes ?? 0)
+      );
+    }
+
     function alertCompare(event1: any, event2: any): boolean {
       if (!event1 || !event2) {
-        return true; // Si falta uno de los eventos, marcar alerta
+        const existingEvent = event1 || event2;
+        if (existingEvent && totalCajas(existingEvent.cajas) === 0) {
+          return false; // Falta uno de los eventos, pero no se transportaron cajas.
+        } else {
+          return true; // Si falta uno de los eventos y se transportaron cajas, marcar alerta.
+        }
       } else {
         // Ambos existen, comparar
         return (
@@ -103,18 +114,10 @@ export async function GET(request: NextRequest) {
 
     function alertRotura(event1: any, event2: any): boolean {
       return (
-        event1?.cajas_rotas?.blancas > 0 ||
-        event1?.cajas_rotas?.negras > 0 ||
-        event1?.cajas_rotas?.verdes > 0 ||
-        event1?.tapas_rotas?.blancas > 0 ||
-        event1?.tapas_rotas?.negras > 0 ||
-        event1?.tapas_rotas?.verdes > 0 ||
-        event2?.cajas_rotas?.blancas > 0 ||
-        event2?.cajas_rotas?.negras > 0 ||
-        event2?.cajas_rotas?.verdes > 0 ||
-        event2?.tapas_rotas?.blancas > 0 ||
-        event2?.tapas_rotas?.negras > 0 ||
-        event2?.tapas_rotas?.verdes > 0
+        totalCajas(event1?.cajas_rotas) > 0 ||
+        totalCajas(event1?.tapas_rotas) > 0 ||
+        totalCajas(event2?.cajas_rotas) > 0 ||
+        totalCajas(event2?.tapas_rotas) > 0
       );
     }
 
