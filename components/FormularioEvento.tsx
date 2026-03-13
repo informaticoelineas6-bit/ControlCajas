@@ -23,9 +23,7 @@ export default function FormularioEvento({
   isAdjustment = false,
   onAdjustmentSaved,
 }: Readonly<FormularioEventoProps>) {
-  // router not needed here
   const [tipoEvento, setTipoEvento] = useState<string>("");
-  const [originalTipo, setOriginalTipo] = useState<string>("");
   const [originalId, setOriginalId] = useState<string | null>(null);
   const [almacenes, setAlmacenes] = useState<CentroDistribucion[]>([]);
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
@@ -67,10 +65,9 @@ export default function FormularioEvento({
   // populate when editing/adjustment
   useEffect(() => {
     if (initialData) {
-      setOriginalTipo(initialData.tipo_evento || "");
       setOriginalId(initialData._id || null);
       // show ajuste mode
-      setTipoEvento("Ajuste");
+      setTipoEvento(initialData.tipo);
       setFormData({
         centro_distribucion: initialData.centro_distribucion || "",
         almacen: initialData.almacen || "",
@@ -100,9 +97,13 @@ export default function FormularioEvento({
   useEffect(() => {
     setHabilitado(
       centros.find((c) => c.nombre === formData.centro_distribucion)
-        ?.habilitado ?? { blancas: true, negras: true, verdes: true },
+        ?.habilitado ?? {
+        blancas: false,
+        negras: false,
+        verdes: false,
+      },
     );
-  }, [formData.centro_distribucion]);
+  }, [formData.centro_distribucion, centros]);
 
   const fetchAlmacenes = async () => {
     try {
@@ -232,12 +233,12 @@ export default function FormularioEvento({
 
     try {
       let response;
-      if (isAdjustment && originalTipo && originalId) {
+      if (isAdjustment && tipoEvento && originalId) {
         response = await fetch("/api/eventos/ajuste", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            tipo_evento: originalTipo,
+            tipo_evento: tipoEvento,
             id: originalId,
             ajuste: formData.ajuste,
             nombre: usuario.nombre,
@@ -309,114 +310,146 @@ export default function FormularioEvento({
 
   const mostrarChofer = ["Entrega", "Recogida"].includes(tipoEvento);
   const mostrarRoturas = ["Recogida", "Devolucion"].includes(tipoEvento);
+  const isSuccess = mensaje.includes("exitosamente");
+  const fieldClass =
+    "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        {isAdjustment ? "Ajustar Evento" : "Nuevo Evento"}
-      </h2>
+    <div className="overflow-hidden rounded-[30px] border border-white/70 bg-white/82 p-5 shadow-[0_30px_80px_-46px_rgba(15,23,42,0.38)] backdrop-blur sm:p-7">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
+            {isAdjustment ? "Ajuste manual" : "Registro operativo"}
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+            {isAdjustment ? "Ajustar evento" : "Nuevo evento"}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-slate-600">
+            {isAdjustment
+              ? "Corrige los valores del movimiento original y registra el ajuste asociado al usuario actual."
+              : "Selecciona el tipo de movimiento y completa los datos requeridos para registrarlo."}
+          </p>
+        </div>
+        {/* <div className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+          {usuario.nombre}
+        </div> */}
+      </div>
 
       {!isAdjustment && opcionesEvento.length === 0 ? (
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
-          No tienes permisos para crear eventos
+        <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
+          No tienes permisos para crear eventos.
         </div>
       ) : (
         <>
           {!tipoEvento && !isAdjustment ? (
-            <div className="space-y-3">
-              <p className="text-gray-700 font-semibold mb-4">
+            <div className="space-y-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
                 Selecciona el tipo de evento:
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {opcionesEvento.map((tipo) => (
                   <button
                     key={tipo}
                     onClick={() => handleSelectEvento(tipo)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded transition"
+                    className="rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(239,246,255,0.95))] px-5 py-5 text-left transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_22px_38px_-24px_rgba(59,130,246,0.55)]"
                   >
-                    {tipo}
+                    <p className="text-lg font-semibold text-slate-900">
+                      {tipo}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      {tipo === "Expedicion" &&
+                        "Expedición desde almacén hacia un centro de distribución."}
+                      {tipo === "Entrega" &&
+                        "Entrega de las cajas expedidas al centro de distribución asignado."}
+                      {tipo === "Recogida" &&
+                        "Recogida de cajas desde un centro de distribución."}
+                      {tipo === "Devolucion" &&
+                        "Devolución de cajas al almacén."}
+                    </p>
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="mb-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
                 {!isAdjustment && (
                   <button
                     type="button"
                     onClick={() => setTipoEvento("")}
-                    className="text-blue-500 hover:text-blue-700 text-sm"
+                    className="rounded-full bg-blue-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-blue-400 hover:text-slate-800"
                   >
-                    ← Cambiar tipo de evento
+                    Cambiar tipo de evento
                   </button>
                 )}
               </div>
 
-              {!mostrarChofer && (
+              <div className="grid gap-5 lg:grid-cols-2">
+                {!mostrarChofer && (
+                  <div>
+                    <label
+                      htmlFor="almacen"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Almacén *
+                    </label>
+                    <select
+                      id="almacen"
+                      name="almacen"
+                      value={formData.almacen}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isAdjustment}
+                      className={fieldClass}
+                    >
+                      <option value="">Selecciona un almacén</option>
+                      {almacenes.map((almacen) => (
+                        <option key={almacen._id} value={almacen.nombre}>
+                          {almacen.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div>
                   <label
-                    htmlFor="almacen"
-                    className="block text-gray-700 font-semibold mb-2"
+                    htmlFor="centro_distribucion"
+                    className="mb-2 block text-sm font-medium text-slate-600"
                   >
-                    Almacén *
+                    Centro de distribución *
                   </label>
                   <select
-                    id="almacen"
-                    name="almacen"
-                    value={formData.almacen}
+                    id="centro_distribucion"
+                    name="centro_distribucion"
+                    value={formData.centro_distribucion}
                     onChange={handleInputChange}
                     required
                     disabled={isAdjustment}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={fieldClass}
                   >
-                    <option value="">Selecciona un almacén</option>
-                    {almacenes.map((almacen) => (
-                      <option key={almacen._id} value={almacen.nombre}>
-                        {almacen.nombre}
+                    <option value="">Selecciona un centro</option>
+                    {centros.map((centro) => (
+                      <option key={centro._id} value={centro.nombre}>
+                        {centro.nombre +
+                          (tipoEvento === "Recogida"
+                            ? " (deuda: " +
+                              centro.deuda.blancas +
+                              centro.deuda.negras +
+                              centro.deuda.verdes +
+                              ")"
+                            : "")}
                       </option>
                     ))}
                   </select>
                 </div>
-              )}
-
-              <div>
-                <label
-                  htmlFor="centro_distribucion"
-                  className="block text-gray-700 font-semibold mb-2"
-                >
-                  Centro de distribución *
-                </label>
-                <select
-                  id="centro_distribucion"
-                  name="centro_distribucion"
-                  value={formData.centro_distribucion}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isAdjustment}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Selecciona un centro</option>
-                  {centros.map((centro) => (
-                    <option key={centro._id} value={centro.nombre}>
-                      {centro.nombre +
-                        (tipoEvento === "Recogida"
-                          ? " (deuda: " +
-                            centro.deuda.blancas +
-                            centro.deuda.negras +
-                            centro.deuda.verdes +
-                            ")"
-                          : "")}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               {mostrarChofer && (
                 <div>
                   <label
                     htmlFor="chapa"
-                    className="block text-gray-700 font-semibold mb-2"
+                    className="mb-2 block text-sm font-medium text-slate-600"
                   >
                     Chapa *
                   </label>
@@ -427,7 +460,7 @@ export default function FormularioEvento({
                     onChange={handleInputChange}
                     required
                     disabled={isAdjustment}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={fieldClass}
                   >
                     <option value="">Selecciona una chapa</option>
                     {vehiculos.map((vehiculo) => (
@@ -503,7 +536,11 @@ export default function FormularioEvento({
 
               {mensaje && (
                 <div
-                  className={`p-3 rounded ${mensaje.includes("exitosamente") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                  className={`rounded-[22px] border px-4 py-3 text-sm font-medium ${
+                    isSuccess
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : "border-rose-200 bg-rose-50 text-rose-800"
+                  }`}
                 >
                   {mensaje}
                 </div>
@@ -512,9 +549,7 @@ export default function FormularioEvento({
               <button
                 type="submit"
                 disabled={loading}
-                className={
-                  "w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded transition"
-                }
+                className="w-full rounded-[22px] bg-[linear-gradient(135deg,_#0f766e,_#059669)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 {loading
                   ? "Guardando..."
@@ -533,15 +568,16 @@ export default function FormularioEvento({
     prefix: string,
     disabled = false,
   ) {
+    if (!habilitado.blancas && !habilitado.negras && !habilitado.verdes) return;
     return (
-      <div className="bg-gray-50 p-4 rounded">
-        <h3 className="font-semibold text-gray-800 mb-3">{title}</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      <div className="rounded-[26px] border border-slate-200 bg-[linear-gradient(180deg,_rgba(248,250,252,0.96),_rgba(241,245,249,0.82))] p-5">
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">{title}</h3>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {habilitado.blancas && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
               <label
                 htmlFor={`${prefix}_blancas`}
-                className="border border-gray-500 bg-white text-gray-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+                className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-3 text-center font-semibold text-slate-800"
               >
                 Blancas
               </label>
@@ -552,20 +588,19 @@ export default function FormularioEvento({
                 value={object.blancas}
                 onChange={handleInputChange}
                 disabled={disabled}
-                className={
-                  (object.blancas === 0
-                    ? "border-gray-300 "
-                    : "border-gray-500 ") +
-                  "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                }
+                className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
+                  object.blancas === 0
+                    ? "border-slate-200 bg-slate-50"
+                    : "border-slate-400 bg-white"
+                }`}
               />
             </div>
           )}
           {habilitado.negras && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
               <label
                 htmlFor={`${prefix}_negras`}
-                className="border border-gray-500 bg-gray-800 text-white font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+                className="flex items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 px-3 py-3 text-center font-semibold text-white"
               >
                 Negras
               </label>
@@ -576,20 +611,19 @@ export default function FormularioEvento({
                 value={object.negras}
                 onChange={handleInputChange}
                 disabled={disabled}
-                className={
-                  (object.negras === 0
-                    ? "border-gray-300 "
-                    : "border-gray-500 ") +
-                  "w-full px-2 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                }
+                className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
+                  object.negras === 0
+                    ? "border-slate-200 bg-slate-50"
+                    : "border-slate-400 bg-white"
+                }`}
               />
             </div>
           )}
           {habilitado.verdes && !prefix.includes("tapas") && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
               <label
                 htmlFor={`${prefix}_verdes`}
-                className="border border-gray-500 bg-green-100 text-green-800 font-bold py-2 px-3 rounded flex items-center justify-center text-center"
+                className="flex items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-100 px-3 py-3 text-center font-semibold text-emerald-900"
               >
                 Verdes
               </label>
@@ -600,12 +634,11 @@ export default function FormularioEvento({
                 value={object.verdes}
                 onChange={handleInputChange}
                 disabled={disabled}
-                className={
-                  (object.verdes === 0
-                    ? "border-gray-300 "
-                    : "border-gray-500 ") +
-                  "w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                }
+                className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
+                  object.verdes === 0
+                    ? "border-slate-200 bg-slate-50"
+                    : "border-slate-400 bg-white"
+                }`}
               />
             </div>
           )}

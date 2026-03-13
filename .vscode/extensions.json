@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "openai.chatgpt",
+    "dbaeumer.vscode-eslint",
+    "github.copilot-chat",
+    "pkief.material-icon-theme",
+    "christian-kohler.npm-intellisense",
+    "christian-kohler.path-intellisense",
+    "esbenp.prettier-vscode",
+    "gencer.html-slim-scss-css-class-completion",
+    "ms-ceintl.vscode-language-pack-es",
+    "eamodio.gitlens"
+  ]
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Usuario } from "@/lib/constants";
 
 export default function TablaUsuarios({
@@ -31,14 +31,14 @@ export default function TablaUsuarios({
     }
   };
 
-  const enableUsuario = async (u: Usuario, habilitado: boolean) => {
+  const enableUsuario = async (target: Usuario, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/usuarios?id=${u._id}`, {
+      const res = await fetch(`/api/usuarios?id=${target._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: u._id,
-          habilitado: habilitado,
+          _id: target._id,
+          habilitado,
           ajuste: usuario.nombre,
         }),
       });
@@ -54,69 +54,108 @@ export default function TablaUsuarios({
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Usuarios</h2>
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-2 rounded">
-          {error}
+    <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_-36px_rgba(15,23,42,0.4)]">
+      <div className="border-b border-slate-200 bg-[linear-gradient(135deg,_rgba(168,85,247,0.08),_rgba(255,255,255,0.96))] px-6 py-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
+              Acceso
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+              Usuarios
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Controla roles y estado de acceso del personal del sistema.
+            </p>
+          </div>
+          <span className="rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200">
+            {usuarios.length} usuarios
+          </span>
         </div>
-      )}
+      </div>
 
-      {loading ? (
-        <p className="text-gray-500">Cargando...</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border p-2 text-left">Nombre</th>
-                <th className="border p-2 text-left">Rol</th>
-                <th className="border p-2 text-left">Estado</th>
-                <th className="border p-2 text-left">Autorizado por</th>
-                <th className="border p-2 text-center">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {usuarios.map((u: Usuario) => (
-                <tr key={u._id} className="hover:bg-gray-100">
-                  <td className="border p-2">{u.nombre ?? "-"}</td>
-                  <td className="border p-2">{u.rol ?? "-"}</td>
-                  <td
-                    className={
-                      "border p-2 " +
-                      (u.habilitado ? "text-green-600" : "text-red-600")
-                    }
-                  >
-                    {u.habilitado ? "Habilitado" : "Deshabilitado"}
-                  </td>
-                  <td className="border p-2">{u.ajuste || "-"}</td>
-                  <td className="border p-2 text-center">
-                    <button
-                      onClick={() => enableUsuario(u, !u.habilitado)}
-                      className={
-                        "text-blue-600 hover:underline mr-2 " +
-                        (u.habilitado ? "border-red-600" : "border-green-600")
-                      }
-                    >
-                      {u.habilitado ? "Deshabilitar" : "Habilitar"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {usuarios.length === 0 && (
+      <div className="p-6">
+        {error && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <p className="mt-2 text-sm text-slate-500">Cargando...</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-50 text-slate-500">
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="border p-4 text-center text-gray-500"
-                  >
-                    No hay usuarios registrados
-                  </td>
+                  <th className="px-5 py-4 text-left font-semibold">Nombre</th>
+                  <th className="px-5 py-4 text-left font-semibold">Rol</th>
+                  <th className="px-5 py-4 text-left font-semibold">Estado</th>
+                  <th className="px-5 py-4 text-left font-semibold">
+                    Autorizado por
+                  </th>
+                  <th className="px-5 py-4 text-center font-semibold">
+                    Acciones
+                  </th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+              </thead>
+              <tbody>
+                {usuarios.map((item) => (
+                  <tr
+                    key={item._id}
+                    className="border-t border-slate-100 transition hover:bg-slate-50"
+                  >
+                    <td className="px-5 py-4 font-semibold text-slate-800">
+                      {item.nombre ?? "-"}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
+                        {item.rol ?? "-"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                          item.habilitado
+                            ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                            : "bg-rose-50 text-rose-700 ring-rose-200"
+                        }`}
+                      >
+                        {item.habilitado ? "Habilitado" : "Deshabilitado"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-slate-500">
+                      {item.ajuste || "-"}
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <button
+                        onClick={() => enableUsuario(item, !item.habilitado)}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                          item.habilitado
+                            ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        }`}
+                      >
+                        {item.habilitado ? "Deshabilitar" : "Habilitar"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {usuarios.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-5 py-10 text-center text-slate-500"
+                    >
+                      No hay usuarios registrados
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

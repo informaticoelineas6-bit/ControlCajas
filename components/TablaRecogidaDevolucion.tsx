@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export interface ItemRecogidaDevolucion {
   centro_distribucion: string;
@@ -11,6 +11,14 @@ export interface ItemRecogidaDevolucion {
   alerta: boolean;
   rotura: boolean;
 }
+
+const totalRoturas = (item: any) =>
+  (item?.cajas_rotas?.blancas ?? 0) +
+  (item?.cajas_rotas?.negras ?? 0) +
+  (item?.cajas_rotas?.verdes ?? 0) +
+  (item?.tapas_rotas?.blancas ?? 0) +
+  (item?.tapas_rotas?.negras ?? 0) +
+  (item?.tapas_rotas?.verdes ?? 0);
 
 export default function TablaRecogidaDevolucion({
   fecha,
@@ -49,159 +57,193 @@ export default function TablaRecogidaDevolucion({
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Recogida - Devolución
-      </h2>
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
-          {error}
+    <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_-36px_rgba(15,23,42,0.4)]">
+      <div className="border-b border-slate-200 bg-[linear-gradient(135deg,_rgba(99,102,241,0.09),_rgba(251,191,36,0.08),_rgba(255,255,255,0.96))] px-6 py-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
+              Comparación operativa
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold text-slate-900">
+              Recogida - Devolución
+            </h3>
+          </div>
+          <span className="rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200">
+            {datos.length} centros
+          </span>
         </div>
-      )}
+      </div>
 
-      {loading ? (
-        <p className="text-gray-500">Cargando...</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs sm:text-sm border-collapse">
-            <thead>
-              <tr className="bg-gray-200">
-                <th colSpan={3} className="border p-2 text-left">
-                  Centro de Distribución
-                </th>
-                <th colSpan={5} className="border p-2 text-center bg-indigo-50">
-                  Recogida
-                </th>
-                <th colSpan={5} className="border p-2 text-center bg-amber-50">
-                  Devolución
-                </th>
-                <th colSpan={2} className="border p-2 text-center bg-rose-50">
-                  Roturas
-                </th>
-              </tr>
-              <tr className="bg-gray-100 text-xs">
-                <th className="border p-1">CD</th>
-                <th className="border p-1">Almacén</th>
-                <th className="border p-1">Chapa</th>
-                <th className="border p-1">Chofer</th>
-                <th className="border p-1">Ajuste</th>
-                <th className="border p-1">Blancas</th>
-                <th className="border p-1">Negras</th>
-                <th className="border p-1">Verdes</th>
-                <th className="border p-1">Almacenero</th>
-                <th className="border p-1">Ajuste</th>
-                <th className="border p-1">Blancas</th>
-                <th className="border p-1">Negras</th>
-                <th className="border p-1">Verdes</th>
-                <th className="border p-1">R. Recogida</th>
-                <th className="border p-1">R. Devolución</th>
-              </tr>
-            </thead>
-            <tbody>
-              {datos.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={16}
-                    className="border p-4 text-center text-gray-500"
+      <div className="p-6">
+        {error && (
+          <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <p className="text-sm text-slate-500">Cargando...</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 text-slate-500">
+                  <th
+                    colSpan={3}
+                    className="px-5 py-4 text-left font-semibold bg-slate-100"
                   >
-                    No hay datos para esta fecha
-                  </td>
+                    Centro de distribución
+                  </th>
+                  <th
+                    colSpan={5}
+                    className="px-5 py-4 text-center font-semibold text-indigo-700 bg-indigo-100"
+                  >
+                    Recogida
+                  </th>
+                  <th
+                    colSpan={5}
+                    className="px-5 py-4 text-center font-semibold text-amber-700 bg-amber-100"
+                  >
+                    Devolución
+                  </th>
+                  <th
+                    colSpan={2}
+                    className="px-5 py-4 text-center font-semibold text-rose-700 bg-rose-100"
+                  >
+                    Roturas
+                  </th>
                 </tr>
-              ) : (
-                datos.map((item) => (
-                  <tr
-                    key={item.centro_distribucion}
-                    className={
-                      item.alerta
-                        ? "bg-red-100 hover:bg-red-200"
-                        : item.rotura
-                          ? "bg-yellow-100 hover:bg-yellow-200"
-                          : "hover:bg-gray-100"
-                    }
-                  >
-                    <td className="border p-2 font-semibold text-sm">
-                      {item.centro_distribucion ?? "-"}
-                    </td>
-                    <td className="border p-2 font-semibold text-sm">
-                      {item.almacen ?? "-"}
-                    </td>
-                    <td className="border p-2 text-center">
-                      {item.chapa ?? "-"}
-                    </td>
-                    {/* Rec. Cajas */}
-                    <td className="border p-1 text-center text-xs">
-                      {item.recogida?.nombre ?? "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.recogida?.ajuste || "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.recogida?.cajas?.blancas ?? "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.recogida?.cajas?.negras ?? "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.recogida?.cajas?.verdes ?? "-"}
-                    </td>
-                    {/* Dev. Cajas */}
-                    <td className="border p-1 text-center text-xs">
-                      {item.devolucion?.nombre ?? "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.devolucion?.ajuste || "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.devolucion?.cajas?.blancas ?? "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.devolucion?.cajas?.negras ?? "-"}
-                    </td>
-                    <td className="border p-1 text-center text-xs">
-                      {item.devolucion?.cajas?.verdes ?? "-"}
-                    </td>
+                <tr className="bg-slate-100 text-slate-500">
+                  <th className="px-5 py-3 text-left font-semibold">CD</th>
+                  <th className="px-5 py-3 text-left font-semibold">Almacén</th>
+                  <th className="px-5 py-3 text-left font-semibold">Chapa</th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Responsable
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Ajuste
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Blancas
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Negras
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Verdes
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Responsable
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Ajuste
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Blancas
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Negras
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Verdes
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Recogida
+                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">
+                    Devolución
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {datos.length === 0 ? (
+                  <tr>
                     <td
-                      className="border p-1 text-center text-xs"
-                      title={
-                        item.recogida
-                          ? `Cajas rotas — blancas: ${item.recogida.cajas_rotas?.blancas ?? 0}, negras: ${item.recogida.cajas_rotas?.negras ?? 0}, verdes: ${item.recogida.cajas_rotas?.verdes ?? 0}\nTapas rotas — blancas: ${item.recogida.tapas_rotas?.blancas ?? 0}, negras: ${item.recogida.tapas_rotas?.negras ?? 0}, verdes: ${item.recogida.tapas_rotas?.verdes ?? 0}`
-                          : undefined
-                      }
+                      colSpan={15}
+                      className="px-5 py-10 text-center text-slate-500"
                     >
-                      {item.recogida
-                        ? (item.recogida.cajas_rotas?.blancas ?? 0) +
-                          (item.recogida.cajas_rotas?.negras ?? 0) +
-                          (item.recogida.cajas_rotas?.verdes ?? 0) +
-                          (item.recogida.tapas_rotas?.blancas ?? 0) +
-                          (item.recogida.tapas_rotas?.negras ?? 0) +
-                          (item.recogida.tapas_rotas?.verdes ?? 0)
-                        : "-"}
-                    </td>
-                    <td
-                      className="border p-1 text-center text-xs"
-                      title={
-                        item.devolucion
-                          ? `Cajas rotas — blancas: ${item.devolucion.cajas_rotas?.blancas ?? 0}, negras: ${item.devolucion.cajas_rotas?.negras ?? 0}, verdes: ${item.devolucion.cajas_rotas?.verdes ?? 0}\nTapas rotas — blancas: ${item.devolucion.tapas_rotas?.blancas ?? 0}, negras: ${item.devolucion.tapas_rotas?.negras ?? 0}, verdes: ${item.devolucion.tapas_rotas?.verdes ?? 0}`
-                          : undefined
-                      }
-                    >
-                      {item.devolucion
-                        ? (item.devolucion.cajas_rotas?.blancas ?? 0) +
-                          (item.devolucion.cajas_rotas?.negras ?? 0) +
-                          (item.devolucion.cajas_rotas?.verdes ?? 0) +
-                          (item.devolucion.tapas_rotas?.blancas ?? 0) +
-                          (item.devolucion.tapas_rotas?.negras ?? 0) +
-                          (item.devolucion.tapas_rotas?.verdes ?? 0)
-                        : "-"}
+                      No hay datos para esta fecha
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+                ) : (
+                  datos.map((item) => (
+                    <tr
+                      key={item.centro_distribucion}
+                      className={`border-t border-slate-100 transition ${
+                        item.alerta
+                          ? "bg-rose-50 hover:bg-rose-100/70"
+                          : item.rotura
+                            ? "bg-amber-50 hover:bg-amber-100/70"
+                            : "hover:bg-slate-50"
+                      }`}
+                    >
+                      <td className="px-5 py-4 font-semibold text-slate-800">
+                        {item.centro_distribucion ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {item.almacen ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {item.chapa ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-600">
+                        {item.recogida?.nombre ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-500">
+                        {item.recogida?.ajuste || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-700">
+                        {item.recogida?.cajas?.blancas ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-700">
+                        {item.recogida?.cajas?.negras ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-700">
+                        {item.recogida?.cajas?.verdes ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-600">
+                        {item.devolucion?.nombre ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-500">
+                        {item.devolucion?.ajuste || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-700">
+                        {item.devolucion?.cajas?.blancas ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-700">
+                        {item.devolucion?.cajas?.negras ?? "-"}
+                      </td>
+                      <td className="px-5 py-4 text-center text-slate-700">
+                        {item.devolucion?.cajas?.verdes ?? "-"}
+                      </td>
+                      <td
+                        className="px-5 py-4 text-center text-slate-700"
+                        title={
+                          item.recogida
+                            ? `Roturas totales en recogida: ${totalRoturas(item.recogida)}`
+                            : undefined
+                        }
+                      >
+                        {item.recogida ? totalRoturas(item.recogida) : "-"}
+                      </td>
+                      <td
+                        className="px-5 py-4 text-center text-slate-700"
+                        title={
+                          item.devolucion
+                            ? `Roturas totales en devolución: ${totalRoturas(item.devolucion)}`
+                            : undefined
+                        }
+                      >
+                        {item.devolucion ? totalRoturas(item.devolucion) : "-"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

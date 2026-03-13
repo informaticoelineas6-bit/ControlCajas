@@ -92,12 +92,20 @@ export async function GET(request: NextRequest) {
     ).map(applyAjuste);
 
     const dashboardData = [];
-    const movementData = [
-      ...expedicionesData.filter((evento: Expedicion) => evento.fecha === today),
-      ...entregasData.filter((evento: Entrega) => evento.fecha === today),
-      ...recogidasData.filter((evento: Recogida) => evento.fecha === today),
-      ...devolucionesData.filter((evento: Devolucion) => evento.fecha === today),
-    ];
+    const movementToday = {
+      expediciones: expedicionesData.filter(
+        (evento: Expedicion) => evento.fecha === today,
+      ),
+      entregas: entregasData.filter(
+        (evento: Entrega) => evento.fecha === today,
+      ),
+      recogidas: recogidasData.filter(
+        (evento: Recogida) => evento.fecha === today,
+      ),
+      devoluciones: devolucionesData.filter(
+        (evento: Devolucion) => evento.fecha === today,
+      ),
+    };
 
     for (const centro of centrosData) {
       let iteration = {
@@ -159,15 +167,6 @@ export async function GET(request: NextRequest) {
       dashboardData.push(iteration);
     }
 
-    const eventosHoy =
-      expedicionesData.filter((evento: Expedicion) => evento.fecha === today)
-        .length +
-      entregasData.filter((evento: Entrega) => evento.fecha === today).length +
-      recogidasData.filter((evento: Recogida) => evento.fecha === today)
-        .length +
-      devolucionesData.filter((evento: Devolucion) => evento.fecha === today)
-        .length;
-
     const deudaTotal = centrosData.reduce(
       (acc: number, centro: CentroDistribucion) => {
         const deuda: Cajas = centro.deuda || {
@@ -177,6 +176,31 @@ export async function GET(request: NextRequest) {
         };
         return (
           acc + (deuda.blancas ?? 0) + (deuda.negras ?? 0) + (deuda.verdes ?? 0)
+        );
+      },
+      0,
+    );
+
+    const roturaTotal = centrosData.reduce(
+      (acc: number, centro: CentroDistribucion) => {
+        const roturasCajas: Cajas = centro.roturas?.cajas || {
+          blancas: 0,
+          negras: 0,
+          verdes: 0,
+        };
+        const roturasTapas: Cajas = centro.roturas?.tapas || {
+          blancas: 0,
+          negras: 0,
+          verdes: 0,
+        };
+        return (
+          acc +
+          (roturasCajas.blancas ?? 0) +
+          (roturasCajas.negras ?? 0) +
+          (roturasCajas.verdes ?? 0) +
+          (roturasTapas.blancas ?? 0) +
+          (roturasTapas.negras ?? 0) +
+          (roturasTapas.verdes ?? 0)
         );
       },
       0,
@@ -195,10 +219,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       dashboardData,
-      movementData,
-      eventosHoy,
+      movementToday,
       deudaTotal,
       stockTotal,
+      roturaTotal,
     });
   } catch (error) {
     console.error("Error fetching data:", error);

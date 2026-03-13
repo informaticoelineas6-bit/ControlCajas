@@ -62,6 +62,10 @@ export interface CentroDistribucion {
   habilitado: CajasHabilitadas;
   deuda: Cajas;
   rotacion: number;
+  roturas: {
+    cajas: Cajas;
+    tapas: Cajas;
+  };
   ajuste?: string;
 }
 
@@ -120,6 +124,7 @@ export interface Recogida {
   chapa: string;
   cajas: Cajas;
   cajas_rotas: Cajas;
+  tapas_rotas: Cajas;
   ajuste?: string;
 }
 
@@ -131,6 +136,7 @@ export interface Devolucion {
   nombre: string;
   cajas: Cajas;
   cajas_rotas: Cajas;
+  tapas_rotas: Cajas;
   ajuste?: string;
 }
 

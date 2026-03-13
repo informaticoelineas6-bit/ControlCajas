@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       );
     }
     // convert _id to string
-    return NextResponse.json({ ...item, _id: item._id.toString() });
+    return NextResponse.json({ ...item, _id: item._id.toString(), tipo: tipo });
   } catch (err) {
     console.error("Error fetching event detail:", err);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
