@@ -1,15 +1,20 @@
 "use client";
 
+import { Cajas } from "@/lib/constants";
 import { useEffect, useState } from "react";
 
 export interface ItemExpedicionEntrega {
   chapa: string;
   centro_distribucion: string;
   almacen: string;
-  expedicion: any;
-  entrega: any;
+  expedicion?: any;
+  traspaso?: any;
+  entrega?: any;
   alerta: boolean;
 }
+
+const totalCajas = (cajas: Cajas) =>
+  (cajas?.blancas ?? 0) + (cajas?.negras ?? 0) + (cajas?.verdes ?? 0);
 
 export default function TablaExpedicionEntrega({
   fecha,
@@ -86,13 +91,19 @@ export default function TablaExpedicionEntrega({
                     Centro de distribución
                   </th>
                   <th
-                    colSpan={5}
+                    colSpan={3}
                     className="px-5 py-4 text-center font-semibold text-emerald-700 bg-emerald-100"
                   >
                     Expedición
                   </th>
                   <th
-                    colSpan={5}
+                    colSpan={3}
+                    className="px-5 py-4 text-center font-semibold text-teal-700 bg-teal-100"
+                  >
+                    Traspaso
+                  </th>
+                  <th
+                    colSpan={3}
                     className="px-5 py-4 text-center font-semibold text-sky-700 bg-sky-100"
                   >
                     Entrega
@@ -108,30 +119,21 @@ export default function TablaExpedicionEntrega({
                   <th className="px-5 py-3 text-center font-semibold">
                     Ajuste
                   </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Blancas
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Negras
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Verdes
-                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">Total</th>
                   <th className="px-5 py-3 text-center font-semibold">
                     Responsable
                   </th>
                   <th className="px-5 py-3 text-center font-semibold">
                     Ajuste
                   </th>
+                  <th className="px-5 py-3 text-center font-semibold">Total</th>
                   <th className="px-5 py-3 text-center font-semibold">
-                    Blancas
+                    Responsable
                   </th>
                   <th className="px-5 py-3 text-center font-semibold">
-                    Negras
+                    Ajuste
                   </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Verdes
-                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,14 +171,23 @@ export default function TablaExpedicionEntrega({
                       <td className="px-5 py-4 text-center text-slate-500">
                         {item.expedicion?.ajuste || "-"}
                       </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.expedicion?.cajas?.blancas ?? "-"}
+                      <td
+                        title={`Blancas: ${item.expedicion?.cajas.blancas ?? 0}, Negras: ${item.expedicion?.cajas.negras ?? 0}, Verdes: ${item.expedicion?.cajas.verdes ?? 0}`}
+                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                      >
+                        {totalCajas(item.expedicion?.cajas)}
                       </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.expedicion?.cajas?.negras ?? "-"}
+                      <td className="px-5 py-4 text-center text-slate-600">
+                        {item.traspaso?.nombre ?? "-"}
                       </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.expedicion?.cajas?.verdes ?? "-"}
+                      <td className="px-5 py-4 text-center text-slate-500">
+                        {item.traspaso?.ajuste || "-"}
+                      </td>
+                      <td
+                        title={`Blancas: ${item.traspaso?.cajas.blancas ?? 0}, Negras: ${item.traspaso?.cajas.negras ?? 0}, Verdes: ${item.traspaso?.cajas.verdes ?? 0}`}
+                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                      >
+                        {totalCajas(item.traspaso?.cajas)}
                       </td>
                       <td className="px-5 py-4 text-center text-slate-600">
                         {item.entrega?.nombre ?? "-"}
@@ -184,14 +195,11 @@ export default function TablaExpedicionEntrega({
                       <td className="px-5 py-4 text-center text-slate-500">
                         {item.entrega?.ajuste || "-"}
                       </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.entrega?.cajas?.blancas ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.entrega?.cajas?.negras ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.entrega?.cajas?.verdes ?? "-"}
+                      <td
+                        title={`Blancas: ${item.entrega?.cajas.blancas ?? 0}, Negras: ${item.entrega?.cajas.negras ?? 0}, Verdes: ${item.entrega?.cajas.verdes ?? 0}`}
+                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                      >
+                        {totalCajas(item.entrega?.cajas)}
                       </td>
                     </tr>
                   ))

@@ -14,9 +14,15 @@ export default function TablaAlmacenes({
     stock_blancas: 0,
     stock_negras: 0,
     stock_verdes: 0,
-    habilitado_blancas: true,
-    habilitado_negras: true,
-    habilitado_verdes: true,
+    habilitado_blancas: false,
+    habilitado_negras: false,
+    habilitado_verdes: false,
+    roturas_cajas_blancas: 0,
+    roturas_cajas_negras: 0,
+    roturas_cajas_verdes: 0,
+    roturas_tapas_blancas: 0,
+    roturas_tapas_negras: 0,
+    roturas_tapas_verdes: 0,
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -48,9 +54,15 @@ export default function TablaAlmacenes({
       stock_blancas: 0,
       stock_negras: 0,
       stock_verdes: 0,
-      habilitado_blancas: true,
-      habilitado_negras: true,
-      habilitado_verdes: true,
+      habilitado_blancas: false,
+      habilitado_negras: false,
+      habilitado_verdes: false,
+      roturas_cajas_blancas: 0,
+      roturas_cajas_negras: 0,
+      roturas_cajas_verdes: 0,
+      roturas_tapas_blancas: 0,
+      roturas_tapas_negras: 0,
+      roturas_tapas_verdes: 0,
     });
     setEditingId(null);
     setError("");
@@ -59,11 +71,13 @@ export default function TablaAlmacenes({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     if (type === "checkbox") {
-      const fieldName = name.replace("habilitado_", "stock_");
+      const color = name.replace("habilitado_", "");
       setForm((current) => ({
         ...current,
         [name]: checked,
-        [fieldName]: 0,
+        [`stock_${color}`]: 0,
+        [`roturas_cajas_${color}`]: 0,
+        [`roturas_tapas_${color}`]: 0,
       }));
     } else {
       setForm((current) => ({
@@ -99,6 +113,30 @@ export default function TablaAlmacenes({
           negras: form.habilitado_negras,
           verdes: form.habilitado_verdes,
         },
+        roturas: {
+          cajas: {
+            blancas: form.habilitado_blancas
+              ? Number(form.roturas_cajas_blancas) || 0
+              : 0,
+            negras: form.habilitado_negras
+              ? Number(form.roturas_cajas_negras) || 0
+              : 0,
+            verdes: form.habilitado_verdes
+              ? Number(form.roturas_cajas_verdes) || 0
+              : 0,
+          },
+          tapas: {
+            blancas: form.habilitado_blancas
+              ? Number(form.roturas_tapas_blancas) || 0
+              : 0,
+            negras: form.habilitado_negras
+              ? Number(form.roturas_tapas_negras) || 0
+              : 0,
+            verdes: form.habilitado_verdes
+              ? Number(form.roturas_tapas_verdes) || 0
+              : 0,
+          },
+        },
         ajuste: editingId ? usuario.nombre : undefined,
       };
       const res = await fetch("/api/almacenes", {
@@ -126,9 +164,15 @@ export default function TablaAlmacenes({
       stock_blancas: almacen.stock?.blancas || 0,
       stock_negras: almacen.stock?.negras || 0,
       stock_verdes: almacen.stock?.verdes || 0,
-      habilitado_blancas: almacen.habilitado?.blancas ?? true,
-      habilitado_negras: almacen.habilitado?.negras ?? true,
-      habilitado_verdes: almacen.habilitado?.verdes ?? true,
+      habilitado_blancas: almacen.habilitado?.blancas ?? false,
+      habilitado_negras: almacen.habilitado?.negras ?? false,
+      habilitado_verdes: almacen.habilitado?.verdes ?? false,
+      roturas_cajas_blancas: almacen.roturas?.cajas?.blancas || 0,
+      roturas_cajas_negras: almacen.roturas?.cajas?.negras || 0,
+      roturas_cajas_verdes: almacen.roturas?.cajas?.verdes || 0,
+      roturas_tapas_blancas: almacen.roturas?.tapas?.blancas || 0,
+      roturas_tapas_negras: almacen.roturas?.tapas?.negras || 0,
+      roturas_tapas_verdes: almacen.roturas?.tapas?.verdes || 0,
     });
     setEditingId(almacen._id ?? null);
   };
@@ -179,8 +223,8 @@ export default function TablaAlmacenes({
             </div>
           )}
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="col-span-3">
               <label
                 htmlFor="nombre"
                 className="mb-2 block text-sm font-medium text-slate-600"
@@ -226,6 +270,32 @@ export default function TablaAlmacenes({
                 />
               </div>
             ))}
+            {[
+              ["blancas", "Roturas de cajas blancas", "roturas_cajas"],
+              ["negras", "Roturas de cajas negras", "roturas_cajas"],
+              ["verdes", "Roturas de cajas verdes", "roturas_cajas"],
+              ["blancas", "Roturas de tapas blancas", "roturas_tapas"],
+              ["negras", "Roturas de tapas negras", "roturas_tapas"],
+              ["verdes", "Roturas de tapas verdes", "roturas_tapas"],
+            ].map(([color, label, prefix]) => (
+              <div key={`${prefix}_${color}`}>
+                <label
+                  htmlFor={`${prefix}_${color}`}
+                  className="mb-2 block text-sm font-medium text-slate-600"
+                >
+                  {label}
+                </label>
+                <input
+                  id={`${prefix}_${color}`}
+                  name={`${prefix}_${color}`}
+                  type="number"
+                  value={form[`${prefix}_${color}`] ?? 0}
+                  disabled={!form[`habilitado_${color}`]}
+                  onChange={handleInputChange}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                />
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -256,9 +326,7 @@ export default function TablaAlmacenes({
               <thead className="bg-slate-50 text-slate-500">
                 <tr>
                   <th className="px-5 py-4 text-left font-semibold">Nombre</th>
-                  <th className="px-5 py-4 text-left font-semibold">
-                    Blancas
-                  </th>
+                  <th className="px-5 py-4 text-left font-semibold">Blancas</th>
                   <th className="px-5 py-4 text-left font-semibold">Negras</th>
                   <th className="px-5 py-4 text-left font-semibold">Verdes</th>
                   <th className="px-5 py-4 text-left font-semibold">

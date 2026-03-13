@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
-import { COLECCIONES } from "@/lib/constants";
+import {
+  Cajas,
+  COLECCIONES,
+  Devolucion,
+  Entrega,
+  Expedicion,
+  Recogida,
+  Traspaso,
+} from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -56,10 +64,7 @@ export async function GET(request: NextRequest) {
       return item;
     }
 
-    function sumCajas(
-      actuales: { blancas: any; negras: any; verdes: any },
-      nuevas: { blancas: number; negras: number; verdes: number },
-    ): { blancas: number; negras: number; verdes: number } {
+    function sumCajas(actuales: Cajas, nuevas: Cajas): Cajas {
       return {
         blancas: (actuales?.blancas ?? 0) + (nuevas.blancas ?? 0),
         negras: (actuales?.negras ?? 0) + (nuevas.negras ?? 0),
@@ -67,23 +72,19 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    function appendNombre(actual: string, nuevo: string): string {
-      if (!actual) {
-        return nuevo;
-      }
-      if (actual.includes(nuevo)) {
-        return actual;
-      }
+    function appendNombre(actual?: string, nuevo?: string): string | undefined {
+      if (!actual && !nuevo) return undefined;
+      if (!actual) return nuevo;
+      if (!nuevo) return actual;
+      if (actual.includes(nuevo)) return actual;
       return actual + " + " + nuevo;
     }
 
-    function totalCajas(event: any): number {
-      return (
-        (event?.blancas ?? 0) + (event?.negras ?? 0) + (event?.verdes ?? 0)
-      );
+    function totalCajas(item: Cajas): number {
+      return (item?.blancas ?? 0) + (item?.negras ?? 0) + (item?.verdes ?? 0);
     }
 
-    function alertCompare(event1: any, event2: any): boolean {
+    function alertCompare(event1: any, event2: any, event3?: any): boolean {
       if (!event1 || !event2) {
         const existingEvent = event1 || event2;
         if (existingEvent && totalCajas(existingEvent.cajas) === 0) {
@@ -92,6 +93,16 @@ export async function GET(request: NextRequest) {
           return true; // Si falta uno de los eventos y se transportaron cajas, marcar alerta.
         }
       } else {
+        if (event3) {
+          return (
+            event1?.cajas?.blancas !== event2?.cajas?.blancas ||
+            event1?.cajas?.negras !== event2?.cajas?.negras ||
+            event1?.cajas?.verdes !== event2?.cajas?.verdes ||
+            event2?.cajas?.blancas !== event3?.cajas?.blancas ||
+            event2?.cajas?.negras !== event3?.cajas?.negras ||
+            event2?.cajas?.verdes !== event3?.cajas?.verdes
+          );
+        }
         // Ambos existen, comparar
         return (
           event1?.cajas?.blancas !== event2?.cajas?.blancas ||
@@ -127,14 +138,18 @@ export async function GET(request: NextRequest) {
       // Obtener expediciones y entregas
       const expediciones = (
         await db.collection(COLECCIONES.EXPEDICION).find({ fecha }).toArray()
-      ).map(applyAjuste);
+      ).map(applyAjuste) as Expedicion[];
 
       const entregas = (
         await db.collection(COLECCIONES.ENTREGA).find({ fecha }).toArray()
-      ).map(applyAjuste);
+      ).map(applyAjuste) as Entrega[];
+
+      const traspasos = (
+        await db.collection(COLECCIONES.TRASPASO).find({ fecha }).toArray()
+      ).map(applyAjuste) as Traspaso[];
 
       // Agrupar por centro de distribución
-      const centrosExp = new Map();
+      const centrosExp = new Map<string, any>();
 
       for (const current of expediciones) {
         const centro = current.centro_distribucion;
@@ -146,8 +161,9 @@ export async function GET(request: NextRequest) {
             expedicion: {
               nombre: current.nombre,
               cajas: current.cajas,
-              ajuste: current.ajuste || "",
+              ajuste: current.ajuste,
             },
+            traspaso: null,
             entrega: null,
             alerta: false,
           });
@@ -157,7 +173,35 @@ export async function GET(request: NextRequest) {
           item.expedicion = {
             nombre: appendNombre(item.expedicion?.nombre, current.nombre),
             cajas: sumCajas(item.expedicion?.cajas, current.cajas),
-            ajuste: appendNombre(item.expedicion?.ajuste, current.ajuste || ""),
+            ajuste: appendNombre(item.expedicion?.ajuste, current.ajuste),
+          };
+        }
+      }
+
+      for (const current of traspasos) {
+        const centro = current.centro_distribucion;
+        if (!centrosExp.has(centro)) {
+          centrosExp.set(centro, {
+            centro_distribucion: centro,
+            almacen: current.almacen,
+            chapa: current.chapa,
+            expedicion: null,
+            traspaso: {
+              nombre: current.nombre,
+              cajas: current.cajas,
+              ajuste: current.ajuste,
+            },
+            entrega: null,
+            alerta: false,
+          });
+        } else {
+          const item = centrosExp.get(centro);
+          item.almacen = appendNombre(item.almacen, current.almacen);
+          item.chapa = appendNombre(item.chapa, current.chapa);
+          item.traspaso = {
+            nombre: appendNombre(item.traspaso?.nombre, current.nombre),
+            cajas: sumCajas(item.traspaso?.cajas, current.cajas),
+            ajuste: appendNombre(item.traspaso?.ajuste, current.ajuste),
           };
         }
       }
@@ -167,8 +211,10 @@ export async function GET(request: NextRequest) {
         if (!centrosExp.has(centro)) {
           centrosExp.set(centro, {
             centro_distribucion: centro,
+            almacen: null,
             chapa: current.chapa,
             expedicion: null,
+            traspaso: null,
             entrega: {
               nombre: current.nombre,
               cajas: current.cajas,
@@ -182,14 +228,18 @@ export async function GET(request: NextRequest) {
           item.entrega = {
             nombre: appendNombre(item.entrega?.nombre, current.nombre),
             cajas: sumCajas(item.entrega?.cajas, current.cajas),
-            ajuste: appendNombre(item.entrega?.ajuste, current.ajuste || ""),
+            ajuste: appendNombre(item.entrega?.ajuste, current.ajuste),
           };
         }
       }
 
       // Verificar inconsistencias
       const resultados = Array.from(centrosExp.values()).map((item) => {
-        item.alerta = alertCompare(item.expedicion, item.entrega);
+        item.alerta = alertCompare(
+          item.expedicion,
+          item.entrega,
+          item.traspaso,
+        );
         return item;
       });
 
@@ -198,27 +248,28 @@ export async function GET(request: NextRequest) {
       // Obtener devoluciones y recogidas
       const recogidas = (
         await db.collection(COLECCIONES.RECOGIDA).find({ fecha }).toArray()
-      ).map(applyAjuste);
+      ).map(applyAjuste) as Recogida[];
 
       const devoluciones = (
         await db.collection(COLECCIONES.DEVOLUCION).find({ fecha }).toArray()
-      ).map(applyAjuste);
+      ).map(applyAjuste) as Devolucion[];
 
       // Agrupar por centro de distribución
-      const centrosRec = new Map();
+      const centrosRec = new Map<string, any>();
 
       for (const current of recogidas) {
         const centro = current.centro_distribucion;
         if (!centrosRec.has(centro)) {
           centrosRec.set(centro, {
             centro_distribucion: centro,
+            almacen: null,
             chapa: current.chapa,
             recogida: {
               nombre: current.nombre,
               cajas: current.cajas,
               cajas_rotas: current.cajas_rotas,
               tapas_rotas: current.tapas_rotas,
-              ajuste: current.ajuste || "",
+              ajuste: current.ajuste,
             },
             devolucion: null,
             alerta: false,
@@ -238,7 +289,7 @@ export async function GET(request: NextRequest) {
               item.recogida?.tapas_rotas,
               current.tapas_rotas,
             ),
-            ajuste: appendNombre(item.recogida?.ajuste, current.ajuste || ""),
+            ajuste: appendNombre(item.recogida?.ajuste, current.ajuste),
           };
         }
       }
@@ -256,7 +307,7 @@ export async function GET(request: NextRequest) {
               cajas: current.cajas,
               cajas_rotas: current.cajas_rotas,
               tapas_rotas: current.tapas_rotas,
-              ajuste: current.ajuste || "",
+              ajuste: current.ajuste,
             },
             alerta: false,
             rotura: false,
@@ -275,7 +326,7 @@ export async function GET(request: NextRequest) {
               item.devolucion?.tapas_rotas,
               current.tapas_rotas,
             ),
-            ajuste: appendNombre(item.devolucion?.ajuste, current.ajuste || ""),
+            ajuste: appendNombre(item.devolucion?.ajuste, current.ajuste),
           };
         }
       }

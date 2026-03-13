@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
       Entrega: "Entrega",
       Devolucion: "Devolucion",
       Recogida: "Recogida",
+      Traspaso: "Traspaso",
     };
 
     const collectionName = mapping[tipo];

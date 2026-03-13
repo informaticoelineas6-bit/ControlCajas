@@ -95,49 +95,79 @@ export default function CierreDiario({
     cierre_cd: Object.entries(calcularAjustesDeuda()).map(([cd, data]) => ({
       centro_distribucion: cd,
       ajuste_deuda: data.cajas,
-      cajas_rotas: data.roturas,
-      tapas_rotas: data.roturas,
+      cajas_rotas: data.cajas_rotas,
+      tapas_rotas: data.tapas_rotas,
     })),
     cierre_almacen: Object.entries(calcularAjustesStock()).map(
-      ([almacen, cajas]) => ({
+      ([almacen, data]) => ({
         almacen,
-        ajuste_stock: cajas,
+        ajuste_stock: data.cajas,
+        cajas_rotas: data.cajas_rotas,
+        tapas_rotas: data.tapas_rotas,
       }),
     ),
   });
 
   const calcularAjustesStock = () => {
-    const ajustesMap: Record<string, Cajas> = {};
+    const ajustesMap: Record<
+      string,
+      { cajas: Cajas; cajas_rotas: Cajas; tapas_rotas: Cajas }
+    > = {};
 
     devolucionData.forEach((item: Devolucion) => {
       if (!ajustesMap[item.almacen]) {
-        ajustesMap[item.almacen] = { blancas: 0, negras: 0, verdes: 0 };
+        ajustesMap[item.almacen] = {
+          cajas: { blancas: 0, negras: 0, verdes: 0 },
+          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+        };
       }
-      ajustesMap[item.almacen].blancas += item.cajas.blancas ?? 0;
-      ajustesMap[item.almacen].negras += item.cajas.negras ?? 0;
-      ajustesMap[item.almacen].verdes += item.cajas.verdes ?? 0;
+      ajustesMap[item.almacen].cajas.blancas += item.cajas.blancas ?? 0;
+      ajustesMap[item.almacen].cajas.negras += item.cajas.negras ?? 0;
+      ajustesMap[item.almacen].cajas.verdes += item.cajas.verdes ?? 0;
+
+      ajustesMap[item.almacen].cajas_rotas.blancas +=
+        item.cajas_rotas.blancas ?? 0;
+      ajustesMap[item.almacen].cajas_rotas.negras +=
+        item.cajas_rotas.negras ?? 0;
+      ajustesMap[item.almacen].cajas_rotas.verdes +=
+        item.cajas_rotas.verdes ?? 0;
+      ajustesMap[item.almacen].tapas_rotas.blancas +=
+        item.tapas_rotas.blancas ?? 0;
+      ajustesMap[item.almacen].tapas_rotas.negras +=
+        item.tapas_rotas.negras ?? 0;
+      ajustesMap[item.almacen].tapas_rotas.verdes +=
+        item.tapas_rotas.verdes ?? 0;
     });
 
     expedicionData.forEach((item: Expedicion) => {
       if (!ajustesMap[item.almacen]) {
-        ajustesMap[item.almacen] = { blancas: 0, negras: 0, verdes: 0 };
+        ajustesMap[item.almacen] = {
+          cajas: { blancas: 0, negras: 0, verdes: 0 },
+          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+        };
       }
-      ajustesMap[item.almacen].blancas -= item.cajas.blancas ?? 0;
-      ajustesMap[item.almacen].negras -= item.cajas.negras ?? 0;
-      ajustesMap[item.almacen].verdes -= item.cajas.verdes ?? 0;
+      ajustesMap[item.almacen].cajas.blancas -= item.cajas.blancas ?? 0;
+      ajustesMap[item.almacen].cajas.negras -= item.cajas.negras ?? 0;
+      ajustesMap[item.almacen].cajas.verdes -= item.cajas.verdes ?? 0;
     });
 
     return ajustesMap;
   };
 
   const calcularAjustesDeuda = () => {
-    const ajustesMap: Record<string, { cajas: Cajas; roturas: Cajas }> = {};
+    const ajustesMap: Record<
+      string,
+      { cajas: Cajas; cajas_rotas: Cajas; tapas_rotas: Cajas }
+    > = {};
 
     entregaData.forEach((item: Entrega) => {
       if (!ajustesMap[item.centro_distribucion]) {
         ajustesMap[item.centro_distribucion] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
-          roturas: { blancas: 0, negras: 0, verdes: 0 },
+          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
         };
       }
       ajustesMap[item.centro_distribucion].cajas.blancas +=
@@ -152,7 +182,8 @@ export default function CierreDiario({
       if (!ajustesMap[item.centro_distribucion]) {
         ajustesMap[item.centro_distribucion] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
-          roturas: { blancas: 0, negras: 0, verdes: 0 },
+          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
         };
       }
 
@@ -163,12 +194,18 @@ export default function CierreDiario({
       ajustesMap[item.centro_distribucion].cajas.verdes -=
         item.cajas.verdes ?? 0;
 
-      ajustesMap[item.centro_distribucion].roturas.blancas +=
-        (item.cajas_rotas.blancas ?? 0) + (item.tapas_rotas.blancas ?? 0);
-      ajustesMap[item.centro_distribucion].roturas.negras +=
-        (item.cajas_rotas.negras ?? 0) + (item.tapas_rotas.negras ?? 0);
-      ajustesMap[item.centro_distribucion].roturas.verdes +=
-        (item.cajas_rotas.verdes ?? 0) + (item.tapas_rotas.verdes ?? 0);
+      ajustesMap[item.centro_distribucion].cajas_rotas.blancas +=
+        item.cajas_rotas.blancas ?? 0;
+      ajustesMap[item.centro_distribucion].cajas_rotas.negras +=
+        item.cajas_rotas.negras ?? 0;
+      ajustesMap[item.centro_distribucion].cajas_rotas.verdes +=
+        item.cajas_rotas.verdes ?? 0;
+      ajustesMap[item.centro_distribucion].tapas_rotas.blancas +=
+        item.tapas_rotas.blancas ?? 0;
+      ajustesMap[item.centro_distribucion].tapas_rotas.negras +=
+        item.tapas_rotas.negras ?? 0;
+      ajustesMap[item.centro_distribucion].tapas_rotas.verdes +=
+        item.tapas_rotas.verdes ?? 0;
     });
 
     return ajustesMap;
@@ -283,6 +320,12 @@ export default function CierreDiario({
                     <th className="px-5 py-4 text-center font-semibold">
                       Total
                     </th>
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Cajas rotas
+                    </th>
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Tapas rotas
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -316,6 +359,18 @@ export default function CierreDiario({
                         <td className="px-5 py-4 text-center font-semibold text-slate-800">
                           {totalCajas(item.ajuste_stock)}
                         </td>
+                        <td
+                          title={`Blancas: ${item.cajas_rotas.blancas}, Negras: ${item.cajas_rotas.negras}, Verdes: ${item.cajas_rotas.verdes}`}
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        >
+                          {totalCajas(item.cajas_rotas)}
+                        </td>
+                        <td
+                          title={`Blancas: ${item.tapas_rotas.blancas}, Negras: ${item.tapas_rotas.negras}, Verdes: ${item.tapas_rotas.verdes}`}
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        >
+                          {totalCajas(item.tapas_rotas)}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -345,6 +400,9 @@ export default function CierreDiario({
                     </th>
                     <th className="px-5 py-4 text-center font-semibold">
                       Verdes
+                    </th>
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Total
                     </th>
                     <th className="px-5 py-4 text-center font-semibold">
                       Cajas rotas
@@ -382,15 +440,18 @@ export default function CierreDiario({
                         <td className="px-5 py-4 text-center text-slate-700">
                           {item.ajuste_deuda.verdes}
                         </td>
+                        <td className="px-5 py-4 text-center font-semibold text-slate-800">
+                          {totalCajas(item.ajuste_deuda)}
+                        </td>
                         <td
                           title={`Blancas: ${item.cajas_rotas.blancas}, Negras: ${item.cajas_rotas.negras}, Verdes: ${item.cajas_rotas.verdes}`}
-                          className="px-5 py-4 text-center text-slate-700"
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.cajas_rotas)}
                         </td>
                         <td
                           title={`Blancas: ${item.tapas_rotas.blancas}, Negras: ${item.tapas_rotas.negras}, Verdes: ${item.tapas_rotas.verdes}`}
-                          className="px-5 py-4 text-center text-slate-700"
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.tapas_rotas)}
                         </td>

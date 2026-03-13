@@ -1,8 +1,8 @@
 "use client";
 
-import { Entrega } from "@/lib/constants";
+import { Traspaso } from "@/lib/constants";
 
-export default function TablaEntrega({
+export default function TablaTraspaso({
   usuario,
   datos,
   loading,
@@ -10,12 +10,12 @@ export default function TablaEntrega({
   onAjustar,
 }: Readonly<{
   usuario: any;
-  datos: Entrega[];
+  datos: Traspaso[];
   loading: boolean;
   error: string;
   onAjustar?: (tipo: string, id: string) => void;
 }>) {
-  // const [datos, setDatos] = useState<Entrega[]>([]);
+  // const [datos, setDatos] = useState<Traspaso[]>([]);
   // const [loading, setLoading] = useState(false);
   // const [error, setError] = useState("");
 
@@ -27,7 +27,7 @@ export default function TablaEntrega({
   //   setLoading(true);
   //   setError("");
   //   try {
-  //     const res = await fetch(`/api/eventos/list?fecha=${fecha}&tipo=Entrega`);
+  //     const res = await fetch(`/api/eventos/list?fecha=${fecha}&tipo=Traspaso`);
   //     const data = await res.json();
   //     if (res.ok) {
   //       setDatos(data);
@@ -43,14 +43,14 @@ export default function TablaEntrega({
 
   return (
     <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.35)]">
-      <div className="border-b border-slate-200 bg-[linear-gradient(135deg,_rgba(14,165,233,0.1),_rgba(255,255,255,0.96))] px-6 py-5">
+      <div className="border-b border-slate-200 bg-[linear-gradient(135deg,_rgba(20,184,166,0.1),_rgba(255,255,255,0.96))] px-6 py-5">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
-              Entrega al Centro de Distribución
+              Subida al camión
             </p>
             <h3 className="mt-2 text-2xl font-semibold text-slate-900">
-              Entregas
+              Traspasos
             </h3>
           </div>
           <span className="rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200">
@@ -90,10 +90,18 @@ export default function TablaEntrega({
                           {item.centro_distribucion ?? "-"}
                         </h4>
                       </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                          Almacén
+                        </p>
+                        <h4 className="mt-1 text-base font-semibold text-slate-900">
+                          {item.almacen ?? "-"}
+                        </h4>
+                      </div>
                       {usuario.rol === "informatico" && (
                         <button
                           className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                          onClick={() => onAjustar?.("Entrega", item._id!)}
+                          onClick={() => onAjustar?.("Traspaso", item._id!)}
                         >
                           Ajustar
                         </button>
@@ -152,6 +160,9 @@ export default function TablaEntrega({
                       Centro
                     </th>
                     <th className="px-5 py-4 text-left font-semibold">
+                      Almacén
+                    </th>
+                    <th className="px-5 py-4 text-left font-semibold">
                       Chofer
                     </th>
                     <th className="px-5 py-4 text-left font-semibold">Chapa</th>
@@ -190,10 +201,13 @@ export default function TablaEntrega({
                     datos.map((item) => (
                       <tr
                         key={item._id}
-                        className="border-t border-slate-100 transition hover:bg-sky-50/40"
+                        className="border-t border-slate-100 transition hover:bg-teal-50/40"
                       >
                         <td className="px-5 py-4 font-semibold text-slate-800">
                           {item.centro_distribucion ?? "-"}
+                        </td>
+                        <td className="px-5 py-4 text-slate-600">
+                          {item.almacen ?? "-"}
                         </td>
                         <td className="px-5 py-4 text-slate-600">
                           {item.nombre ?? "-"}
@@ -219,7 +233,7 @@ export default function TablaEntrega({
                           <td className="px-5 py-4 text-center">
                             <button
                               className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                              onClick={() => onAjustar?.("Entrega", item._id!)}
+                              onClick={() => onAjustar?.("Traspaso", item._id!)}
                             >
                               Ajustar
                             </button>

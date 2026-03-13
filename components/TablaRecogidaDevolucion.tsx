@@ -1,5 +1,6 @@
 "use client";
 
+import { Cajas } from "@/lib/constants";
 import { useEffect, useState } from "react";
 
 export interface ItemRecogidaDevolucion {
@@ -11,6 +12,9 @@ export interface ItemRecogidaDevolucion {
   alerta: boolean;
   rotura: boolean;
 }
+
+const totalCajas = (cajas: Cajas) =>
+  (cajas?.blancas ?? 0) + (cajas?.negras ?? 0) + (cajas?.verdes ?? 0);
 
 const totalRoturas = (item: any) =>
   (item?.cajas_rotas?.blancas ?? 0) +
@@ -95,13 +99,13 @@ export default function TablaRecogidaDevolucion({
                     Centro de distribución
                   </th>
                   <th
-                    colSpan={5}
+                    colSpan={3}
                     className="px-5 py-4 text-center font-semibold text-indigo-700 bg-indigo-100"
                   >
                     Recogida
                   </th>
                   <th
-                    colSpan={5}
+                    colSpan={3}
                     className="px-5 py-4 text-center font-semibold text-amber-700 bg-amber-100"
                   >
                     Devolución
@@ -123,35 +127,19 @@ export default function TablaRecogidaDevolucion({
                   <th className="px-5 py-3 text-center font-semibold">
                     Ajuste
                   </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Blancas
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Negras
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Verdes
-                  </th>
+                  <th className="px-5 py-3 text-center font-semibold">Total</th>
                   <th className="px-5 py-3 text-center font-semibold">
                     Responsable
                   </th>
                   <th className="px-5 py-3 text-center font-semibold">
                     Ajuste
                   </th>
+                  <th className="px-5 py-3 text-center font-semibold">Total</th>
                   <th className="px-5 py-3 text-center font-semibold">
-                    Blancas
+                    Total (R)
                   </th>
                   <th className="px-5 py-3 text-center font-semibold">
-                    Negras
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Verdes
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Recogida
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Devolución
+                    Total (D)
                   </th>
                 </tr>
               </thead>
@@ -192,14 +180,11 @@ export default function TablaRecogidaDevolucion({
                       <td className="px-5 py-4 text-center text-slate-500">
                         {item.recogida?.ajuste || "-"}
                       </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.recogida?.cajas?.blancas ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.recogida?.cajas?.negras ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.recogida?.cajas?.verdes ?? "-"}
+                      <td
+                        title={`Blancas: ${item.recogida?.cajas.blancas ?? 0}, Negras: ${item.recogida?.cajas.negras ?? 0}, Verdes: ${item.recogida?.cajas.verdes ?? 0}`}
+                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                      >
+                        {totalCajas(item.recogida?.cajas)}
                       </td>
                       <td className="px-5 py-4 text-center text-slate-600">
                         {item.devolucion?.nombre ?? "-"}
@@ -207,32 +192,21 @@ export default function TablaRecogidaDevolucion({
                       <td className="px-5 py-4 text-center text-slate-500">
                         {item.devolucion?.ajuste || "-"}
                       </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.devolucion?.cajas?.blancas ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.devolucion?.cajas?.negras ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-700">
-                        {item.devolucion?.cajas?.verdes ?? "-"}
+                      <td
+                        title={`Blancas: ${item.devolucion?.cajas.blancas ?? 0}, Negras: ${item.devolucion?.cajas.negras ?? 0}, Verdes: ${item.devolucion?.cajas.verdes ?? 0}`}
+                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                      >
+                        {totalCajas(item.devolucion?.cajas)}
                       </td>
                       <td
-                        className="px-5 py-4 text-center text-slate-700"
-                        title={
-                          item.recogida
-                            ? `Roturas totales en recogida: ${totalRoturas(item.recogida)}`
-                            : undefined
-                        }
+                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        title={`Cajas Blancas: ${item.recogida?.cajas_rotas.blancas ?? 0}, Negras: ${item.recogida?.cajas_rotas.negras ?? 0}, Verdes: ${item.recogida?.cajas_rotas.verdes ?? 0}\nTapas Blancas: ${item.recogida?.tapas_rotas.blancas ?? 0}, Negras: ${item.recogida?.tapas_rotas.negras ?? 0}, Verdes: ${item.recogida?.tapas_rotas.verdes ?? 0}`}
                       >
                         {item.recogida ? totalRoturas(item.recogida) : "-"}
                       </td>
                       <td
-                        className="px-5 py-4 text-center text-slate-700"
-                        title={
-                          item.devolucion
-                            ? `Roturas totales en devolución: ${totalRoturas(item.devolucion)}`
-                            : undefined
-                        }
+                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        title={`Cajas Blancas: ${item.devolucion?.cajas_rotas.blancas ?? 0}, Negras: ${item.devolucion?.cajas_rotas.negras ?? 0}, Verdes: ${item.devolucion?.cajas_rotas.verdes ?? 0}\nTapas Blancas: ${item.devolucion?.tapas_rotas.blancas ?? 0}, Negras: ${item.devolucion?.tapas_rotas.negras ?? 0}, Verdes: ${item.devolucion?.tapas_rotas.verdes ?? 0}`}
                       >
                         {item.devolucion ? totalRoturas(item.devolucion) : "-"}
                       </td>

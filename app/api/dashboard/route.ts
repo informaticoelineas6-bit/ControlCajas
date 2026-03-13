@@ -137,7 +137,6 @@ export async function GET(request: NextRequest) {
         } else {
           break;
         }
-        console.log(centro.deuda);
       }
 
       if (

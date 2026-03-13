@@ -1,6 +1,9 @@
 "use client";
 
-import { Devolucion } from "@/lib/constants";
+import { Cajas, Devolucion } from "@/lib/constants";
+
+const totalCajas = (cajas: Cajas) =>
+  (cajas?.blancas ?? 0) + (cajas?.negras ?? 0) + (cajas?.verdes ?? 0);
 
 export default function TablaDevolucion({
   usuario,
@@ -168,6 +171,12 @@ export default function TablaDevolucion({
                     <th className="px-5 py-4 text-center font-semibold">
                       Verdes
                     </th>
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Cajas rotas
+                    </th>
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Tapas rotas
+                    </th>
                     {usuario.rol === "informatico" && (
                       <th className="px-5 py-4 text-center font-semibold">
                         Ajustado por
@@ -213,6 +222,18 @@ export default function TablaDevolucion({
                         </td>
                         <td className="px-5 py-4 text-center text-slate-700">
                           {item.cajas?.verdes ?? "-"}
+                        </td>
+                        <td
+                          title={`Blancas: ${item.cajas_rotas.blancas ?? 0}, Negras: ${item.cajas_rotas.negras ?? 0}, Verdes: ${item.cajas_rotas.verdes ?? 0}`}
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        >
+                          {totalCajas(item.cajas_rotas)}
+                        </td>
+                        <td
+                          title={`Blancas: ${item.tapas_rotas.blancas ?? 0}, Negras: ${item.tapas_rotas.negras ?? 0}, Verdes: ${item.tapas_rotas.verdes ?? 0}`}
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        >
+                          {totalCajas(item.tapas_rotas)}
                         </td>
                         {usuario.rol === "informatico" && (
                           <td className="px-5 py-4 text-center text-slate-500">

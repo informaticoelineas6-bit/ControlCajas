@@ -22,6 +22,7 @@ export const COLECCIONES = {
   VEHICULO: "Vehiculo",
   EXPEDICION: "Expedicion",
   ENTREGA: "Entrega",
+  TRASPASO: "Traspaso",
   DEVOLUCION: "Devolucion",
   RECOGIDA: "Recogida",
   CIERRE: "Cierre",
@@ -53,6 +54,10 @@ export interface Almacen {
   nombre: string;
   habilitado: CajasHabilitadas;
   stock: Cajas;
+  roturas: {
+    cajas: Cajas;
+    tapas: Cajas;
+  };
   ajuste?: string;
 }
 
@@ -96,48 +101,38 @@ export interface Ajuste {
   tapas_rotas: Cajas;
   nombre?: string;
 }
-export interface Expedicion {
+
+export interface Evento {
   _id?: string;
   centro_distribucion: string;
+  fecha: string;
+  nombre: string;
+  cajas: Cajas;
+  ajuste?: string;
+}
+export interface Expedicion extends Evento {
   almacen: string;
-  fecha: string;
-  nombre: string;
-  cajas: Cajas;
-  ajuste?: string;
 }
 
-export interface Entrega {
-  _id?: string;
-  centro_distribucion: string;
-  fecha: string;
-  nombre: string;
+export interface Traspaso extends Evento {
+  almacen: string;
   chapa: string;
-  cajas: Cajas;
-  ajuste?: string;
 }
 
-export interface Recogida {
-  _id?: string;
-  centro_distribucion: string;
-  fecha: string;
-  nombre: string;
+export interface Entrega extends Evento {
   chapa: string;
-  cajas: Cajas;
+}
+
+export interface Recogida extends Evento {
+  chapa: string;
   cajas_rotas: Cajas;
   tapas_rotas: Cajas;
-  ajuste?: string;
 }
 
-export interface Devolucion {
-  _id?: string;
-  centro_distribucion: string;
+export interface Devolucion extends Evento {
   almacen: string;
-  fecha: string;
-  nombre: string;
-  cajas: Cajas;
   cajas_rotas: Cajas;
   tapas_rotas: Cajas;
-  ajuste?: string;
 }
 
 export interface Cierre {
@@ -151,5 +146,7 @@ export interface Cierre {
   cierre_almacen: {
     almacen: string;
     ajuste_stock: Cajas;
+    cajas_rotas: Cajas;
+    tapas_rotas: Cajas;
   }[];
 }

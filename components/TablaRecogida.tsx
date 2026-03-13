@@ -1,6 +1,9 @@
 "use client";
 
-import { Recogida } from "@/lib/constants";
+import { Cajas, Recogida } from "@/lib/constants";
+
+const totalCajas = (cajas: Cajas) =>
+  (cajas?.blancas ?? 0) + (cajas?.negras ?? 0) + (cajas?.verdes ?? 0);
 
 export default function TablaRecogida({
   usuario,
@@ -47,7 +50,7 @@ export default function TablaRecogida({
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
-              Retiro en centro
+              Recogida desde el Centro de Distribución
             </p>
             <h3 className="mt-2 text-2xl font-semibold text-slate-900">
               Recogidas
@@ -164,6 +167,12 @@ export default function TablaRecogida({
                     <th className="px-5 py-4 text-center font-semibold">
                       Verdes
                     </th>
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Cajas rotas
+                    </th>
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Tapas rotas
+                    </th>
                     {usuario.rol === "informatico" && (
                       <th className="px-5 py-4 text-center font-semibold">
                         Ajustado por
@@ -209,6 +218,18 @@ export default function TablaRecogida({
                         </td>
                         <td className="px-5 py-4 text-center text-slate-700">
                           {item.cajas?.verdes ?? "-"}
+                        </td>
+                        <td
+                          title={`Blancas: ${item.cajas_rotas.blancas ?? 0}, Negras: ${item.cajas_rotas.negras ?? 0}, Verdes: ${item.cajas_rotas.verdes ?? 0}`}
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        >
+                          {totalCajas(item.cajas_rotas)}
+                        </td>
+                        <td
+                          title={`Blancas: ${item.tapas_rotas.blancas ?? 0}, Negras: ${item.tapas_rotas.negras ?? 0}, Verdes: ${item.tapas_rotas.verdes ?? 0}`}
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        >
+                          {totalCajas(item.tapas_rotas)}
                         </td>
                         {usuario.rol === "informatico" && (
                           <td className="px-5 py-4 text-center text-slate-500">

@@ -7,6 +7,7 @@ import {
   CajasHabilitadas,
   Usuario,
   Vehiculo,
+  Almacen,
 } from "@/lib/constants";
 import { useState, useEffect } from "react";
 
@@ -25,10 +26,11 @@ export default function FormularioEvento({
 }: Readonly<FormularioEventoProps>) {
   const [tipoEvento, setTipoEvento] = useState<string>("");
   const [originalId, setOriginalId] = useState<string | null>(null);
-  const [almacenes, setAlmacenes] = useState<CentroDistribucion[]>([]);
+  const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [habilitado, setHabilitado] = useState<CajasHabilitadas>({
     blancas: false,
@@ -57,10 +59,10 @@ export default function FormularioEvento({
   });
 
   useEffect(() => {
-    fetchAlmacenes();
-    fetchCentros();
-    fetchVehiculos();
-  }, []);
+    if (tipoEvento) {
+      fetchDatos();
+    }
+  }, [tipoEvento]);
 
   // populate when editing/adjustment
   useEffect(() => {
@@ -105,33 +107,22 @@ export default function FormularioEvento({
     );
   }, [formData.centro_distribucion, centros]);
 
-  const fetchAlmacenes = async () => {
+  const fetchDatos = async () => {
+    setLoading(true);
+    setAlmacenes([]);
+    setCentros([]);
+    setVehiculos([]);
     try {
-      const response = await fetch("/api/almacenes");
+      const response = await fetch(`/api/formdata?tipo=${tipoEvento}`);
       const data = await response.json();
-      setAlmacenes(data);
+      if (data.error) setMensaje(data.error);
+      if (data.almacenes) setAlmacenes(data.almacenes);
+      if (data.centros) setCentros(data.centros);
+      if (data.vehiculos) setVehiculos(data.vehiculos);
     } catch (error) {
-      console.error("Error fetching almacenes:", error);
-    }
-  };
-
-  const fetchCentros = async () => {
-    try {
-      const response = await fetch("/api/centros");
-      const data = await response.json();
-      setCentros(data);
-    } catch (error) {
-      console.error("Error fetching centros:", error);
-    }
-  };
-
-  const fetchVehiculos = async () => {
-    try {
-      const response = await fetch("/api/vehiculos");
-      const data = await response.json();
-      setVehiculos(data);
-    } catch (error) {
-      console.error("Error fetching vehiculos:", error);
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -229,7 +220,7 @@ export default function FormularioEvento({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
 
     try {
       let response;
@@ -291,14 +282,14 @@ export default function FormularioEvento({
       setMensaje("Error en el servidor");
       console.error(error);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const opcionesEvento = (() => {
     switch (usuario.rol) {
       case "chofer":
-        return ["Entrega", "Recogida"];
+        return ["Traspaso", "Entrega", "Recogida"];
       case "expedidor":
         return ["Expedicion"];
       case "almacenero":
@@ -308,7 +299,10 @@ export default function FormularioEvento({
     }
   })();
 
-  const mostrarChofer = ["Entrega", "Recogida"].includes(tipoEvento);
+  const mostrarAlmacen = ["Expedicion", "Traspaso", "Devolucion"].includes(
+    tipoEvento,
+  );
+  const mostrarChapa = ["Entrega", "Recogida"].includes(tipoEvento);
   const mostrarRoturas = ["Recogida", "Devolucion"].includes(tipoEvento);
   const isSuccess = mensaje.includes("exitosamente");
   const fieldClass =
@@ -346,12 +340,18 @@ export default function FormularioEvento({
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
                 Selecciona el tipo de evento:
               </p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div
+                className={
+                  "grid grid-cols-1 gap-3 " + usuario.rol === "chofer"
+                    ? "md:grid-cols-3"
+                    : ""
+                }
+              >
                 {opcionesEvento.map((tipo) => (
                   <button
                     key={tipo}
                     onClick={() => handleSelectEvento(tipo)}
-                    className="rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(239,246,255,0.95))] px-5 py-5 text-left transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_22px_38px_-24px_rgba(59,130,246,0.55)]"
+                    className="w-full m-2 rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(239,246,255,0.95))] px-5 py-5 text-left transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_22px_38px_-24px_rgba(59,130,246,0.55)]"
                   >
                     <p className="text-lg font-semibold text-slate-900">
                       {tipo}
@@ -359,11 +359,13 @@ export default function FormularioEvento({
                     <p className="mt-2 text-sm text-slate-600">
                       {tipo === "Expedicion" &&
                         "Expedición desde almacén hacia un centro de distribución."}
+                      {tipo === "Traspaso" &&
+                        "Subida de cajas al camión antes de su transporte."}
                       {tipo === "Entrega" &&
                         "Entrega de las cajas expedidas al centro de distribución asignado."}
                       {tipo === "Recogida" &&
                         "Recogida de cajas desde un centro de distribución."}
-                      {tipo === "Devolucion" &&
+                      {tipo === "Devolución" &&
                         "Devolución de cajas al almacén."}
                     </p>
                   </button>
@@ -385,7 +387,7 @@ export default function FormularioEvento({
               </div>
 
               <div className="grid gap-5 lg:grid-cols-2">
-                {!mostrarChofer && (
+                {mostrarAlmacen && (
                   <div>
                     <label
                       htmlFor="almacen"
@@ -399,7 +401,9 @@ export default function FormularioEvento({
                       value={formData.almacen}
                       onChange={handleInputChange}
                       required
-                      disabled={isAdjustment}
+                      disabled={
+                        !!(isAdjustment || loading || saving || mensaje)
+                      }
                       className={fieldClass}
                     >
                       <option value="">Selecciona un almacén</option>
@@ -425,7 +429,7 @@ export default function FormularioEvento({
                     value={formData.centro_distribucion}
                     onChange={handleInputChange}
                     required
-                    disabled={isAdjustment}
+                    disabled={!!(isAdjustment || loading || saving || mensaje)}
                     className={fieldClass}
                   >
                     <option value="">Selecciona un centro</option>
@@ -434,9 +438,9 @@ export default function FormularioEvento({
                         {centro.nombre +
                           (tipoEvento === "Recogida"
                             ? " (deuda: " +
-                              centro.deuda.blancas +
-                              centro.deuda.negras +
-                              centro.deuda.verdes +
+                              (centro.deuda.blancas +
+                                centro.deuda.negras +
+                                centro.deuda.verdes) +
                               ")"
                             : "")}
                       </option>
@@ -445,7 +449,7 @@ export default function FormularioEvento({
                 </div>
               </div>
 
-              {mostrarChofer && (
+              {mostrarChapa && (
                 <div>
                   <label
                     htmlFor="chapa"
@@ -459,7 +463,7 @@ export default function FormularioEvento({
                     value={formData.chapa}
                     onChange={handleInputChange}
                     required
-                    disabled={isAdjustment}
+                    disabled={!!(isAdjustment || loading || saving || mensaje)}
                     className={fieldClass}
                   >
                     <option value="">Selecciona una chapa</option>
@@ -479,7 +483,7 @@ export default function FormularioEvento({
                 formData.cajas,
                 "Total de Cajas",
                 "cajas",
-                isAdjustment,
+                !!(isAdjustment || loading || saving || mensaje),
               )}
 
               {mostrarRoturas &&
@@ -487,7 +491,7 @@ export default function FormularioEvento({
                   formData.cajas_rotas,
                   "Cajas Rotas",
                   "cajas_rotas",
-                  isAdjustment,
+                  !!(isAdjustment || loading || saving || mensaje),
                 )}
 
               {mostrarRoturas &&
@@ -495,7 +499,7 @@ export default function FormularioEvento({
                   formData.tapas_rotas,
                   "Tapas Rotas",
                   "tapas_rotas",
-                  isAdjustment,
+                  !!(isAdjustment || loading || saving || mensaje),
                 )}
 
               {isAdjustment && (
@@ -508,6 +512,7 @@ export default function FormularioEvento({
                     },
                     "Ajuste Total de Cajas",
                     "ajuste_cajas",
+                    !!(loading || saving || mensaje),
                   )}
 
                   {mostrarRoturas &&
@@ -519,6 +524,7 @@ export default function FormularioEvento({
                       },
                       "Ajuste Cajas Rotas",
                       "ajuste_cajas_rotas",
+                      !!(loading || saving || mensaje),
                     )}
 
                   {mostrarRoturas &&
@@ -530,6 +536,7 @@ export default function FormularioEvento({
                       },
                       "Ajuste Tapas Rotas",
                       "ajuste_tapas_rotas",
+                      !!(loading || saving || mensaje),
                     )}
                 </div>
               )}
@@ -548,10 +555,10 @@ export default function FormularioEvento({
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={!!(loading || saving || mensaje)}
                 className="w-full rounded-[22px] bg-[linear-gradient(135deg,_#0f766e,_#059669)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
-                {loading
+                {saving
                   ? "Guardando..."
                   : "Guardar" + (isAdjustment ? " Ajuste" : "")}
               </button>

@@ -18,15 +18,18 @@ import TablaVehiculos from "@/components/TablaVehiculos";
 import TablaAlmacenes from "@/components/TablaAlmacenes";
 import TablaCentros from "@/components/TablaCentros";
 import {
+  COLECCIONES,
   Devolucion,
   Entrega,
   Expedicion,
   Recogida,
+  Traspaso,
   Usuario,
 } from "@/lib/constants";
 import CierreDiario from "@/components/CierreDiario";
 import TablaUsuarios from "@/components/TablaUsuarios";
 import TablaInformacion from "@/components/TablaInformacion";
+import TablaTraspaso from "@/components/TablaTraspaso";
 
 interface Evento {
   _id: string;
@@ -56,16 +59,19 @@ export default function Dashboard() {
   >([]);
 
   const [expedicionData, setExpedicionData] = useState<Expedicion[]>([]);
+  const [traspasoData, setTraspasoData] = useState<Traspaso[]>([]);
   const [entregaData, setEntregaData] = useState<Entrega[]>([]);
   const [recogidaData, setRecogidaData] = useState<Recogida[]>([]);
   const [devolucionData, setDevolucionData] = useState<Devolucion[]>([]);
 
   const [expedicionLoading, setExpedicionLoading] = useState<boolean>(false);
+  const [traspasoLoading, setTraspasoLoading] = useState<boolean>(false);
   const [entregaLoading, setEntregaLoading] = useState<boolean>(false);
   const [recogidaLoading, setRecogidaLoading] = useState<boolean>(false);
   const [devolucionLoading, setDevolucionLoading] = useState<boolean>(false);
 
   const [expedicionError, setExpedicionError] = useState<string>("");
+  const [traspasoError, setTraspasoError] = useState<string>("");
   const [entregaError, setEntregaError] = useState<string>("");
   const [recogidaError, setRecogidaError] = useState<string>("");
   const [devolucionError, setDevolucionError] = useState<string>("");
@@ -102,6 +108,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDatosExpedicion();
+    fetchDatosTraspaso();
     fetchDatosEntrega();
     fetchDatosRecogida();
     fetchDatosDevolucion();
@@ -112,7 +119,7 @@ export default function Dashboard() {
     setExpedicionError("");
     try {
       const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=Expedicion`,
+        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.EXPEDICION}`,
       );
       const data = await res.json();
       if (res.ok) {
@@ -127,11 +134,33 @@ export default function Dashboard() {
     }
   };
 
+  const fetchDatosTraspaso = async () => {
+    setTraspasoLoading(true);
+    setTraspasoError("");
+    try {
+      const res = await fetch(
+        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.TRASPASO}`,
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setTraspasoData(data);
+      } else {
+        setTraspasoError(data.error || "Error al cargar eventos");
+      }
+    } catch {
+      setTraspasoError("Error en el servidor");
+    } finally {
+      setTraspasoLoading(false);
+    }
+  };
+
   const fetchDatosEntrega = async () => {
     setEntregaLoading(true);
     setEntregaError("");
     try {
-      const res = await fetch(`/api/eventos/list?fecha=${fecha}&tipo=Entrega`);
+      const res = await fetch(
+        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.ENTREGA}`,
+      );
       const data = await res.json();
       if (res.ok) {
         setEntregaData(data);
@@ -149,7 +178,9 @@ export default function Dashboard() {
     setRecogidaLoading(true);
     setRecogidaError("");
     try {
-      const res = await fetch(`/api/eventos/list?fecha=${fecha}&tipo=Recogida`);
+      const res = await fetch(
+        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.RECOGIDA}`,
+      );
       const data = await res.json();
       if (res.ok) {
         setRecogidaData(data);
@@ -168,7 +199,7 @@ export default function Dashboard() {
     setDevolucionError("");
     try {
       const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=Devolucion`,
+        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.DEVOLUCION}`,
       );
       const data = await res.json();
       if (res.ok) {
@@ -211,22 +242,22 @@ export default function Dashboard() {
         {
           key: "informacion" as DashboardTab,
           label: "Dashboard",
-          helper: "Panel de información",
+          helper: "Información general",
         },
         {
           key: "ver_eventos" as DashboardTab,
           label: "Eventos del día",
-          helper: "Cruce y cierre",
+          helper: "Revisión y cierre",
         },
         {
           key: "mis_eventos" as DashboardTab,
           label: "Listado",
-          helper: "Seguimiento diario",
+          helper: "Listado general de eventos",
         },
         {
           key: "administracion" as DashboardTab,
           label: "Administración",
-          helper: "Catálogos base",
+          helper: "Administración de datos",
         },
       ]
     : [
@@ -323,6 +354,15 @@ export default function Dashboard() {
                   datos={expedicionData}
                   loading={expedicionLoading}
                   error={expedicionError}
+                  onAjustar={handleAjustarClick}
+                />
+              )}
+              {(isInformatico || usuario?.rol === "chofer") && (
+                <TablaTraspaso
+                  usuario={usuario}
+                  datos={traspasoData}
+                  loading={traspasoLoading}
+                  error={traspasoError}
                   onAjustar={handleAjustarClick}
                 />
               )}

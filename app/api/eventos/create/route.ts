@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
     const rol = usuario.rol;
     const tipo = tipo_evento;
     const permitido =
-      (rol === "chofer" && (tipo === "Entrega" || tipo === "Recogida")) ||
+      (rol === "chofer" &&
+        (tipo === "Entrega" || tipo === "Recogida" || tipo === "Traspaso")) ||
       (rol === "expedidor" && tipo === "Expedicion") ||
       (rol === "almacenero" && tipo === "Devolucion");
     if (!permitido) {
@@ -57,7 +58,11 @@ export async function POST(request: NextRequest) {
       cajas: cajas || { blancas: 0, negras: 0, verdes: 0 },
     };
 
-    if (tipo_evento === "Entrega" || tipo_evento === "Recogida") {
+    if (
+      tipo_evento === "Entrega" ||
+      tipo_evento === "Recogida" ||
+      tipo === "Traspaso"
+    ) {
       documento.chapa = chapa;
       if (tipo_evento === "Recogida") {
         documento.cajas_rotas = cajas_rotas || {
