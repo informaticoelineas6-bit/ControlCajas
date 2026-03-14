@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { userRole } from "../../utils";
 
 export async function GET(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const tipo = searchParams.get("tipo");
     const id = searchParams.get("id");
@@ -13,11 +18,6 @@ export async function GET(request: NextRequest) {
         { error: "Tipo e id son requeridos" },
         { status: 400 },
       );
-    }
-
-    const usuarioCookie = request.cookies.get("usuario");
-    if (!usuarioCookie) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
     const { db } = await connectToDatabase();

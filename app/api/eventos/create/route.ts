@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Cajas, COLECCIONES, Evento } from "@/lib/constants";
-
-function sumCajas(actual: Cajas, next: Cajas): Cajas {
-  return {
-    blancas: actual.blancas + next.blancas,
-    negras: actual.negras + next.negras,
-    verdes: actual.verdes + next.verdes,
-  };
-}
-
-function sameCajas(a: Cajas, b: Cajas): boolean {
-  return (
-    a.blancas === b.blancas && a.negras === b.negras && a.verdes === b.verdes
-  );
-}
+import { sameCajas, sumCajas, userRole } from "../../utils";
 
 async function buildMessage(
   db: any,
@@ -53,6 +40,10 @@ async function buildMessage(
 
 export async function POST(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+
     const data = await request.json();
     const {
       tipo_evento,
@@ -70,32 +61,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
     }
 
-    // verificar rol del usuario en la cookie
-    const usuarioCookie = request.cookies.get("usuario");
-    if (!usuarioCookie) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    }
-    let usuario;
-    try {
-      usuario = JSON.parse(usuarioCookie.value);
-    } catch {
-      return NextResponse.json(
-        { error: "Cookie de usuario inválida" },
-        { status: 401 },
-      );
-    }
-
-    const rol = usuario.rol;
     const tipo = tipo_evento;
     const permitido =
-      (rol === "chofer" &&
+      (useRole === "chofer" &&
         (tipo === "Entrega" || tipo === "Recogida" || tipo === "Traspaso")) ||
-      (rol === "expedidor" && tipo === "Expedicion") ||
-      (rol === "almacenero" && tipo === "Devolucion");
+      (useRole === "expedidor" && tipo === "Expedicion") ||
+      (useRole === "almacenero" && tipo === "Devolucion");
     if (!permitido) {
       return NextResponse.json(
-        { error: "Sin permiso para ese tipo de evento" },
-        { status: 403 },
+        { error: "No tiene permiso para ese tipo de evento" },
+        { status: 401 },
       );
     }
 

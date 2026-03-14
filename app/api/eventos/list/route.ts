@@ -40,7 +40,6 @@ export async function GET(request: NextRequest) {
     }
 
     const filter: any = { fecha };
-    // Si no es informatico, limitar a los eventos creados por el usuario
     if (!usuario) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }

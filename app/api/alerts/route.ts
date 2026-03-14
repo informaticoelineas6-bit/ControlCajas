@@ -1,90 +1,27 @@
 import { Cajas, COLECCIONES } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { applyAjuste, sameCajas, sumCajas, userRole } from "../utils";
 
-function applyAjuste(item: any): any {
-  if (item.ajuste) {
-    return {
-      ...item,
-      cajas: {
-        blancas: (item.cajas?.blancas ?? 0) + (item.ajuste.cajas?.blancas ?? 0),
-        negras: (item.cajas?.negras ?? 0) + (item.ajuste.cajas?.negras ?? 0),
-        verdes: (item.cajas?.verdes ?? 0) + (item.ajuste.cajas?.verdes ?? 0),
-      },
-      cajas_rotas: {
-        blancas:
-          (item.cajas_rotas?.blancas ?? 0) +
-          (item.ajuste.cajas_rotas?.blancas ?? 0),
-        negras:
-          (item.cajas_rotas?.negras ?? 0) +
-          (item.ajuste.cajas_rotas?.negras ?? 0),
-        verdes:
-          (item.cajas_rotas?.verdes ?? 0) +
-          (item.ajuste.cajas_rotas?.verdes ?? 0),
-      },
-      tapas_rotas: {
-        blancas:
-          (item.tapas_rotas?.blancas ?? 0) +
-          (item.ajuste.tapas_rotas?.blancas ?? 0),
-        negras:
-          (item.tapas_rotas?.negras ?? 0) +
-          (item.ajuste.tapas_rotas?.negras ?? 0),
-        verdes:
-          (item.tapas_rotas?.verdes ?? 0) +
-          (item.ajuste.tapas_rotas?.verdes ?? 0),
-      },
-      ajuste: item.ajuste.nombre || "",
-    };
-  }
-  return item;
-}
-
-function sumCajas(actuales: Cajas, nuevas: Cajas): Cajas {
-  return {
-    blancas: (actuales?.blancas ?? 0) + (nuevas?.blancas ?? 0),
-    negras: (actuales?.negras ?? 0) + (nuevas?.negras ?? 0),
-    verdes: (actuales?.verdes ?? 0) + (nuevas?.verdes ?? 0),
-  };
-}
-
-function alertCompare(event1: any, event2: any, event3?: any): boolean {
+function alertCompareCajas(event1: any, event2: any, event3?: any): boolean {
   if (event3) {
-    if (
-      event2?.cajas?.blancas !== event3?.cajas?.blancas ||
-      event2?.cajas?.negras !== event3?.cajas?.negras ||
-      event2?.cajas?.verdes !== event3?.cajas?.verdes
-    ) {
+    if (!sameCajas(event2.cajas, event3.cajas)) {
       return true;
     }
   }
   if (event2) {
-    if (
-      event1?.cajas?.blancas !== event2?.cajas?.blancas ||
-      event1?.cajas?.negras !== event2?.cajas?.negras ||
-      event1?.cajas?.verdes !== event2?.cajas?.verdes
-    )
-      return true;
+    if (!sameCajas(event1.cajas, event2.cajas)) return true;
   }
   return false;
 }
 
 function alertCompareRoturaCajas(event1: any, event2: any): boolean {
-  if (event2)
-    return (
-      event1?.cajas_rotas?.blancas !== event2?.cajas_rotas?.blancas ||
-      event1?.cajas_rotas?.negras !== event2?.cajas_rotas?.negras ||
-      event1?.cajas_rotas?.verdes !== event2?.cajas_rotas?.verdes
-    );
+  if (event2) return !sameCajas(event1.cajas_rotas, event2.cajas_rotas);
   else return false;
 }
 
 function alertCompareRoturaTapas(event1: any, event2: any): boolean {
-  if (event2)
-    return (
-      event1?.tapas_rotas?.blancas !== event2?.tapas_rotas?.blancas ||
-      event1?.tapas_rotas?.negras !== event2?.tapas_rotas?.negras ||
-      event1?.tapas_rotas?.verdes !== event2?.tapas_rotas?.verdes
-    );
+  if (event2) return !sameCajas(event1.tapas_rotas, event2.tapas_rotas);
   else return false;
 }
 
@@ -169,7 +106,7 @@ async function getExpedicionEntregaAlerts(db: any, fecha: string) {
 
   return Array.from(centrosExp.values())
     .filter((item) =>
-      alertCompare(item.expedicion, item.entrega, item.traspaso),
+      alertCompareCajas(item.expedicion, item.entrega, item.traspaso),
     )
     .map((item) => ({
       tipo: "expedicion_entrega",
@@ -246,12 +183,12 @@ async function getDevolucionRecogidaAlerts(db: any, fecha: string) {
   return Array.from(centrosRec.values())
     .filter(
       (item) =>
-        alertCompare(item.recogida, item.devolucion) ||
+        alertCompareCajas(item.recogida, item.devolucion) ||
         alertCompareRoturaCajas(item.recogida, item.devolucion) ||
         alertCompareRoturaTapas(item.recogida, item.devolucion),
     )
     .map((item) => {
-      const alertCajas = alertCompare(item.recogida, item.devolucion);
+      const alertCajas = alertCompareCajas(item.recogida, item.devolucion);
       const alertRotas = alertCompareRoturaCajas(
         item.recogida,
         item.devolucion,
@@ -286,6 +223,12 @@ async function getDevolucionRecogidaAlerts(db: any, fecha: string) {
 
 export async function GET(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const fecha = new Date().toISOString().split("T")[0];
 
     const { db } = await connectToDatabase();

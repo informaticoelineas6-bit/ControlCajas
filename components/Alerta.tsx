@@ -1,5 +1,6 @@
 "use client";
 
+import { Usuario } from "@/lib/constants";
 import { useCallback, useEffect, useState } from "react";
 
 interface AlertaItem {
@@ -16,7 +17,7 @@ interface AlertsResponse {
   cierre_pendiente: boolean;
 }
 
-export default function Alerta() {
+export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,6 +30,9 @@ export default function Alerta() {
   });
 
   const fetchAlerts = useCallback(async () => {
+    if (usuario.rol !== "informatico") {
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -75,7 +79,7 @@ export default function Alerta() {
         {data?.cierre_pendiente && (
           <div className="rounded-xl border border-yellow-200 bg-yellow-50 px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-yellow-600">
-              Aún no se ha creado el cierre para el día de hoy.
+              Aún no se ha realizado el cierre para el día de hoy.
             </p>
           </div>
         )}
@@ -83,7 +87,7 @@ export default function Alerta() {
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Se han creado {data?.usuarios_recientes} usuarios nuevos
-              pendientes de ser habilitados.
+              pendientes a ser habilitados.
             </p>
           </div>
         )}

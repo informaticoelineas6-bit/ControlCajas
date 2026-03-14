@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { COLECCIONES, Usuario } from "@/lib/constants";
+import { userRole } from "../utils";
 
 export async function GET(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const { db } = await connectToDatabase();
     const usuarios = db.collection(COLECCIONES.USUARIO);
     const listaUsuarios = (await usuarios.find({}).toArray()).map(
@@ -29,6 +36,12 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const body = await request.json();
     const { _id, ...data } = body;
     if (!_id) {

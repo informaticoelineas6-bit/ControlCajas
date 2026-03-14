@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { userRole } from "../../utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,26 +12,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
     }
 
-    const usuarioCookie = request.cookies.get("usuario");
-    if (!usuarioCookie) {
+    const useRole = userRole(request);
+    if (useRole === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    }
-    let usuario;
-    try {
-      usuario = JSON.parse(usuarioCookie.value);
-    } catch {
-      return NextResponse.json(
-        { error: "Cookie de usuario inválida" },
-        { status: 401 },
-      );
-    }
-
-    if (usuario.rol !== "informatico") {
-      return NextResponse.json(
-        { error: "Sin permiso para ajustar eventos" },
-        { status: 403 },
-      );
-    }
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { db } = await connectToDatabase();
     const collection = db.collection(tipo_evento);

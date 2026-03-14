@@ -360,13 +360,13 @@ export default function FormularioEvento({
                       {tipo === "Expedicion" &&
                         "Expedición desde almacén hacia un centro de distribución."}
                       {tipo === "Traspaso" &&
-                        "Subida de cajas al camión antes de su transporte."}
+                        "Subida de cajas al camión antes de su transporte siguiendo una expedición."}
                       {tipo === "Entrega" &&
-                        "Entrega de las cajas expedidas al centro de distribución asignado."}
+                        "Entrega de las cajas al centro de distribución asignado siguiendo un traspaso."}
                       {tipo === "Recogida" &&
                         "Recogida de cajas desde un centro de distribución."}
                       {tipo === "Devolución" &&
-                        "Devolución de cajas al almacén."}
+                        "Devolución de cajas al almacén siguiendo una recogida."}
                     </p>
                   </button>
                 ))}

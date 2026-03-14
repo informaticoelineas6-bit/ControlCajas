@@ -1,9 +1,16 @@
 import { COLECCIONES } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { userRole } from "../utils";
 
 export async function GET(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const fecha = searchParams.get("fecha");
 
@@ -30,6 +37,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const data = await request.json();
     const { fecha, cierre_cd, cierre_almacen } = data;
 

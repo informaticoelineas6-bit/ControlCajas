@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { COLECCIONES } from "@/lib/constants";
+import { userRole } from "../utils";
 
 export async function GET(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const { db } = await connectToDatabase();
     const vehiculos = db.collection(COLECCIONES.VEHICULO);
     const listaVehiculos = await vehiculos.find({}).toArray();
@@ -20,6 +27,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const body = await request.json();
     const { db } = await connectToDatabase();
     const vehiculos = db.collection(COLECCIONES.VEHICULO);
@@ -36,6 +49,12 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const body = await request.json();
     const { _id, ...data } = body;
     if (!_id) {
@@ -62,6 +81,12 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const useRole = userRole(request);
+    if (useRole === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (useRole !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) {

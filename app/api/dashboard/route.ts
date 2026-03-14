@@ -10,55 +10,10 @@ import {
   Expedicion,
   Recogida,
 } from "@/lib/constants";
+import { applyAjuste } from "../utils";
 
 export async function GET(request: NextRequest) {
   try {
-    function applyAjuste<T extends Record<string, any>>(item: T): T {
-      if (!item?.ajuste) {
-        return item;
-      }
-
-      return {
-        ...item,
-        cajas: item.cajas
-          ? {
-              blancas:
-                (item.cajas?.blancas ?? 0) + (item.ajuste.cajas?.blancas ?? 0),
-              negras:
-                (item.cajas?.negras ?? 0) + (item.ajuste.cajas?.negras ?? 0),
-              verdes:
-                (item.cajas?.verdes ?? 0) + (item.ajuste.cajas?.verdes ?? 0),
-            }
-          : item.cajas,
-        cajas_rotas: item.cajas_rotas
-          ? {
-              blancas:
-                (item.cajas_rotas?.blancas ?? 0) +
-                (item.ajuste.cajas_rotas?.blancas ?? 0),
-              negras:
-                (item.cajas_rotas?.negras ?? 0) +
-                (item.ajuste.cajas_rotas?.negras ?? 0),
-              verdes:
-                (item.cajas_rotas?.verdes ?? 0) +
-                (item.ajuste.cajas_rotas?.verdes ?? 0),
-            }
-          : item.cajas_rotas,
-        tapas_rotas: item.tapas_rotas
-          ? {
-              blancas:
-                (item.tapas_rotas?.blancas ?? 0) +
-                (item.ajuste.tapas_rotas?.blancas ?? 0),
-              negras:
-                (item.tapas_rotas?.negras ?? 0) +
-                (item.ajuste.tapas_rotas?.negras ?? 0),
-              verdes:
-                (item.tapas_rotas?.verdes ?? 0) +
-                (item.ajuste.tapas_rotas?.verdes ?? 0),
-            }
-          : item.tapas_rotas,
-      };
-    }
-
     const { db } = await connectToDatabase();
     const today = new Date().toISOString().split("T")[0];
     const parseDate = (value: string) => {
@@ -118,6 +73,13 @@ export async function GET(request: NextRequest) {
           | "Retrasada"
           | "En tiempo"
           | "Cumplida",
+        roturasTotal:
+          centro.roturas.cajas.blancas +
+          centro.roturas.tapas.blancas +
+          centro.roturas.cajas.negras +
+          centro.roturas.tapas.negras +
+          centro.roturas.cajas.verdes +
+          centro.roturas.tapas.verdes,
       };
       const entregasFiltrado = entregasData.filter(
         (entrega) => entrega.centro_distribucion === centro.nombre,
@@ -144,7 +106,9 @@ export async function GET(request: NextRequest) {
         0
       ) {
         iteration.estadoRot = "Cumplida";
-      } else if (iteration.fechaRot != "Sin fecha") {
+      } else if (iteration.fechaRot == "Sin fecha") {
+        iteration.estadoRot = "En tiempo";
+      } else {
         const fechaRotDate = parseDate(iteration.fechaRot);
         const todayDate = parseDate(today);
         const fechaLimite = new Date(fechaRotDate);
@@ -159,8 +123,6 @@ export async function GET(request: NextRequest) {
         } else {
           iteration.estadoRot = "En tiempo";
         }
-      } else {
-        iteration.estadoRot = "En tiempo";
       }
 
       dashboardData.push(iteration);
@@ -179,6 +141,17 @@ export async function GET(request: NextRequest) {
       },
       0,
     );
+
+    const stockTotal = almacenesData.reduce((acc: number, almacen: Almacen) => {
+      const stock: Cajas = almacen.stock || {
+        blancas: 0,
+        negras: 0,
+        verdes: 0,
+      };
+      return (
+        acc + (stock.blancas ?? 0) + (stock.negras ?? 0) + (stock.verdes ?? 0)
+      );
+    }, 0);
 
     const roturaTotal = centrosData.reduce(
       (acc: number, centro: CentroDistribucion) => {
@@ -205,16 +178,30 @@ export async function GET(request: NextRequest) {
       0,
     );
 
-    const stockTotal = almacenesData.reduce((acc: number, almacen: Almacen) => {
-      const stock: Cajas = almacen.stock || {
-        blancas: 0,
-        negras: 0,
-        verdes: 0,
-      };
-      return (
-        acc + (stock.blancas ?? 0) + (stock.negras ?? 0) + (stock.verdes ?? 0)
-      );
-    }, 0);
+    const roturaActual = almacenesData.reduce(
+      (acc: number, almacen: Almacen) => {
+        const roturasCajas: Cajas = almacen.roturas?.cajas || {
+          blancas: 0,
+          negras: 0,
+          verdes: 0,
+        };
+        const roturasTapas: Cajas = almacen.roturas?.tapas || {
+          blancas: 0,
+          negras: 0,
+          verdes: 0,
+        };
+        return (
+          acc +
+          (roturasCajas.blancas ?? 0) +
+          (roturasCajas.negras ?? 0) +
+          (roturasCajas.verdes ?? 0) +
+          (roturasTapas.blancas ?? 0) +
+          (roturasTapas.negras ?? 0) +
+          (roturasTapas.verdes ?? 0)
+        );
+      },
+      0,
+    );
 
     return NextResponse.json({
       dashboardData,
@@ -222,6 +209,7 @@ export async function GET(request: NextRequest) {
       deudaTotal,
       stockTotal,
       roturaTotal,
+      roturaActual,
     });
   } catch (error) {
     console.error("Error fetching data:", error);
