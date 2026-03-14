@@ -1,5 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+import { Cajas, COLECCIONES, Evento } from "@/lib/constants";
+
+function sumCajas(actual: Cajas, next: Cajas): Cajas {
+  return {
+    blancas: actual.blancas + next.blancas,
+    negras: actual.negras + next.negras,
+    verdes: actual.verdes + next.verdes,
+  };
+}
+
+function sameCajas(a: Cajas, b: Cajas): boolean {
+  return (
+    a.blancas === b.blancas && a.negras === b.negras && a.verdes === b.verdes
+  );
+}
+
+async function buildMessage(
+  db: any,
+  tipoEvento: string,
+  fecha: string,
+  centro_distribucion: string,
+  cajasActuales: Cajas,
+): Promise<string | null> {
+  const referenceByTipo: Record<string, { collection: string; label: string }> =
+    {
+      Traspaso: { collection: COLECCIONES.EXPEDICION, label: "Expedicion" },
+      Entrega: { collection: COLECCIONES.TRASPASO, label: "Traspaso" },
+      Devolucion: { collection: COLECCIONES.RECOGIDA, label: "Recogida" },
+    };
+
+  const ref = referenceByTipo[tipoEvento];
+  if (!ref) {
+    return null;
+  }
+
+  const referenciaEventos = (await db
+    .collection(ref.collection)
+    .find({ fecha, centro_distribucion })
+    .toArray()) as Evento[];
+
+  const referenciaTotal = referenciaEventos.reduce(
+    (acc: Cajas, item: Evento) => sumCajas(acc, item.cajas),
+    { blancas: 0, negras: 0, verdes: 0 },
+  );
+
+  if (sameCajas(cajasActuales, referenciaTotal))
+    return `Evento creado exitosamente. La cantidad de cajas registradas coincide con ${ref.label}.`;
+  else
+    return `Advertencia: el conteo de cajas no coincide con la cantidad registrada durante el ${ref.label}. Compruebe nuevamente el conteo o póngase en contacto con un informático para más información.`;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -102,10 +152,18 @@ export async function POST(request: NextRequest) {
     }
 
     const resultado = await coleccion.insertOne(documento);
+    const message = await buildMessage(
+      db,
+      tipo_evento,
+      fecha,
+      centro_distribucion,
+      cajas,
+    );
 
     return NextResponse.json({
       success: true,
       id: resultado.insertedId,
+      message: message,
     });
   } catch (error) {
     console.error("Error creating event:", error);

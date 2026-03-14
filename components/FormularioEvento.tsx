@@ -251,9 +251,7 @@ export default function FormularioEvento({
 
       if (response.ok) {
         setMensaje(
-          isAdjustment
-            ? "Ajuste guardado exitosamente"
-            : "Evento creado exitosamente",
+          isAdjustment ? "Ajuste guardado exitosamente." : data.message,
         );
         if (!isAdjustment) {
           setTipoEvento("");
@@ -304,7 +302,9 @@ export default function FormularioEvento({
   );
   const mostrarChapa = ["Entrega", "Recogida"].includes(tipoEvento);
   const mostrarRoturas = ["Recogida", "Devolucion"].includes(tipoEvento);
-  const isSuccess = mensaje.includes("exitosamente");
+  const mensajeLower = mensaje.toLowerCase();
+  const isSuccess = mensajeLower.includes("exitosamente");
+  const isWarning = mensajeLower.includes("advertencia");
   const fieldClass =
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
 
@@ -543,10 +543,12 @@ export default function FormularioEvento({
 
               {mensaje && (
                 <div
-                  className={`rounded-[22px] border px-4 py-3 text-sm font-medium ${
-                    isSuccess
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                      : "border-rose-200 bg-rose-50 text-rose-800"
+                  className={`whitespace-pre-line rounded-[22px] border px-4 py-3 text-sm font-medium ${
+                    isWarning
+                      ? "border-amber-200 bg-amber-50 text-amber-800"
+                      : isSuccess
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                        : "border-rose-200 bg-rose-50 text-rose-800"
                   }`}
                 >
                   {mensaje}
