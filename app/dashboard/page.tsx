@@ -257,7 +257,7 @@ export default function Dashboard() {
         {
           key: "administracion" as DashboardTab,
           label: "Administración",
-          helper: "Administración de datos",
+          helper: "Modificación de datos",
         },
       ]
     : [

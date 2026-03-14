@@ -3,6 +3,7 @@
 import { Usuario } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Alerta from "./Alerta";
 
 interface HeaderProps {
   usuario?: Usuario;
@@ -43,6 +44,7 @@ export default function Header({ usuario }: Readonly<HeaderProps>) {
 
         {usuario && (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {usuario.rol === "informatico" && <Alerta />}
             <div className="rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/10">
               <p className="text-sm font-semibold text-white">
                 {usuario.nombre}

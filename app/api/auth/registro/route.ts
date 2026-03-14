@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
       nombre,
       contrasena: hashedPassword,
       rol,
+      creacion: new Date().toISOString().split("T")[0],
     });
 
     const response = NextResponse.json({

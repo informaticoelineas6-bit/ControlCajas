@@ -45,6 +45,7 @@ export interface Usuario {
   _id?: string;
   nombre: string;
   rol: (typeof ROLES)[keyof typeof ROLES];
+  creacion?: string;
   habilitado?: boolean;
   ajuste?: string;
 }

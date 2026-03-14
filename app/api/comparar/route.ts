@@ -153,7 +153,15 @@ export async function GET(request: NextRequest) {
 
       for (const current of expediciones) {
         const centro = current.centro_distribucion;
-        if (!centrosExp.has(centro)) {
+        if (centrosExp.has(centro)) {
+          const item = centrosExp.get(centro);
+          item.almacen = appendNombre(item.almacen, current.almacen);
+          item.expedicion = {
+            nombre: appendNombre(item.expedicion?.nombre, current.nombre),
+            cajas: sumCajas(item.expedicion?.cajas, current.cajas),
+            ajuste: appendNombre(item.expedicion?.ajuste, current.ajuste),
+          };
+        } else {
           centrosExp.set(centro, {
             centro_distribucion: centro,
             almacen: current.almacen,
@@ -167,20 +175,21 @@ export async function GET(request: NextRequest) {
             entrega: null,
             alerta: false,
           });
-        } else {
-          const item = centrosExp.get(centro);
-          item.almacen = appendNombre(item.almacen, current.almacen);
-          item.expedicion = {
-            nombre: appendNombre(item.expedicion?.nombre, current.nombre),
-            cajas: sumCajas(item.expedicion?.cajas, current.cajas),
-            ajuste: appendNombre(item.expedicion?.ajuste, current.ajuste),
-          };
         }
       }
 
       for (const current of traspasos) {
         const centro = current.centro_distribucion;
-        if (!centrosExp.has(centro)) {
+        if (centrosExp.has(centro)) {
+          const item = centrosExp.get(centro);
+          item.almacen = appendNombre(item.almacen, current.almacen);
+          item.chapa = appendNombre(item.chapa, current.chapa);
+          item.traspaso = {
+            nombre: appendNombre(item.traspaso?.nombre, current.nombre),
+            cajas: sumCajas(item.traspaso?.cajas, current.cajas),
+            ajuste: appendNombre(item.traspaso?.ajuste, current.ajuste),
+          };
+        } else {
           centrosExp.set(centro, {
             centro_distribucion: centro,
             almacen: current.almacen,
@@ -194,21 +203,20 @@ export async function GET(request: NextRequest) {
             entrega: null,
             alerta: false,
           });
-        } else {
-          const item = centrosExp.get(centro);
-          item.almacen = appendNombre(item.almacen, current.almacen);
-          item.chapa = appendNombre(item.chapa, current.chapa);
-          item.traspaso = {
-            nombre: appendNombre(item.traspaso?.nombre, current.nombre),
-            cajas: sumCajas(item.traspaso?.cajas, current.cajas),
-            ajuste: appendNombre(item.traspaso?.ajuste, current.ajuste),
-          };
         }
       }
 
       for (const current of entregas) {
         const centro = current.centro_distribucion;
-        if (!centrosExp.has(centro)) {
+        if (centrosExp.has(centro)) {
+          const item = centrosExp.get(centro);
+          item.chapa = appendNombre(item.chapa, current.chapa);
+          item.entrega = {
+            nombre: appendNombre(item.entrega?.nombre, current.nombre),
+            cajas: sumCajas(item.entrega?.cajas, current.cajas),
+            ajuste: appendNombre(item.entrega?.ajuste, current.ajuste),
+          };
+        } else {
           centrosExp.set(centro, {
             centro_distribucion: centro,
             almacen: null,
@@ -222,14 +230,6 @@ export async function GET(request: NextRequest) {
             },
             alerta: true,
           });
-        } else {
-          const item = centrosExp.get(centro);
-          item.chapa = appendNombre(item.chapa, current.chapa);
-          item.entrega = {
-            nombre: appendNombre(item.entrega?.nombre, current.nombre),
-            cajas: sumCajas(item.entrega?.cajas, current.cajas),
-            ajuste: appendNombre(item.entrega?.ajuste, current.ajuste),
-          };
         }
       }
 
@@ -259,23 +259,7 @@ export async function GET(request: NextRequest) {
 
       for (const current of recogidas) {
         const centro = current.centro_distribucion;
-        if (!centrosRec.has(centro)) {
-          centrosRec.set(centro, {
-            centro_distribucion: centro,
-            almacen: null,
-            chapa: current.chapa,
-            recogida: {
-              nombre: current.nombre,
-              cajas: current.cajas,
-              cajas_rotas: current.cajas_rotas,
-              tapas_rotas: current.tapas_rotas,
-              ajuste: current.ajuste,
-            },
-            devolucion: null,
-            alerta: false,
-            rotura: false,
-          });
-        } else {
+        if (centrosRec.has(centro)) {
           const item = centrosRec.get(centro);
           item.chapa = appendNombre(item.chapa, current.chapa);
           item.recogida = {
@@ -291,28 +275,28 @@ export async function GET(request: NextRequest) {
             ),
             ajuste: appendNombre(item.recogida?.ajuste, current.ajuste),
           };
-        }
-      }
-
-      for (const current of devoluciones) {
-        const centro = current.centro_distribucion;
-        if (!centrosRec.has(centro)) {
+        } else {
           centrosRec.set(centro, {
             centro_distribucion: centro,
-            almacen: current.almacen,
-            chapa: null,
-            recogida: null,
-            devolucion: {
+            almacen: null,
+            chapa: current.chapa,
+            recogida: {
               nombre: current.nombre,
               cajas: current.cajas,
               cajas_rotas: current.cajas_rotas,
               tapas_rotas: current.tapas_rotas,
               ajuste: current.ajuste,
             },
+            devolucion: null,
             alerta: false,
             rotura: false,
           });
-        } else {
+        }
+      }
+
+      for (const current of devoluciones) {
+        const centro = current.centro_distribucion;
+        if (centrosRec.has(centro)) {
           const item = centrosRec.get(centro);
           item.almacen = appendNombre(item.almacen, current.almacen);
           item.devolucion = {
@@ -328,6 +312,22 @@ export async function GET(request: NextRequest) {
             ),
             ajuste: appendNombre(item.devolucion?.ajuste, current.ajuste),
           };
+        } else {
+          centrosRec.set(centro, {
+            centro_distribucion: centro,
+            almacen: current.almacen,
+            chapa: null,
+            recogida: null,
+            devolucion: {
+              nombre: current.nombre,
+              cajas: current.cajas,
+              cajas_rotas: current.cajas_rotas,
+              tapas_rotas: current.tapas_rotas,
+              ajuste: current.ajuste,
+            },
+            alerta: false,
+            rotura: false,
+          });
         }
       }
 

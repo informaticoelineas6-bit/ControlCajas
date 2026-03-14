@@ -9,10 +9,11 @@ export async function GET(request: NextRequest) {
     const usuarios = db.collection(COLECCIONES.USUARIO);
     const listaUsuarios = (await usuarios.find({}).toArray()).map(
       (u: Usuario) => ({
-        _id: u._id.toString(),
+        _id: u._id?.toString(),
         nombre: u.nombre,
         rol: u.rol,
         habilitado: u.habilitado,
+        creacion: u.creacion,
         ajuste: u.ajuste,
       }),
     );
