@@ -1,51 +1,69 @@
 // Constantes de la aplicación
-export const ROLES = {
-  CHOFER: "chofer",
-  ALMACENERO: "almacenero",
-  EXPEDIDOR: "expedidor",
-  INFORMATICO: "informatico",
-} as const;
+export type ROLES = (typeof ROLES_ARRAY)[number];
 
-export const TIPOS_EVENTO = {
-  EXPEDICION: "Expedicion",
-  ENTREGA: "Entrega",
-  DEVOLUCION: "Devolucion",
-  RECOGIDA: "Recogida",
-} as const;
+export type TIPOS_EVENTO = (typeof EVENTOS_ARRAY)[number];
 
-export const ROLES_ARRAY = Object.values(ROLES);
+export type COLORES_CAJAS = (typeof CAJAS_ARRAY)[number];
 
-export const COLECCIONES = {
-  ALMACEN: "Almacen",
-  CENTRO_DISTRIBUCION: "CentroDistribucion",
-  USUARIO: "Usuario",
-  VEHICULO: "Vehiculo",
-  EXPEDICION: "Expedicion",
-  ENTREGA: "Entrega",
-  TRASPASO: "Traspaso",
-  DEVOLUCION: "Devolucion",
-  RECOGIDA: "Recogida",
-  CIERRE: "Cierre",
-} as const;
+export const ROLES_ARRAY = [
+  "chofer",
+  "almacenero",
+  "expedidor",
+  "informatico",
+  "auditor",
+] as const;
 
-export const COLORES_CAJAS = {
-  BLANCAS: "blancas",
-  NEGRAS: "negras",
-  VERDES: "verdes",
-} as const;
+export const EVENTOS_ARRAY = [
+  "Expedicion",
+  "Traspaso",
+  "Entrega",
+  "Devolucion",
+  "Recogida",
+] as const;
 
-export const ERRORES = {
-  NO_AUTENTICADO: "No autenticado",
-  SIN_PERMISO: "Sin permiso",
-  DATOS_INCOMPLETOS: "Datos incompletos",
-  ERROR_BD: "Error al acceder a la base de datos",
-};
+export const CAJAS_ARRAY = ["blancas", "negras", "verdes"] as const;
+
+export enum COLECCIONES {
+  ALMACEN = "Almacen",
+  CENTRO_DISTRIBUCION = "CentroDistribucion",
+  USUARIO = "Usuario",
+  VEHICULO = "Vehiculo",
+  EXPEDICION = "Expedicion",
+  ENTREGA = "Entrega",
+  TRASPASO = "Traspaso",
+  DEVOLUCION = "Devolucion",
+  RECOGIDA = "Recogida",
+  CIERRE = "Cierre",
+}
+
+export interface Cajas {
+  blancas: number;
+  negras: number;
+  verdes: number;
+}
+
+export interface Tapas {
+  blancas: number;
+  negras: number;
+}
+
+export interface CajasHabilitadas {
+  blancas: boolean;
+  negras: boolean;
+  verdes: boolean;
+}
+
+export interface CajasRoturas {
+  cajas_rotas: Cajas;
+  tapas_rotas: Tapas;
+}
 
 export interface Usuario {
   _id?: string;
   nombre: string;
-  rol: (typeof ROLES)[keyof typeof ROLES];
-  creacion?: string;
+  rol: ROLES;
+  fechaCreacion?: string;
+  contrasena?: string;
   habilitado?: boolean;
   ajuste?: string;
 }
@@ -57,7 +75,7 @@ export interface Almacen {
   stock: Cajas;
   roturas: {
     cajas: Cajas;
-    tapas: Cajas;
+    tapas: Tapas;
   };
   ajuste?: string;
 }
@@ -70,38 +88,26 @@ export interface CentroDistribucion {
   rotacion: number;
   roturas: {
     cajas: Cajas;
-    tapas: Cajas;
+    tapas: Tapas;
   };
   ajuste?: string;
-}
-
-export interface CajasHabilitadas {
-  blancas: boolean;
-  negras: boolean;
-  verdes: boolean;
 }
 
 export interface Vehiculo {
   _id?: string;
   categoria: string;
   chapa: string;
-  marca?: string;
-  modelo?: string;
+  marca: string;
+  modelo: string;
   ajuste?: string;
-}
-
-export interface Cajas {
-  blancas: number;
-  negras: number;
-  verdes: number;
 }
 
 export interface Ajuste {
   cajas: Cajas;
-  cajas_rotas: Cajas;
-  tapas_rotas: Cajas;
-  nombre?: string;
+  nombre: string;
 }
+
+export interface AjusteRoturas extends Ajuste, CajasRoturas {}
 
 export interface Evento {
   _id?: string;
@@ -109,7 +115,11 @@ export interface Evento {
   fecha: string;
   nombre: string;
   cajas: Cajas;
-  ajuste?: string;
+  ajuste?: Ajuste;
+}
+
+export interface EventoRotura extends Evento, CajasRoturas {
+  ajuste?: AjusteRoturas;
 }
 export interface Expedicion extends Evento {
   almacen: string;
@@ -124,16 +134,37 @@ export interface Entrega extends Evento {
   chapa: string;
 }
 
-export interface Recogida extends Evento {
+export interface Recogida extends EventoRotura {
   chapa: string;
-  cajas_rotas: Cajas;
-  tapas_rotas: Cajas;
 }
 
-export interface Devolucion extends Evento {
+export interface Devolucion extends EventoRotura {
   almacen: string;
-  cajas_rotas: Cajas;
-  tapas_rotas: Cajas;
+}
+
+export interface ItemComparacion {
+  nombre: string | null;
+  cajas: Cajas;
+  ajuste: string | null;
+}
+export interface ItemComparacionEntrega {
+  chapa: string | null;
+  centro_distribucion: string;
+  almacen: string | null;
+  expedicion: ItemComparacion | null;
+  traspaso: ItemComparacion | null;
+  entrega: ItemComparacion | null;
+  alerta: boolean;
+}
+
+export interface ItemComparacionRecogida {
+  centro_distribucion: string;
+  almacen: string | null;
+  chapa: string | null;
+  recogida: (ItemComparacion & CajasRoturas) | null;
+  devolucion: (ItemComparacion & CajasRoturas) | null;
+  alerta: boolean;
+  rotura: boolean;
 }
 
 export interface Cierre {
@@ -142,12 +173,12 @@ export interface Cierre {
     centro_distribucion: string;
     ajuste_deuda: Cajas;
     cajas_rotas: Cajas;
-    tapas_rotas: Cajas;
+    tapas_rotas: Tapas;
   }[];
   cierre_almacen: {
     almacen: string;
     ajuste_stock: Cajas;
     cajas_rotas: Cajas;
-    tapas_rotas: Cajas;
+    tapas_rotas: Tapas;
   }[];
 }

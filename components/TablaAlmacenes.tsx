@@ -132,9 +132,6 @@ export default function TablaAlmacenes({
             negras: form.habilitado_negras
               ? Number(form.roturas_tapas_negras) || 0
               : 0,
-            verdes: form.habilitado_verdes
-              ? Number(form.roturas_tapas_verdes) || 0
-              : 0,
           },
         },
         ajuste: editingId ? usuario.nombre : undefined,
@@ -172,7 +169,6 @@ export default function TablaAlmacenes({
       roturas_cajas_verdes: almacen.roturas?.cajas?.verdes || 0,
       roturas_tapas_blancas: almacen.roturas?.tapas?.blancas || 0,
       roturas_tapas_negras: almacen.roturas?.tapas?.negras || 0,
-      roturas_tapas_verdes: almacen.roturas?.tapas?.verdes || 0,
     });
     setEditingId(almacen._id ?? null);
   };

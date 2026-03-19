@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { COLECCIONES, Usuario } from "@/lib/constants";
-import { userRole } from "../utils";
+import { usuarioCookie } from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
-    const useRole = userRole(request);
-    if (useRole === null)
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (useRole !== "informatico")
+    if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { db } = await connectToDatabase();
@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
         nombre: u.nombre,
         rol: u.rol,
         habilitado: u.habilitado,
-        creacion: u.creacion,
         ajuste: u.ajuste,
       }),
     );
@@ -36,10 +35,10 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const useRole = userRole(request);
-    if (useRole === null)
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (useRole !== "informatico")
+    if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const body = await request.json();

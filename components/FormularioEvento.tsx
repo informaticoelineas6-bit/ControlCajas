@@ -1,19 +1,48 @@
 "use client";
 
 import {
-  Ajuste,
-  Cajas,
   CentroDistribucion,
   CajasHabilitadas,
   Usuario,
   Vehiculo,
   Almacen,
+  TIPOS_EVENTO,
+  Cajas,
+  Tapas,
+  COLORES_CAJAS,
+  Evento,
 } from "@/lib/constants";
+import { totalCajas } from "@/lib/utils";
 import { useState, useEffect } from "react";
+
+// Verificar la tardanza de el warning/message.
+
+export interface EventoCreateForm {
+  almacen?: string;
+  centro_distribucion?: string;
+  chapa?: string;
+  cajas: Cajas;
+  cajas_rotas?: Cajas;
+  tapas_rotas?: Tapas;
+}
+
+export interface EventoAjusteForm {
+  tipo_evento?: TIPOS_EVENTO;
+  ajuste: {
+    cajas: Cajas;
+    cajas_rotas?: Cajas;
+    tapas_rotas?: Tapas;
+  };
+}
+
+export type EventoAjusteProp = {
+  _id: string;
+  tipo_evento: TIPOS_EVENTO;
+} & (Evento & EventoCreateForm & EventoAjusteForm);
 
 interface FormularioEventoProps {
   usuario: Usuario;
-  initialData?: any; // full event document when editing
+  initialData?: EventoAjusteProp; // full event document when editing
   isAdjustment?: boolean;
   onAdjustmentSaved?: () => void; // callback when adjustment is saved
 }
@@ -24,39 +53,40 @@ export default function FormularioEvento({
   isAdjustment = false,
   onAdjustmentSaved,
 }: Readonly<FormularioEventoProps>) {
-  const [tipoEvento, setTipoEvento] = useState<string>("");
+  const [tipoEvento, setTipoEvento] = useState<TIPOS_EVENTO | undefined>(
+    undefined,
+  );
   const [originalId, setOriginalId] = useState<string | null>(null);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isWarning, setIsWarning] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [habilitado, setHabilitado] = useState<CajasHabilitadas>({
     blancas: false,
     negras: false,
     verdes: false,
   });
 
-  const [formData, setFormData] = useState<{
-    almacen?: string;
-    centro_distribucion: string;
-    fecha: string;
-    chapa?: string;
-    cajas: Cajas;
-    cajas_rotas: Cajas;
-    tapas_rotas: Cajas;
-    ajuste?: Ajuste;
-  }>({
-    almacen: "",
-    centro_distribucion: "",
-    fecha: new Date().toISOString().split("T")[0],
-    chapa: "",
-    cajas: { blancas: 0, negras: 0, verdes: 0 },
-    cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-    tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-    ajuste: undefined,
-  });
+  const [formData, setFormData] = useState<EventoCreateForm & EventoAjusteForm>(
+    {
+      tipo_evento: tipoEvento,
+      almacen: undefined,
+      centro_distribucion: undefined,
+      chapa: undefined,
+      cajas: { blancas: 0, negras: 0, verdes: 0 },
+      cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+      tapas_rotas: { blancas: 0, negras: 0 },
+      ajuste: {
+        cajas: { blancas: 0, negras: 0, verdes: 0 },
+        cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+        tapas_rotas: { blancas: 0, negras: 0 },
+      },
+    },
+  );
 
   useEffect(() => {
     if (tipoEvento) {
@@ -67,30 +97,21 @@ export default function FormularioEvento({
   // populate when editing/adjustment
   useEffect(() => {
     if (initialData) {
-      setOriginalId(initialData._id || null);
+      resetForm();
+      setOriginalId(initialData._id ?? null);
       // show ajuste mode
-      setTipoEvento(initialData.tipo);
+      setTipoEvento(initialData.tipo_evento);
       setFormData({
-        centro_distribucion: initialData.centro_distribucion || "",
-        almacen: initialData.almacen || "",
-        fecha: initialData.fecha || new Date().toISOString().split("T")[0],
-        chapa: initialData.chapa || "",
-        cajas: initialData.cajas || { blancas: 0, negras: 0, verdes: 0 },
-        cajas_rotas: initialData.cajas_rotas || {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
-        },
-        tapas_rotas: initialData.tapas_rotas || {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
-        },
-        ajuste: initialData.ajuste || {
-          nombre: usuario.nombre,
+        centro_distribucion: initialData.centro_distribucion,
+        almacen: initialData.almacen,
+        chapa: initialData.chapa,
+        cajas: initialData.cajas,
+        cajas_rotas: initialData.cajas_rotas,
+        tapas_rotas: initialData.tapas_rotas,
+        ajuste: initialData.ajuste ?? {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
           cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas_rotas: { blancas: 0, negras: 0 },
         },
       });
     }
@@ -126,7 +147,35 @@ export default function FormularioEvento({
     }
   };
 
-  const handleSelectEvento = (tipo: string) => {
+  const resetForm = () => {
+    setTipoEvento(undefined);
+    setMensaje("");
+    setSubmitted(false);
+    setIsSuccess(false);
+    setIsWarning(false);
+    setFormData({
+      almacen: undefined,
+      centro_distribucion: undefined,
+      chapa: undefined,
+      cajas: { blancas: 0, negras: 0, verdes: 0 },
+      cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+      tapas_rotas: { blancas: 0, negras: 0 },
+      ajuste: {
+        cajas: { blancas: 0, negras: 0, verdes: 0 },
+        cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+        tapas_rotas: { blancas: 0, negras: 0 },
+      },
+    });
+  };
+
+  const clickReset = () => {
+    if (isAdjustment && onAdjustmentSaved) {
+      onAdjustmentSaved();
+    }
+    resetForm();
+  };
+
+  const handleSelectEvento = (tipo: TIPOS_EVENTO) => {
     setTipoEvento(tipo);
     setMensaje("");
   };
@@ -134,26 +183,38 @@ export default function FormularioEvento({
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
+    setMensaje("");
+
     const { name, value } = e.target;
     // parseInt supports negatives; fallback to 0 when NaN
     const numValue = Number.parseInt(value, 10);
+
+    if (name === "centro_distribucion" && value.startsWith("Selecciona")) {
+      setMensaje("Debe escoger un centro de distribución.");
+    }
+    if (name === "almacen" && value.startsWith("Selecciona")) {
+      setMensaje("Debe escoger un almacén.");
+    }
+    if (name === "chapa" && value.startsWith("Selecciona")) {
+      setMensaje("Debe escoger una chapa.");
+    }
 
     // Ajuste fields have a prefix that includes "ajuste_" followed by the
     // category (cajas / cajas_rotas / tapas_rotas) and finally the color.
     if (name.startsWith("ajuste_")) {
       const parts = name.split("_");
       // last part is color, the rest after "ajuste" defines the category
-      const color = parts.at(-1);
+      const color = parts.at(-1) as COLORES_CAJAS;
       const category = parts.slice(1, -1).join("_") as
         | "cajas"
         | "cajas_rotas"
         | "tapas_rotas";
 
       setFormData((prev) => {
-        const baseAjuste = prev.ajuste || {
+        const baseAjuste = prev.ajuste ?? {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
           cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas_rotas: { blancas: 0, negras: 0 },
         };
         return {
           ...prev,
@@ -161,7 +222,7 @@ export default function FormularioEvento({
             ...baseAjuste,
             [category]: {
               ...baseAjuste[category],
-              [color!]: numValue || 0,
+              [color]: numValue || 0,
             },
           },
         };
@@ -177,41 +238,39 @@ export default function FormularioEvento({
 
     if (name.startsWith("tapas_rotas_")) {
       const [, , color] = name.split("_");
-      const colorKey = color as keyof typeof formData.cajas;
-      if (numValue > formData.cajas[colorKey]) {
+      if (numValue > formData.cajas[color as COLORES_CAJAS]) {
         setMensaje(
           `Las tapas ${color} rotas no pueden ser más que el total de cajas ${color}`,
         );
         return;
       }
-      setFormData((prev) => ({
+      setFormData((prev: any) => ({
         ...prev,
         tapas_rotas: { ...prev.tapas_rotas, [color]: numValue || 0 },
       }));
       setMensaje("");
     } else if (name.startsWith("cajas_rotas_")) {
       const [, , color] = name.split("_");
-      const colorKey = color as keyof typeof formData.cajas;
-      if (numValue > formData.cajas[colorKey]) {
+      if (numValue > formData.cajas[color as COLORES_CAJAS]) {
         setMensaje(
           `Las cajas ${color} rotas no pueden ser más que el total de cajas ${color}`,
         );
         return;
       }
-      setFormData((prev) => ({
+      setFormData((prev: any) => ({
         ...prev,
         cajas_rotas: { ...prev.cajas_rotas, [color]: numValue || 0 },
       }));
       setMensaje("");
     } else if (name.startsWith("cajas_")) {
       const [, color] = name.split("_");
-      setFormData((prev) => ({
+      setFormData((prev: any) => ({
         ...prev,
         cajas: { ...prev.cajas, [color]: numValue || 0 },
       }));
       setMensaje("");
     } else {
-      setFormData((prev) => ({
+      setFormData((prev: any) => ({
         ...prev,
         [name]: value,
       }));
@@ -220,59 +279,67 @@ export default function FormularioEvento({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    const check = checkData();
+    if (!check.status) {
+      setMensaje(
+        "Se han detectado errores en los datos. No es posible guardar.\n" +
+          check.message,
+      );
+      return;
+    }
+    setLoading(true);
 
     try {
       let response;
-      if (isAdjustment && tipoEvento && originalId) {
-        response = await fetch("/api/eventos/ajuste", {
+      if (isAdjustment) {
+        if (!tipoEvento) {
+          throw new Error(tipoEvento + " no es un tipo aceptado.");
+        }
+        if (!originalId) {
+          throw new Error("No se tiene el id del evento.");
+        }
+        const body: EventoAjusteForm = {
+          tipo_evento: tipoEvento,
+          ajuste: {
+            cajas: formData.ajuste.cajas,
+            cajas_rotas: formData.ajuste.cajas_rotas,
+            tapas_rotas: formData.ajuste.tapas_rotas,
+          },
+        };
+        response = await fetch(`/api/eventos/ajuste?id=${originalId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tipo_evento: tipoEvento,
-            id: originalId,
-            ajuste: formData.ajuste,
-            nombre: usuario.nombre,
-          }),
+          body: JSON.stringify(body),
         });
       } else {
-        response = await fetch("/api/eventos/create", {
+        const body: EventoCreateForm = {
+          cajas: formData.cajas,
+          almacen: formData.almacen,
+          cajas_rotas: formData.cajas_rotas,
+          centro_distribucion: formData.centro_distribucion,
+          chapa: formData.chapa,
+          tapas_rotas: formData.tapas_rotas,
+        };
+        response = await fetch(`/api/eventos/create?tipo=${tipoEvento}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tipo_evento: tipoEvento,
-            ...formData,
-            nombre: usuario.nombre,
-          }),
+          body: JSON.stringify(body),
         });
       }
 
       const data = await response.json();
 
+      const mensajeLower = data.message.toLowerCase();
+      setIsSuccess(mensajeLower.includes("exitosamente") as boolean);
+      setIsWarning(mensajeLower.includes("advertencia") as boolean);
+
       if (response.ok) {
-        setMensaje(
-          isAdjustment ? "Ajuste guardado exitosamente." : data.message,
-        );
-        if (!isAdjustment) {
-          setTipoEvento("");
-          setFormData({
-            almacen: "",
-            centro_distribucion: "",
-            fecha: new Date().toISOString().split("T")[0],
-            chapa: "",
-            cajas: { blancas: 0, negras: 0, verdes: 0 },
-            cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-            tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-            ajuste: undefined,
-          });
-        } else if (isAdjustment && onAdjustmentSaved) {
-          setTimeout(() => {
-            onAdjustmentSaved();
-          }, 1500);
+        setSubmitted(true);
+        if (isAdjustment) {
+          setMensaje(data.message || "Ajuste guardado exitosamente.");
+        } else {
+          setMensaje(data.message || "Evento guardado exitosamente.");
         }
-        setTimeout(() => {
-          setMensaje("");
-        }, 3000);
       } else {
         setMensaje(data.error || "Error al procesar");
       }
@@ -280,11 +347,43 @@ export default function FormularioEvento({
       setMensaje("Error en el servidor");
       console.error(error);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  const opcionesEvento = (() => {
+  const checkData = (): { status: boolean; message: string } => {
+    if (!formData.centro_distribucion) {
+      return {
+        status: false,
+        message: "Debe escoger un centro de distribución.",
+      };
+    }
+    switch (tipoEvento) {
+      case "Expedicion":
+      case "Devolucion":
+        if (!formData.almacen)
+          return { status: false, message: "Debe escoger un almacén." };
+        break;
+      case "Entrega":
+      case "Recogida":
+        if (!formData.chapa)
+          return { status: false, message: "Debe escoger una chapa." };
+        break;
+      case "Traspaso":
+        if (!formData.almacen)
+          return { status: false, message: "Debe escoger un almacén." };
+        if (!formData.chapa)
+          return { status: false, message: "Debe escoger una chapa." };
+        break;
+      default:
+        return { status: false, message: "Tipo de evento incorrecto." };
+    }
+    if (totalCajas(formData.cajas) <= 0)
+      return { status: false, message: "La cantidad de cajas no puede ser 0." };
+    return { status: true, message: "Todo listo." };
+  };
+
+  const opcionesEvento: TIPOS_EVENTO[] = (() => {
     switch (usuario.rol) {
       case "chofer":
         return ["Traspaso", "Entrega", "Recogida"];
@@ -297,16 +396,26 @@ export default function FormularioEvento({
     }
   })();
 
-  const mostrarAlmacen = ["Expedicion", "Traspaso", "Devolucion"].includes(
-    tipoEvento,
-  );
-  const mostrarChapa = ["Entrega", "Recogida"].includes(tipoEvento);
-  const mostrarRoturas = ["Recogida", "Devolucion"].includes(tipoEvento);
-  const mensajeLower = mensaje.toLowerCase();
-  const isSuccess = mensajeLower.includes("exitosamente");
-  const isWarning = mensajeLower.includes("advertencia");
+  const mostrarAlmacen =
+    tipoEvento === undefined
+      ? false
+      : ["Expedicion", "Traspaso", "Devolucion"].includes(tipoEvento);
+  const mostrarChapa =
+    tipoEvento === undefined
+      ? false
+      : ["Traspaso", "Entrega", "Recogida"].includes(tipoEvento);
+  const mostrarRoturas =
+    tipoEvento === undefined
+      ? false
+      : ["Recogida", "Devolucion"].includes(tipoEvento);
   const fieldClass =
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
+  const messageClass = () => {
+    if (isWarning) return "border-amber-200 bg-amber-50 text-amber-800";
+    else if (isSuccess)
+      return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    else return "border-rose-200 bg-rose-50 text-rose-800";
+  };
 
   return (
     <div className="overflow-hidden rounded-[30px] border border-white/70 bg-white/82 p-5 shadow-[0_30px_80px_-46px_rgba(15,23,42,0.38)] backdrop-blur sm:p-7">
@@ -316,7 +425,7 @@ export default function FormularioEvento({
             {isAdjustment ? "Ajuste manual" : "Registro operativo"}
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-            {isAdjustment ? "Ajustar evento" : "Nuevo evento"}
+            {(isAdjustment ? "Ajustar " : "Crear ") + (tipoEvento || "evento")}
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">
             {isAdjustment
@@ -342,8 +451,8 @@ export default function FormularioEvento({
               </p>
               <div
                 className={
-                  "grid grid-cols-1 gap-3 " + usuario.rol === "chofer"
-                    ? "md:grid-cols-3"
+                  "grid grid-cols-1 gap-3" + usuario.rol === "chofer"
+                    ? " md:grid-cols-3"
                     : ""
                 }
               >
@@ -365,7 +474,7 @@ export default function FormularioEvento({
                         "Entrega de las cajas al centro de distribución asignado siguiendo un traspaso."}
                       {tipo === "Recogida" &&
                         "Recogida de cajas desde un centro de distribución."}
-                      {tipo === "Devolución" &&
+                      {tipo === "Devolucion" &&
                         "Devolución de cajas al almacén siguiendo una recogida."}
                     </p>
                   </button>
@@ -378,7 +487,7 @@ export default function FormularioEvento({
                 {!isAdjustment && (
                   <button
                     type="button"
-                    onClick={() => setTipoEvento("")}
+                    onClick={() => setTipoEvento(undefined)}
                     className="rounded-full bg-blue-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-blue-400 hover:text-slate-800"
                   >
                     Cambiar tipo de evento
@@ -386,7 +495,45 @@ export default function FormularioEvento({
                 )}
               </div>
 
-              <div className="grid gap-5 lg:grid-cols-2">
+              <div
+                className={
+                  "grid gap-5 grid-cols-1 lg:grid-cols-" +
+                  (1 + (mostrarAlmacen ? 1 : 0) + (mostrarChapa ? 1 : 0))
+                }
+              >
+                <div>
+                  <label
+                    htmlFor="centro_distribucion"
+                    className="mb-2 block text-sm font-medium text-slate-600"
+                  >
+                    Centro de distribución *
+                  </label>
+                  <select
+                    id="centro_distribucion"
+                    name="centro_distribucion"
+                    value={formData.centro_distribucion}
+                    onChange={handleInputChange}
+                    required
+                    disabled={
+                      !!(isAdjustment || loading || loading || submitted)
+                    }
+                    className={fieldClass}
+                  >
+                    <option value={undefined}>Selecciona un centro</option>
+                    {centros.map((centro) => (
+                      <option key={centro._id} value={centro.nombre}>
+                        {centro.nombre +
+                          (tipoEvento === "Recogida"
+                            ? " (deuda: " +
+                              (centro.deuda.blancas +
+                                centro.deuda.negras +
+                                centro.deuda.verdes) +
+                              ")"
+                            : "")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 {mostrarAlmacen && (
                   <div>
                     <label
@@ -402,11 +549,11 @@ export default function FormularioEvento({
                       onChange={handleInputChange}
                       required
                       disabled={
-                        !!(isAdjustment || loading || saving || mensaje)
+                        !!(isAdjustment || loading || loading || submitted)
                       }
                       className={fieldClass}
                     >
-                      <option value="">Selecciona un almacén</option>
+                      <option value={undefined}>Selecciona un almacén</option>
                       {almacenes.map((almacen) => (
                         <option key={almacen._id} value={almacen.nombre}>
                           {almacen.nombre}
@@ -416,90 +563,78 @@ export default function FormularioEvento({
                   </div>
                 )}
 
-                <div>
-                  <label
-                    htmlFor="centro_distribucion"
-                    className="mb-2 block text-sm font-medium text-slate-600"
-                  >
-                    Centro de distribución *
-                  </label>
-                  <select
-                    id="centro_distribucion"
-                    name="centro_distribucion"
-                    value={formData.centro_distribucion}
-                    onChange={handleInputChange}
-                    required
-                    disabled={!!(isAdjustment || loading || saving || mensaje)}
-                    className={fieldClass}
-                  >
-                    <option value="">Selecciona un centro</option>
-                    {centros.map((centro) => (
-                      <option key={centro._id} value={centro.nombre}>
-                        {centro.nombre +
-                          (tipoEvento === "Recogida"
-                            ? " (deuda: " +
-                              (centro.deuda.blancas +
-                                centro.deuda.negras +
-                                centro.deuda.verdes) +
-                              ")"
-                            : "")}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {mostrarChapa && (
+                  <div>
+                    <label
+                      htmlFor="chapa"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Chapa *
+                    </label>
+                    <select
+                      id="chapa"
+                      name="chapa"
+                      value={formData.chapa}
+                      onChange={handleInputChange}
+                      required
+                      disabled={
+                        !!(isAdjustment || loading || loading || submitted)
+                      }
+                      className={fieldClass}
+                    >
+                      <option value={undefined}>Selecciona una chapa</option>
+                      {vehiculos.map((vehiculo) => (
+                        <option key={vehiculo._id} value={vehiculo.chapa}>
+                          {vehiculo.categoria}{" "}
+                          {vehiculo.marca ? vehiculo.marca + " " : ""}
+                          {vehiculo.modelo ? vehiculo.modelo + " " : ""}-{" "}
+                          {vehiculo.chapa}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
-
-              {mostrarChapa && (
-                <div>
-                  <label
-                    htmlFor="chapa"
-                    className="mb-2 block text-sm font-medium text-slate-600"
-                  >
-                    Chapa *
-                  </label>
-                  <select
-                    id="chapa"
-                    name="chapa"
-                    value={formData.chapa}
-                    onChange={handleInputChange}
-                    required
-                    disabled={!!(isAdjustment || loading || saving || mensaje)}
-                    className={fieldClass}
-                  >
-                    <option value="">Selecciona una chapa</option>
-                    {vehiculos.map((vehiculo) => (
-                      <option key={vehiculo._id} value={vehiculo.chapa}>
-                        {vehiculo.categoria}{" "}
-                        {vehiculo.marca ? vehiculo.marca + " " : ""}
-                        {vehiculo.modelo ? vehiculo.modelo + " " : ""}-{" "}
-                        {vehiculo.chapa}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
 
               {formCajas(
                 formData.cajas,
                 "Total de Cajas",
                 "cajas",
-                !!(isAdjustment || loading || saving || mensaje),
+                !!(
+                  isAdjustment ||
+                  loading ||
+                  loading ||
+                  isSuccess ||
+                  isWarning
+                ),
               )}
 
               {mostrarRoturas &&
                 formCajas(
-                  formData.cajas_rotas,
+                  formData.cajas_rotas as Cajas,
                   "Cajas Rotas",
                   "cajas_rotas",
-                  !!(isAdjustment || loading || saving || mensaje),
+                  !!(
+                    isAdjustment ||
+                    loading ||
+                    loading ||
+                    isSuccess ||
+                    isWarning
+                  ),
                 )}
 
               {mostrarRoturas &&
                 formCajas(
-                  formData.tapas_rotas,
+                  formData.tapas_rotas as Tapas,
                   "Tapas Rotas",
                   "tapas_rotas",
-                  !!(isAdjustment || loading || saving || mensaje),
+                  !!(
+                    isAdjustment ||
+                    loading ||
+                    loading ||
+                    isSuccess ||
+                    isWarning
+                  ),
                 )}
 
               {isAdjustment && (
@@ -512,10 +647,11 @@ export default function FormularioEvento({
                     },
                     "Ajuste Total de Cajas",
                     "ajuste_cajas",
-                    !!(loading || saving || mensaje),
+                    !!(loading || isSuccess || isWarning),
                   )}
 
                   {mostrarRoturas &&
+                    "cajas_rotas" in formData.ajuste &&
                     formCajas(
                       formData.ajuste?.cajas_rotas || {
                         blancas: 0,
@@ -524,19 +660,19 @@ export default function FormularioEvento({
                       },
                       "Ajuste Cajas Rotas",
                       "ajuste_cajas_rotas",
-                      !!(loading || saving || mensaje),
+                      !!(loading || isSuccess || isWarning),
                     )}
 
                   {mostrarRoturas &&
+                    "tapas_rotas" in formData.ajuste &&
                     formCajas(
                       formData.ajuste?.tapas_rotas || {
                         blancas: 0,
                         negras: 0,
-                        verdes: 0,
                       },
                       "Ajuste Tapas Rotas",
                       "ajuste_tapas_rotas",
-                      !!(loading || saving || mensaje),
+                      !!(loading || isSuccess || isWarning),
                     )}
                 </div>
               )}
@@ -544,26 +680,32 @@ export default function FormularioEvento({
               {mensaje && (
                 <div
                   className={`whitespace-pre-line rounded-[22px] border px-4 py-3 text-sm font-medium ${
-                    isWarning
-                      ? "border-amber-200 bg-amber-50 text-amber-800"
-                      : isSuccess
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                        : "border-rose-200 bg-rose-50 text-rose-800"
+                    messageClass
                   }`}
                 >
                   {mensaje}
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={!!(loading || saving || mensaje)}
-                className="w-full rounded-[22px] bg-[linear-gradient(135deg,_#0f766e,_#059669)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
-              >
-                {saving
-                  ? "Guardando..."
-                  : "Guardar" + (isAdjustment ? " Ajuste" : "")}
-              </button>
+              {submitted ? (
+                <button
+                  type="button"
+                  onClick={clickReset}
+                  className="w-full rounded-[22px] bg-[linear-gradient(135deg,_#334155,_#475569)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  Regresar
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!!(loading || submitted)}
+                  className="w-full rounded-[22px] bg-[linear-gradient(135deg,_#0f766e,_#059669)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {loading
+                    ? "Cargando..."
+                    : "Guardar" + (isAdjustment ? " Ajuste" : "")}
+                </button>
+              )}
             </form>
           )}
         </>
@@ -572,7 +714,7 @@ export default function FormularioEvento({
   );
 
   function formCajas(
-    object: { blancas: number; negras: number; verdes: number },
+    object: Cajas | Tapas,
     title: string,
     prefix: string,
     disabled = false,
@@ -596,7 +738,7 @@ export default function FormularioEvento({
                 name={`${prefix}_blancas`}
                 value={object.blancas}
                 onChange={handleInputChange}
-                disabled={disabled}
+                disabled={disabled || submitted}
                 className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
                   object.blancas === 0
                     ? "border-slate-200 bg-slate-50"
@@ -619,7 +761,7 @@ export default function FormularioEvento({
                 name={`${prefix}_negras`}
                 value={object.negras}
                 onChange={handleInputChange}
-                disabled={disabled}
+                disabled={disabled || submitted}
                 className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
                   object.negras === 0
                     ? "border-slate-200 bg-slate-50"
@@ -628,7 +770,7 @@ export default function FormularioEvento({
               />
             </div>
           )}
-          {habilitado.verdes && !prefix.includes("tapas") && (
+          {habilitado.verdes && "verdes" in object && (
             <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
               <label
                 htmlFor={`${prefix}_verdes`}
@@ -642,7 +784,7 @@ export default function FormularioEvento({
                 name={`${prefix}_verdes`}
                 value={object.verdes}
                 onChange={handleInputChange}
-                disabled={disabled}
+                disabled={disabled || submitted}
                 className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
                   object.verdes === 0
                     ? "border-slate-200 bg-slate-50"

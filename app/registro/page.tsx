@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-const ROLES = ["chofer", "almacenero", "expedidor", "informatico"];
+import { ROLES_ARRAY } from "@/lib/constants";
 
 export default function Registro() {
   const router = useRouter();
@@ -13,7 +12,9 @@ export default function Registro() {
     contrasena: "",
     rol: "chofer",
   });
+  const [confirmarContrasena, setConfirmarContrasena] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const handleInputChange = (
@@ -37,6 +38,12 @@ export default function Registro() {
       return;
     }
 
+    if (formData.contrasena !== confirmarContrasena) {
+      setError("Las contraseñas no coinciden");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/auth/registro", {
         method: "POST",
@@ -47,7 +54,10 @@ export default function Registro() {
       const data = await response.json();
 
       if (response.ok) {
-        router.push("/dashboard");
+        setMessage(data.message);
+        setTimeout(() => {
+          router.push("/login");
+        }, 5000);
       } else {
         setError(data.error || "Error en el registro");
       }
@@ -71,7 +81,10 @@ export default function Registro() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="nombre" className="block text-gray-700 font-semibold mb-2">
+            <label
+              htmlFor="nombre"
+              className="block text-gray-700 font-semibold mb-2"
+            >
               Usuario *
             </label>
             <input
@@ -87,7 +100,10 @@ export default function Registro() {
           </div>
 
           <div>
-            <label htmlFor="contrasena" className="block text-gray-700 font-semibold mb-2">
+            <label
+              htmlFor="contrasena"
+              className="block text-gray-700 font-semibold mb-2"
+            >
               Contraseña *
             </label>
             <input
@@ -103,7 +119,29 @@ export default function Registro() {
           </div>
 
           <div>
-            <label htmlFor="rol" className="block text-gray-700 font-semibold mb-2">
+            <label
+              htmlFor="confirmarContrasena"
+              className="block text-gray-700 font-semibold mb-2"
+            >
+              Confirmar contraseña *
+            </label>
+            <input
+              id="confirmarContrasena"
+              type="password"
+              name="confirmarContrasena"
+              value={confirmarContrasena}
+              onChange={(e) => setConfirmarContrasena(e.target.value)}
+              required
+              placeholder="Repite la contraseña"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="rol"
+              className="block text-gray-700 font-semibold mb-2"
+            >
               Rol *
             </label>
             <select
@@ -113,7 +151,7 @@ export default function Registro() {
               onChange={handleInputChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              {ROLES.map((rol) => (
+              {ROLES_ARRAY.map((rol) => (
                 <option key={rol} value={rol}>
                   {rol.charAt(0).toUpperCase() + rol.slice(1)}
                 </option>
@@ -124,6 +162,12 @@ export default function Registro() {
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded">
               {error}
+            </div>
+          )}
+
+          {message && (
+            <div className="bg-amber-100 border border-amber-400 text-amber-800 px-4 py-3 rounded">
+              {message}
             </div>
           )}
 

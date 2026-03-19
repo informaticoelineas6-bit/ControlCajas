@@ -1,99 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+import { AjusteStr, applyAjuste, usuarioCookie } from "@/lib/utils";
+import {
+  Evento,
+  EventoRotura,
+  EVENTOS_ARRAY,
+  TIPOS_EVENTO,
+} from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const fecha = searchParams.get("fecha");
     const tipo = searchParams.get("tipo"); // Expedicion|Entrega|Devolucion|Recogida
 
-    if (!fecha || !tipo) {
+    if (!fecha || !tipo || !EVENTOS_ARRAY.includes(tipo as TIPOS_EVENTO)) {
       return NextResponse.json(
         { error: "Fecha y tipo son requeridos" },
         { status: 400 },
       );
     }
 
-    const usuarioCookie = request.cookies.get("usuario");
-    let usuario: any = null;
-    if (usuarioCookie) {
-      try {
-        usuario = JSON.parse(usuarioCookie.value);
-      } catch {
-        // ignore parse errors
-      }
-    }
-
     const { db } = await connectToDatabase();
 
-    const mapping: Record<string, string> = {
-      Expedicion: "Expedicion",
-      Entrega: "Entrega",
-      Devolucion: "Devolucion",
-      Recogida: "Recogida",
-      Traspaso: "Traspaso",
-    };
-
-    const collectionName = mapping[tipo];
-    if (!collectionName) {
-      return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
-    }
-
     const filter: any = { fecha };
-    if (!usuario) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    }
     if (usuario?.rol !== "informatico") {
       filter.nombre = usuario.nombre;
     }
 
-    let items = await db.collection(collectionName).find(filter).toArray();
+    const collection = await db.collection(tipo);
+    if (!collection) {
+      return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
+    }
+
+    let items = (await collection.find(filter).toArray()) as Evento[];
 
     // convert ObjectId to string and apply ajuste values to cajas
-    items = items.map((it: any) => {
-      const item = {
-        ...it,
-        _id: it._id.toString(),
-      };
-
-      // Apply ajuste to cajas if it exists
-      if (item.ajuste) {
-        item.cajas = {
-          blancas:
-            (item.cajas?.blancas ?? 0) + (item.ajuste.cajas?.blancas ?? 0),
-          negras: (item.cajas?.negras ?? 0) + (item.ajuste.cajas?.negras ?? 0),
-          verdes: (item.cajas?.verdes ?? 0) + (item.ajuste.cajas?.verdes ?? 0),
+    const adjItems: AjusteStr<Evento | EventoRotura>[] = items.map(
+      (elem: Evento | EventoRotura): AjusteStr<Evento | EventoRotura> => {
+        const item = {
+          ...elem,
+          _id: elem._id!.toString(),
         };
-        item.cajas_rotas = {
-          blancas:
-            (item.cajas_rotas?.blancas ?? 0) +
-            (item.ajuste.cajas_rotas?.blancas ?? 0),
-          negras:
-            (item.cajas_rotas?.negras ?? 0) +
-            (item.ajuste.cajas_rotas?.negras ?? 0),
-          verdes:
-            (item.cajas_rotas?.verdes ?? 0) +
-            (item.ajuste.cajas_rotas?.verdes ?? 0),
-        };
-        item.tapas_rotas = {
-          blancas:
-            (item.tapas_rotas?.blancas ?? 0) +
-            (item.ajuste.tapas_rotas?.blancas ?? 0),
-          negras:
-            (item.tapas_rotas?.negras ?? 0) +
-            (item.ajuste.tapas_rotas?.negras ?? 0),
-          verdes:
-            (item.tapas_rotas?.verdes ?? 0) +
-            (item.ajuste.tapas_rotas?.verdes ?? 0),
-        };
-        // Replace ajuste object with just the nombre
-        item.ajuste = item.ajuste.nombre || "";
-      }
 
-      return item;
-    });
+        // Apply ajuste to cajas if it exists
+        const adjItem = applyAjuste(item);
 
-    return NextResponse.json(items);
+        return adjItem;
+      },
+    );
+
+    return NextResponse.json(adjItems);
   } catch (error) {
     console.error("Error listing events:", error);
     return NextResponse.json(

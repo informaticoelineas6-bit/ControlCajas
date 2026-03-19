@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { COLECCIONES } from "@/lib/constants";
-import { userRole } from "../utils";
+import { usuarioCookie } from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
-    const useRole = userRole(request);
-    if (useRole === null)
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (useRole !== "informatico")
+    if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { db } = await connectToDatabase();
@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const useRole = userRole(request);
-    if (useRole === null)
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (useRole !== "informatico")
+    if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const body = await request.json();
@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const useRole = userRole(request);
-    if (useRole === null)
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (useRole !== "informatico")
+    if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const body = await request.json();
@@ -81,10 +81,10 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const useRole = userRole(request);
-    if (useRole === null)
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (useRole !== "informatico")
+    if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);

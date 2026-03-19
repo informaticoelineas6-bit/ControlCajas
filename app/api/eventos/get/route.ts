@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { userRole } from "../../utils";
+import { usuarioCookie } from "../../../../lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
-    const useRole = userRole(request);
-    if (useRole === null)
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (usuario.rol !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
     const tipo = searchParams.get("tipo");

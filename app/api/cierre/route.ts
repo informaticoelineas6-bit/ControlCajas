@@ -1,14 +1,14 @@
-import { COLECCIONES } from "@/lib/constants";
+import { Cierre, COLECCIONES } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { userRole } from "../utils";
+import { usuarioCookie } from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
-    const useRole = userRole(request);
-    if (useRole === null)
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (useRole !== "informatico")
+    if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
@@ -37,10 +37,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const useRole = userRole(request);
-    if (useRole === null)
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (useRole !== "informatico")
+    if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const data = await request.json();
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const nuevoCierre = {
+    const nuevoCierre: Cierre = {
       fecha,
       cierre_almacen,
       cierre_cd,

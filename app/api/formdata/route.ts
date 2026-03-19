@@ -4,24 +4,26 @@ import {
   Almacen,
   CentroDistribucion,
   COLECCIONES,
+  EVENTOS_ARRAY,
   Expedicion,
   Recogida,
+  TIPOS_EVENTO,
   Traspaso,
   Vehiculo,
 } from "@/lib/constants";
-import { userRole } from "../utils";
+import { usuarioCookie } from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
-      const useRole = userRole(request);
-      if (useRole === null)
-        return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-  
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const tipo = searchParams.get("tipo"); // Expedicion|Entrega|Devolucion|Recogida
     const fecha = new Date().toISOString().split("T")[0];
 
-    if (!tipo) {
+    if (!tipo || !EVENTOS_ARRAY.includes(tipo as TIPOS_EVENTO)) {
       return NextResponse.json(
         { error: "El tipo es requerido" },
         { status: 400 },
@@ -31,20 +33,22 @@ export async function GET(request: NextRequest) {
     const { db } = await connectToDatabase();
 
     let eventos;
-    let almacenes: Almacen[] = [];
-    let centros: CentroDistribucion[] = [];
-    let vehiculos: Vehiculo[] = [];
+    let resultado: EventoFormData = {
+      almacenes: [],
+      centros: [],
+      vehiculos: [],
+    };
     switch (tipo) {
       case "Expedicion":
-        centros = (await db
+        resultado.centros = (await db
           .collection(COLECCIONES.CENTRO_DISTRIBUCION)
           .find({})
           .toArray()) as CentroDistribucion[];
-        almacenes = (await db
+        resultado.almacenes = (await db
           .collection(COLECCIONES.ALMACEN)
           .find({})
           .toArray()) as Almacen[];
-        return NextResponse.json({ centros, almacenes });
+        return NextResponse.json(resultado);
       case "Traspaso":
         eventos = (await db
           .collection(COLECCIONES.EXPEDICION)
@@ -57,31 +61,35 @@ export async function GET(request: NextRequest) {
           );
         }
         for (const element of eventos) {
-          if (almacenes.every((el: Almacen) => el.nombre !== element.almacen)) {
-            almacenes.push(
+          if (
+            resultado.almacenes.every(
+              (el: Almacen) => el.nombre !== element.almacen,
+            )
+          ) {
+            resultado.almacenes.push(
               (await db
                 .collection(COLECCIONES.ALMACEN)
                 .findOne({ nombre: element.almacen })) as Almacen,
             );
           }
           if (
-            centros.every(
+            resultado.centros.every(
               (el: CentroDistribucion) =>
                 el.nombre !== element.centro_distribucion,
             )
           ) {
-            centros.push(
+            resultado.centros.push(
               (await db.collection(COLECCIONES.CENTRO_DISTRIBUCION).findOne({
                 nombre: element.centro_distribucion,
               })) as CentroDistribucion,
             );
           }
         }
-        vehiculos = (await db
+        resultado.vehiculos = (await db
           .collection(COLECCIONES.VEHICULO)
           .find({})
           .toArray()) as Vehiculo[];
-        return NextResponse.json({ almacenes, centros, vehiculos });
+        return NextResponse.json(resultado);
       case "Entrega":
         eventos = (await db
           .collection(COLECCIONES.TRASPASO)
@@ -95,36 +103,40 @@ export async function GET(request: NextRequest) {
         }
         for (const element of eventos) {
           if (
-            centros.every(
+            resultado.centros.every(
               (el: CentroDistribucion) =>
                 el.nombre !== element.centro_distribucion,
             )
           ) {
-            centros.push(
+            resultado.centros.push(
               (await db.collection(COLECCIONES.CENTRO_DISTRIBUCION).findOne({
                 nombre: element.centro_distribucion,
               })) as CentroDistribucion,
             );
           }
-          if (vehiculos.every((el: Vehiculo) => el.chapa !== element.chapa)) {
-            vehiculos.push(
+          if (
+            resultado.vehiculos.every(
+              (el: Vehiculo) => el.chapa !== element.chapa,
+            )
+          ) {
+            resultado.vehiculos.push(
               (await db
                 .collection(COLECCIONES.VEHICULO)
                 .findOne({ chapa: element.chapa })) as Vehiculo,
             );
           }
         }
-        return NextResponse.json({ vehiculos, centros });
+        return NextResponse.json(resultado);
       case "Recogida":
-        centros = (await db
+        resultado.centros = (await db
           .collection(COLECCIONES.CENTRO_DISTRIBUCION)
           .find({})
           .toArray()) as CentroDistribucion[];
-        vehiculos = (await db
+        resultado.vehiculos = (await db
           .collection(COLECCIONES.VEHICULO)
           .find({})
           .toArray()) as Vehiculo[];
-        return NextResponse.json({ centros, vehiculos });
+        return NextResponse.json(resultado);
       case "Devolucion":
         eventos = (await db
           .collection(COLECCIONES.RECOGIDA)
@@ -138,23 +150,23 @@ export async function GET(request: NextRequest) {
         }
         for (const element of eventos) {
           if (
-            centros.every(
+            resultado.centros.every(
               (el: CentroDistribucion) =>
                 el.nombre !== element.centro_distribucion,
             )
           ) {
-            centros.push(
+            resultado.centros.push(
               (await db.collection(COLECCIONES.CENTRO_DISTRIBUCION).findOne({
                 nombre: element.centro_distribucion,
               })) as CentroDistribucion,
             );
           }
         }
-        almacenes = (await db
+        resultado.almacenes = (await db
           .collection(COLECCIONES.ALMACEN)
           .find({})
           .toArray()) as Almacen[];
-        return NextResponse.json({ centros, almacenes });
+        return NextResponse.json(resultado);
       default:
         return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
     }
@@ -165,4 +177,10 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+export interface EventoFormData {
+  almacenes: Almacen[];
+  centros: CentroDistribucion[];
+  vehiculos: Vehiculo[];
 }

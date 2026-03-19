@@ -9,90 +9,115 @@ import {
   Entrega,
   Expedicion,
   Recogida,
+  Traspaso,
 } from "@/lib/constants";
-import { applyAjuste } from "../utils";
+import {
+  AjusteStr,
+  applyAjuste,
+  hasCajas,
+  totalCajas,
+  usuarioCookie,
+} from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
     const { db } = await connectToDatabase();
     const today = new Date().toISOString().split("T")[0];
     const parseDate = (value: string) => {
       const [year, month, day] = value.split("-").map(Number);
       return new Date(Date.UTC(year, month - 1, day));
     };
-    const centros = db.collection(COLECCIONES.CENTRO_DISTRIBUCION);
-    const almacenes = db.collection(COLECCIONES.ALMACEN);
-    const expediciones = db.collection(COLECCIONES.EXPEDICION);
-    const entregas = db.collection(COLECCIONES.ENTREGA);
-    const recogidas = db.collection(COLECCIONES.RECOGIDA);
-    const devoluciones = db.collection(COLECCIONES.DEVOLUCION);
 
-    const centrosData = (await centros
-      .find()
-      .toArray()) as CentroDistribucion[];
-    const almacenesData = ((await almacenes.find().toArray()) as Almacen[]).map(
-      applyAjuste,
-    );
-    const expedicionesData = (
-      (await expediciones.find({ fecha: today }).toArray()) as Expedicion[]
-    ).map(applyAjuste);
-    const entregasData = ((await entregas.find({}).toArray()) as Entrega[])
+    // Run all database queries in parallel
+    const [
+      centros,
+      almacenes,
+      expedicionesRaw,
+      traspasosRaw,
+      entregasRaw,
+      recogidasRaw,
+      devolucionesRaw,
+    ] = await Promise.all([
+      db
+        .collection(COLECCIONES.CENTRO_DISTRIBUCION)
+        .find()
+        .toArray() as Promise<CentroDistribucion[]>,
+      db.collection(COLECCIONES.ALMACEN).find().toArray() as Promise<Almacen[]>,
+      db
+        .collection(COLECCIONES.EXPEDICION)
+        .find({ fecha: today })
+        .toArray() as Promise<Expedicion[]>,
+      db.collection(COLECCIONES.TRASPASO).find().toArray() as Promise<
+        Traspaso[]
+      >,
+      db.collection(COLECCIONES.ENTREGA).find().toArray() as Promise<Entrega[]>,
+      db
+        .collection(COLECCIONES.RECOGIDA)
+        .find({ fecha: today })
+        .toArray() as Promise<Recogida[]>,
+      db
+        .collection(COLECCIONES.DEVOLUCION)
+        .find({ fecha: today })
+        .toArray() as Promise<Devolucion[]>,
+    ]);
+
+    // Apply post-processing (map, filter, sort) to the raw results
+    const expediciones = expedicionesRaw
       .map(applyAjuste)
-      .sort((a: Entrega, b: Entrega) => b.fecha.localeCompare(a.fecha));
-    const recogidasData = (
-      (await recogidas.find({ fecha: today }).toArray()) as Recogida[]
-    ).map(applyAjuste);
-    const devolucionesData = (
-      (await devoluciones.find({ fecha: today }).toArray()) as Devolucion[]
-    ).map(applyAjuste);
+      .filter(hasCajas) as AjusteStr<Expedicion>[];
+    const traspasos = traspasosRaw
+      .map(applyAjuste)
+      .filter(hasCajas) as AjusteStr<Traspaso>[];
+    const entregas = (entregasRaw.map(applyAjuste) as AjusteStr<Entrega>[])
+      .filter(hasCajas)
+      .sort((a, b) => b.fecha.localeCompare(a.fecha));
+    const recogidas = recogidasRaw
+      .map(applyAjuste)
+      .filter(hasCajas) as AjusteStr<Recogida>[];
+    const devoluciones = devolucionesRaw
+      .map(applyAjuste)
+      .filter(hasCajas) as AjusteStr<Devolucion>[];
 
-    const dashboardData = [];
-    const movementToday = {
-      expediciones: expedicionesData.filter(
-        (evento: Expedicion) => evento.fecha === today,
-      ),
-      entregas: entregasData.filter(
-        (evento: Entrega) => evento.fecha === today,
-      ),
-      recogidas: recogidasData.filter(
-        (evento: Recogida) => evento.fecha === today,
-      ),
-      devoluciones: devolucionesData.filter(
-        (evento: Devolucion) => evento.fecha === today,
-      ),
-    };
+    const dashboardData: DashboardRow[] = [];
+    const movementToday: number =
+      expediciones.filter((evento) => evento.fecha === today).length +
+      traspasos.filter((evento) => evento.fecha === today).length +
+      entregas.filter((evento) => evento.fecha === today).length +
+      recogidas.filter((evento) => evento.fecha === today).length +
+      devoluciones.filter((evento) => evento.fecha === today).length;
 
-    for (const centro of centrosData) {
-      let iteration = {
+    for (const centro of centros) {
+      let iteration: DashboardRow = {
         nombre: centro.nombre,
         deuda: centro.deuda,
         rotacion: centro.rotacion,
-        fechaRot: "Sin fecha",
-        estadoRot: "En tiempo" as
-          | "Pendiente"
-          | "Retrasada"
-          | "En tiempo"
-          | "Cumplida",
+        fechaRot: today,
+        estadoRot: "En tiempo",
         roturasTotal:
           centro.roturas.cajas.blancas +
           centro.roturas.tapas.blancas +
           centro.roturas.cajas.negras +
           centro.roturas.tapas.negras +
-          centro.roturas.cajas.verdes +
-          centro.roturas.tapas.verdes,
+          centro.roturas.cajas.verdes,
       };
-      const entregasFiltrado = entregasData.filter(
+      const entregasFiltrado = entregas.filter(
         (entrega) => entrega.centro_distribucion === centro.nombre,
       );
 
-      let deuda = {
+      let deuda: Cajas = {
         blancas: centro.deuda.blancas,
         negras: centro.deuda.negras,
         verdes: centro.deuda.verdes,
       };
       for (const entrega of entregasFiltrado) {
         iteration.fechaRot = entrega.fecha;
-        if (deuda.blancas >= 0 && deuda.negras >= 0 && deuda.verdes >= 0) {
+        if (deuda.blancas >= 0 || deuda.negras >= 0 || deuda.verdes >= 0) {
           deuda.blancas -= entrega.cajas.blancas;
           deuda.negras -= entrega.cajas.negras;
           deuda.verdes -= entrega.cajas.verdes;
@@ -101,103 +126,78 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      if (
-        centro.deuda.blancas + centro.deuda.negras + centro.deuda.verdes <=
-        0
-      ) {
-        iteration.estadoRot = "Cumplida";
-      } else if (iteration.fechaRot == "Sin fecha") {
-        iteration.estadoRot = "En tiempo";
-      } else {
-        const fechaRotDate = parseDate(iteration.fechaRot);
-        const todayDate = parseDate(today);
-        const fechaLimite = new Date(fechaRotDate);
-        fechaLimite.setUTCDate(
-          fechaLimite.getUTCDate() + (centro.rotacion ?? 0),
-        );
+      const cumplido =
+        centro.deuda.blancas <= 0 &&
+        centro.deuda.negras <= 0 &&
+        centro.deuda.verdes <= 0;
+      const fechaRotDate = parseDate(iteration.fechaRot);
+      const todayDate = parseDate(today);
+      const fechaLimite = new Date(fechaRotDate);
+      fechaLimite.setUTCDate(fechaLimite.getUTCDate() + (centro.rotacion ?? 0));
 
-        if (fechaLimite > todayDate) {
-          iteration.estadoRot = "Pendiente";
-        } else if (fechaLimite < todayDate) {
-          iteration.estadoRot = "Retrasada";
-        } else {
-          iteration.estadoRot = "En tiempo";
-        }
+      if (fechaLimite < todayDate) {
+        iteration.estadoRot = "Retrasada";
+      } else if (cumplido) {
+        iteration.estadoRot = "Cumplida";
+      } else if (fechaLimite > todayDate) {
+        iteration.estadoRot = "Pendiente";
+      } else {
+        iteration.estadoRot = "En tiempo";
       }
 
       dashboardData.push(iteration);
     }
 
-    const deudaTotal = centrosData.reduce(
+    const deudaTotal = centros.reduce(
       (acc: number, centro: CentroDistribucion) => {
-        const deuda: Cajas = centro.deuda || {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
-        };
+        return acc + totalCajas(centro.deuda);
+      },
+      0,
+    );
+
+    const stockTotal = almacenes.reduce((acc: number, almacen: Almacen) => {
+      return acc + totalCajas(almacen.stock);
+    }, 0);
+
+    const roturaTotal = centros.reduce(
+      (acc: number, centro: CentroDistribucion) => {
         return (
-          acc + (deuda.blancas ?? 0) + (deuda.negras ?? 0) + (deuda.verdes ?? 0)
+          acc +
+          totalCajas(centro.roturas.cajas) +
+          totalCajas(centro.roturas.tapas)
         );
       },
       0,
     );
 
-    const stockTotal = almacenesData.reduce((acc: number, almacen: Almacen) => {
-      const stock: Cajas = almacen.stock || {
-        blancas: 0,
-        negras: 0,
-        verdes: 0,
-      };
+    const roturaActual = almacenes.reduce((acc: number, almacen: Almacen) => {
       return (
-        acc + (stock.blancas ?? 0) + (stock.negras ?? 0) + (stock.verdes ?? 0)
+        acc +
+        totalCajas(almacen.roturas.cajas) +
+        totalCajas(almacen.roturas.tapas)
       );
     }, 0);
 
-    const roturaTotal = centrosData.reduce(
-      (acc: number, centro: CentroDistribucion) => {
-        const roturasCajas: Cajas = centro.roturas?.cajas || {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
-        };
-        const roturasTapas: Cajas = centro.roturas?.tapas || {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
-        };
-        return (
-          acc +
-          (roturasCajas.blancas ?? 0) +
-          (roturasCajas.negras ?? 0) +
-          (roturasCajas.verdes ?? 0) +
-          (roturasTapas.blancas ?? 0) +
-          (roturasTapas.negras ?? 0) +
-          (roturasTapas.verdes ?? 0)
-        );
+    const enviosHoy = expediciones.reduce(
+      (acc: number, expedicion: AjusteStr<Expedicion>) => {
+        return acc + totalCajas(expedicion.cajas);
       },
       0,
     );
 
-    const roturaActual = almacenesData.reduce(
-      (acc: number, almacen: Almacen) => {
-        const roturasCajas: Cajas = almacen.roturas?.cajas || {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
-        };
-        const roturasTapas: Cajas = almacen.roturas?.tapas || {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
-        };
+    const recogidasHoy = devoluciones.reduce(
+      (acc: number, devolucion: AjusteStr<Devolucion>) => {
+        return acc + totalCajas(devolucion.cajas);
+      },
+      0,
+    );
+
+    const rotasHoy = devoluciones.reduce(
+      (acc: number, devolucion: AjusteStr<Devolucion>) => {
         return (
           acc +
-          (roturasCajas.blancas ?? 0) +
-          (roturasCajas.negras ?? 0) +
-          (roturasCajas.verdes ?? 0) +
-          (roturasTapas.blancas ?? 0) +
-          (roturasTapas.negras ?? 0) +
-          (roturasTapas.verdes ?? 0)
+          totalCajas(devolucion.cajas_rotas) +
+          totalCajas(devolucion.tapas_rotas)
         );
       },
       0,
@@ -206,11 +206,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       dashboardData,
       movementToday,
+      enviosHoy,
+      recogidasHoy,
+      rotasHoy,
       deudaTotal,
       stockTotal,
       roturaTotal,
       roturaActual,
-    });
+    } as DashboardData);
   } catch (error) {
     console.error("Error fetching data:", error);
     return NextResponse.json(
@@ -218,4 +221,25 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+export interface DashboardData {
+  dashboardData: DashboardRow[];
+  movementToday: number;
+  enviosHoy: number;
+  recogidasHoy: number;
+  rotasHoy: number;
+  deudaTotal: number;
+  stockTotal: number;
+  roturaTotal: number;
+  roturaActual: number;
+}
+
+export interface DashboardRow {
+  nombre: string;
+  deuda: Cajas;
+  rotacion: number;
+  fechaRot: string;
+  estadoRot: "Pendiente" | "Retrasada" | "En tiempo" | "Cumplida";
+  roturasTotal: number;
 }

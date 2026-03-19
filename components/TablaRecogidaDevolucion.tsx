@@ -1,28 +1,8 @@
 "use client";
 
-import { Cajas } from "@/lib/constants";
+import { ItemComparacionRecogida } from "@/lib/constants";
+import { totalCajas } from "@/lib/utils";
 import { useEffect, useState } from "react";
-
-export interface ItemRecogidaDevolucion {
-  centro_distribucion: string;
-  almacen: string;
-  chapa: string;
-  recogida: any;
-  devolucion: any;
-  alerta: boolean;
-  rotura: boolean;
-}
-
-const totalCajas = (cajas: Cajas) =>
-  (cajas?.blancas ?? 0) + (cajas?.negras ?? 0) + (cajas?.verdes ?? 0);
-
-const totalRoturas = (item: any) =>
-  (item?.cajas_rotas?.blancas ?? 0) +
-  (item?.cajas_rotas?.negras ?? 0) +
-  (item?.cajas_rotas?.verdes ?? 0) +
-  (item?.tapas_rotas?.blancas ?? 0) +
-  (item?.tapas_rotas?.negras ?? 0) +
-  (item?.tapas_rotas?.verdes ?? 0);
 
 export default function TablaRecogidaDevolucion({
   fecha,
@@ -30,8 +10,8 @@ export default function TablaRecogidaDevolucion({
   setDatos,
 }: Readonly<{
   fecha: string;
-  datos: ItemRecogidaDevolucion[];
-  setDatos: (datos: ItemRecogidaDevolucion[]) => void;
+  datos: ItemComparacionRecogida[];
+  setDatos: (datos: ItemComparacionRecogida[]) => void;
 }>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -200,15 +180,21 @@ export default function TablaRecogidaDevolucion({
                       </td>
                       <td
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
-                        title={`Cajas Blancas: ${item.recogida?.cajas_rotas.blancas ?? 0}, Negras: ${item.recogida?.cajas_rotas.negras ?? 0}, Verdes: ${item.recogida?.cajas_rotas.verdes ?? 0}\nTapas Blancas: ${item.recogida?.tapas_rotas.blancas ?? 0}, Negras: ${item.recogida?.tapas_rotas.negras ?? 0}, Verdes: ${item.recogida?.tapas_rotas.verdes ?? 0}`}
+                        title={`Cajas Blancas: ${item.recogida?.cajas_rotas?.blancas ?? 0}, Negras: ${item.recogida?.cajas_rotas?.negras ?? 0}, Verdes: ${item.recogida?.cajas_rotas?.verdes ?? 0}\nTapas Blancas: ${item.recogida?.tapas_rotas?.blancas ?? 0}, Negras: ${item.recogida?.tapas_rotas?.negras ?? 0}`}
                       >
-                        {item.recogida ? totalRoturas(item.recogida) : "-"}
+                        {item.recogida
+                          ? totalCajas(item.recogida.cajas_rotas) +
+                            totalCajas(item.recogida.tapas_rotas)
+                          : "-"}
                       </td>
                       <td
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
-                        title={`Cajas Blancas: ${item.devolucion?.cajas_rotas.blancas ?? 0}, Negras: ${item.devolucion?.cajas_rotas.negras ?? 0}, Verdes: ${item.devolucion?.cajas_rotas.verdes ?? 0}\nTapas Blancas: ${item.devolucion?.tapas_rotas.blancas ?? 0}, Negras: ${item.devolucion?.tapas_rotas.negras ?? 0}, Verdes: ${item.devolucion?.tapas_rotas.verdes ?? 0}`}
+                        title={`Cajas Blancas: ${item.devolucion?.cajas_rotas?.blancas ?? 0}, Negras: ${item.devolucion?.cajas_rotas?.negras ?? 0}, Verdes: ${item.devolucion?.cajas_rotas?.verdes ?? 0}\nTapas Blancas: ${item.devolucion?.tapas_rotas?.blancas ?? 0}, Negras: ${item.devolucion?.tapas_rotas?.negras ?? 0}`}
                       >
-                        {item.devolucion ? totalRoturas(item.devolucion) : "-"}
+                        {item.devolucion
+                          ? totalCajas(item.devolucion.cajas_rotas) +
+                            totalCajas(item.devolucion.tapas_rotas)
+                          : "-"}
                       </td>
                     </tr>
                   ))

@@ -1,20 +1,8 @@
 "use client";
 
-import { Cajas } from "@/lib/constants";
+import { ItemComparacionEntrega } from "@/lib/constants";
+import { totalCajas } from "@/lib/utils";
 import { useEffect, useState } from "react";
-
-export interface ItemExpedicionEntrega {
-  chapa: string;
-  centro_distribucion: string;
-  almacen: string;
-  expedicion?: any;
-  traspaso?: any;
-  entrega?: any;
-  alerta: boolean;
-}
-
-const totalCajas = (cajas: Cajas) =>
-  (cajas?.blancas ?? 0) + (cajas?.negras ?? 0) + (cajas?.verdes ?? 0);
 
 export default function TablaExpedicionEntrega({
   fecha,
@@ -22,8 +10,8 @@ export default function TablaExpedicionEntrega({
   setDatos,
 }: Readonly<{
   fecha: string;
-  datos: ItemExpedicionEntrega[];
-  setDatos: (datos: ItemExpedicionEntrega[]) => void;
+  datos: ItemComparacionEntrega[];
+  setDatos: (datos: ItemComparacionEntrega[]) => void;
 }>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -175,7 +163,9 @@ export default function TablaExpedicionEntrega({
                         title={`Blancas: ${item.expedicion?.cajas.blancas ?? 0}, Negras: ${item.expedicion?.cajas.negras ?? 0}, Verdes: ${item.expedicion?.cajas.verdes ?? 0}`}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                       >
-                        {totalCajas(item.expedicion?.cajas)}
+                        {item.expedicion?.cajas
+                          ? totalCajas(item.expedicion?.cajas)
+                          : 0}
                       </td>
                       <td className="px-5 py-4 text-center text-slate-600">
                         {item.traspaso?.nombre ?? "-"}
@@ -187,7 +177,9 @@ export default function TablaExpedicionEntrega({
                         title={`Blancas: ${item.traspaso?.cajas.blancas ?? 0}, Negras: ${item.traspaso?.cajas.negras ?? 0}, Verdes: ${item.traspaso?.cajas.verdes ?? 0}`}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                       >
-                        {totalCajas(item.traspaso?.cajas)}
+                        {item.traspaso?.cajas
+                          ? totalCajas(item.traspaso?.cajas)
+                          : 0}
                       </td>
                       <td className="px-5 py-4 text-center text-slate-600">
                         {item.entrega?.nombre ?? "-"}
@@ -199,7 +191,9 @@ export default function TablaExpedicionEntrega({
                         title={`Blancas: ${item.entrega?.cajas.blancas ?? 0}, Negras: ${item.entrega?.cajas.negras ?? 0}, Verdes: ${item.entrega?.cajas.verdes ?? 0}`}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                       >
-                        {totalCajas(item.entrega?.cajas)}
+                        {item.entrega?.cajas
+                          ? totalCajas(item.entrega?.cajas)
+                          : 0}
                       </td>
                     </tr>
                   ))

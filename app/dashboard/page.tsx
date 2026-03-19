@@ -3,13 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import FormularioEvento from "@/components/FormularioEvento";
-import TablaExpedicionEntrega, {
-  ItemExpedicionEntrega,
-} from "@/components/TablaExpedicionEntrega";
-import TablaRecogidaDevolucion, {
-  ItemRecogidaDevolucion,
-} from "@/components/TablaRecogidaDevolucion";
+import FormularioEvento, {
+  EventoAjusteProp,
+} from "@/components/FormularioEvento";
+import TablaExpedicionEntrega from "@/components/TablaExpedicionEntrega";
+import TablaRecogidaDevolucion from "@/components/TablaRecogidaDevolucion";
 import TablaExpedicion from "@/components/TablaExpedicion";
 import TablaEntrega from "@/components/TablaEntrega";
 import TablaDevolucion from "@/components/TablaDevolucion";
@@ -18,24 +16,15 @@ import TablaVehiculos from "@/components/TablaVehiculos";
 import TablaAlmacenes from "@/components/TablaAlmacenes";
 import TablaCentros from "@/components/TablaCentros";
 import {
-  COLECCIONES,
-  Devolucion,
-  Entrega,
-  Expedicion,
-  Recogida,
-  Traspaso,
+  ItemComparacionEntrega,
+  ItemComparacionRecogida,
+  TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
 import CierreDiario from "@/components/CierreDiario";
 import TablaUsuarios from "@/components/TablaUsuarios";
 import TablaInformacion from "@/components/TablaInformacion";
 import TablaTraspaso from "@/components/TablaTraspaso";
-
-interface Evento {
-  _id: string;
-  tipo_evento: string;
-  [key: string]: unknown;
-}
 
 type DashboardTab =
   | "eventos"
@@ -50,31 +39,15 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("mis_eventos");
   const [loading, setLoading] = useState(true);
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
-  const [adjustingEvent, setAdjustingEvent] = useState<Evento | null>(null);
+  const [adjustingEvent, setAdjustingEvent] = useState<EventoAjusteProp | null>(
+    null,
+  );
   const [expedicionEntregaData, setExpedicionEntregaData] = useState<
-    ItemExpedicionEntrega[]
+    ItemComparacionEntrega[]
   >([]);
   const [recogidaDevolucionData, setRecogidaDevolucionData] = useState<
-    ItemRecogidaDevolucion[]
+    ItemComparacionRecogida[]
   >([]);
-
-  const [expedicionData, setExpedicionData] = useState<Expedicion[]>([]);
-  const [traspasoData, setTraspasoData] = useState<Traspaso[]>([]);
-  const [entregaData, setEntregaData] = useState<Entrega[]>([]);
-  const [recogidaData, setRecogidaData] = useState<Recogida[]>([]);
-  const [devolucionData, setDevolucionData] = useState<Devolucion[]>([]);
-
-  const [expedicionLoading, setExpedicionLoading] = useState<boolean>(false);
-  const [traspasoLoading, setTraspasoLoading] = useState<boolean>(false);
-  const [entregaLoading, setEntregaLoading] = useState<boolean>(false);
-  const [recogidaLoading, setRecogidaLoading] = useState<boolean>(false);
-  const [devolucionLoading, setDevolucionLoading] = useState<boolean>(false);
-
-  const [expedicionError, setExpedicionError] = useState<string>("");
-  const [traspasoError, setTraspasoError] = useState<string>("");
-  const [entregaError, setEntregaError] = useState<string>("");
-  const [recogidaError, setRecogidaError] = useState<string>("");
-  const [devolucionError, setDevolucionError] = useState<string>("");
 
   useEffect(() => {
     const fetchUsuario = async () => {
@@ -103,116 +76,27 @@ export default function Dashboard() {
       return;
     }
 
-    setActiveTab(usuario.rol === "informatico" ? "informacion" : "mis_eventos");
+    let activeTab: DashboardTab;
+    switch (usuario.rol) {
+      case "almacenero":
+        activeTab = "mis_eventos";
+        break;
+      case "chofer":
+        activeTab = "eventos";
+        break;
+      case "expedidor":
+        activeTab = "mis_eventos";
+        break;
+      case "informatico":
+        activeTab = "ver_eventos";
+        break;
+      case "auditor":
+        activeTab = "informacion";
+        break;
+    }
+
+    setActiveTab(activeTab);
   }, [usuario]);
-
-  useEffect(() => {
-    fetchDatosExpedicion();
-    fetchDatosTraspaso();
-    fetchDatosEntrega();
-    fetchDatosRecogida();
-    fetchDatosDevolucion();
-  }, [fecha]);
-
-  const fetchDatosExpedicion = async () => {
-    setExpedicionLoading(true);
-    setExpedicionError("");
-    try {
-      const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.EXPEDICION}`,
-      );
-      const data = await res.json();
-      if (res.ok) {
-        setExpedicionData(data);
-      } else {
-        setExpedicionError(data.error || "Error al cargar eventos");
-      }
-    } catch {
-      setExpedicionError("Error en el servidor");
-    } finally {
-      setExpedicionLoading(false);
-    }
-  };
-
-  const fetchDatosTraspaso = async () => {
-    setTraspasoLoading(true);
-    setTraspasoError("");
-    try {
-      const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.TRASPASO}`,
-      );
-      const data = await res.json();
-      if (res.ok) {
-        setTraspasoData(data);
-      } else {
-        setTraspasoError(data.error || "Error al cargar eventos");
-      }
-    } catch {
-      setTraspasoError("Error en el servidor");
-    } finally {
-      setTraspasoLoading(false);
-    }
-  };
-
-  const fetchDatosEntrega = async () => {
-    setEntregaLoading(true);
-    setEntregaError("");
-    try {
-      const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.ENTREGA}`,
-      );
-      const data = await res.json();
-      if (res.ok) {
-        setEntregaData(data);
-      } else {
-        setEntregaError(data.error || "Error al cargar eventos");
-      }
-    } catch {
-      setEntregaError("Error en el servidor");
-    } finally {
-      setEntregaLoading(false);
-    }
-  };
-
-  const fetchDatosRecogida = async () => {
-    setRecogidaLoading(true);
-    setRecogidaError("");
-    try {
-      const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.RECOGIDA}`,
-      );
-      const data = await res.json();
-      if (res.ok) {
-        setRecogidaData(data);
-      } else {
-        setRecogidaError(data.error || "Error al cargar eventos");
-      }
-    } catch {
-      setRecogidaError("Error en el servidor");
-    } finally {
-      setRecogidaLoading(false);
-    }
-  };
-
-  const fetchDatosDevolucion = async () => {
-    setDevolucionLoading(true);
-    setDevolucionError("");
-    try {
-      const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.DEVOLUCION}`,
-      );
-      const data = await res.json();
-      if (res.ok) {
-        setDevolucionData(data);
-      } else {
-        setDevolucionError(data.error || "Error al cargar eventos");
-      }
-    } catch {
-      setDevolucionError("Error en el servidor");
-    } finally {
-      setDevolucionLoading(false);
-    }
-  };
 
   if (loading || !usuario) {
     return (
@@ -222,12 +106,15 @@ export default function Dashboard() {
     );
   }
 
-  const handleAjustarClick = async (tipoEvento: string, eventoId: string) => {
+  const handleAjustarClick = async (
+    tipoEvento: TIPOS_EVENTO,
+    eventoId: string,
+  ) => {
     try {
       const res = await fetch(
         `/api/eventos/get?tipo=${tipoEvento}&id=${eventoId}`,
       );
-      const evento = await res.json();
+      const evento: any = await res.json();
       if (res.ok) {
         setAdjustingEvent({ ...evento, tipo_evento: tipoEvento });
       }
@@ -237,43 +124,59 @@ export default function Dashboard() {
   };
 
   const isInformatico = usuario.rol === "informatico";
-  const tabItems = isInformatico
-    ? [
-        {
+
+  const tabItems = () => {
+    const tabArray = [];
+    switch (usuario.rol) {
+      case "informatico":
+        tabArray.push(
+          {
+            key: "administracion" as DashboardTab,
+            label: "Administración",
+            helper: "Modificación de datos",
+          },
+          {
+            key: "mis_eventos" as DashboardTab,
+            label: "Listado",
+            helper: "Listado general de eventos",
+          },
+          {
+            key: "ver_eventos" as DashboardTab,
+            label: "Eventos del día",
+            helper: "Revisión y cierre",
+          },
+        );
+      case "auditor":
+        tabArray.push({
           key: "informacion" as DashboardTab,
           label: "Dashboard",
           helper: "Información general",
-        },
-        {
-          key: "ver_eventos" as DashboardTab,
-          label: "Eventos del día",
-          helper: "Revisión y cierre",
-        },
-        {
-          key: "mis_eventos" as DashboardTab,
-          label: "Listado",
-          helper: "Listado general de eventos",
-        },
-        {
-          key: "administracion" as DashboardTab,
-          label: "Administración",
-          helper: "Modificación de datos",
-        },
-      ]
-    : [
-        {
-          key: "eventos" as DashboardTab,
-          label: "Nuevo evento",
-          helper: "Registrar movimiento",
-        },
-        {
-          key: "mis_eventos" as DashboardTab,
-          label: "Mis eventos",
-          helper: "Seguimiento diario",
-        },
-      ];
+        });
+        break;
+      case "chofer":
+      case "almacenero":
+      case "expedidor":
+        tabArray.push(
+          {
+            key: "eventos" as DashboardTab,
+            label: "Nuevo evento",
+            helper: "Registrar movimiento",
+          },
+          {
+            key: "mis_eventos" as DashboardTab,
+            label: "Mis eventos",
+            helper: "Seguimiento diario",
+          },
+        );
+        break;
+      default:
+        break;
+    }
+    return tabArray;
+  };
 
   const pageTitles: Record<DashboardTab, string> = {
+    // TODO: Actualizar los títulos.
     eventos: "Registro de eventos",
     mis_eventos: isInformatico ? "Listado de eventos" : "Mis eventos",
     ver_eventos: "Cruce operativo diario",
@@ -282,6 +185,7 @@ export default function Dashboard() {
   };
 
   const pageDescriptions: Record<DashboardTab, string> = {
+    // TODO: actualizar las descripciones. Hacer un tipo que las envuelva.
     eventos: "Crea expediciones, entregas, recogidas y devoluciones.",
     mis_eventos: "Consulta y ajusta los movimientos relevantes según tu rol.",
     ver_eventos:
@@ -351,45 +255,35 @@ export default function Dashboard() {
               {(isInformatico || usuario?.rol === "expedidor") && (
                 <TablaExpedicion
                   usuario={usuario}
-                  datos={expedicionData}
-                  loading={expedicionLoading}
-                  error={expedicionError}
+                  fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />
               )}
               {(isInformatico || usuario?.rol === "chofer") && (
                 <TablaTraspaso
                   usuario={usuario}
-                  datos={traspasoData}
-                  loading={traspasoLoading}
-                  error={traspasoError}
+                  fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />
               )}
               {(isInformatico || usuario?.rol === "chofer") && (
                 <TablaEntrega
                   usuario={usuario}
-                  datos={entregaData}
-                  loading={entregaLoading}
-                  error={entregaError}
+                  fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />
               )}
               {(isInformatico || usuario?.rol === "chofer") && (
                 <TablaRecogida
                   usuario={usuario}
-                  datos={recogidaData}
-                  loading={recogidaLoading}
-                  error={recogidaError}
+                  fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />
               )}
               {(isInformatico || usuario?.rol === "almacenero") && (
                 <TablaDevolucion
                   usuario={usuario}
-                  datos={devolucionData}
-                  loading={devolucionLoading}
-                  error={devolucionError}
+                  fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />
               )}
@@ -439,10 +333,6 @@ export default function Dashboard() {
                 fecha={fecha}
                 expedicionEntregaData={expedicionEntregaData}
                 recogidaDevolucionData={recogidaDevolucionData}
-                expedicionData={expedicionData}
-                recogidaData={recogidaData}
-                entregaData={entregaData}
-                devolucionData={devolucionData}
               />
             </div>
           </div>
@@ -452,7 +342,7 @@ export default function Dashboard() {
           </div>
         );
       case "informacion":
-        return isInformatico ? (
+        return isInformatico || usuario?.rol === "auditor" ? (
           <TablaInformacion />
         ) : (
           <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
@@ -503,11 +393,12 @@ export default function Dashboard() {
               </div>
 
               <nav className="mt-6 space-y-2">
-                {tabItems.map((item) => {
+                {tabItems().map((item) => {
                   const isActive = activeTab === item.key;
                   return (
                     <button
                       key={item.key}
+                      title={pageDescriptions[item.key]}
                       onClick={() => setActiveTab(item.key)}
                       className={`w-full rounded-[22px] px-4 py-4 text-left transition ${
                         isActive

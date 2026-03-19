@@ -1,27 +1,14 @@
 "use client";
 
+import { AlertaResponse } from "@/app/api/alerts/route";
 import { Usuario } from "@/lib/constants";
 import { useCallback, useEffect, useState } from "react";
-
-interface AlertaItem {
-  tipo: string;
-  centro_distribucion: string;
-  detalle: string;
-}
-
-interface AlertsResponse {
-  total: number;
-  usuarios_recientes: number;
-  inconsistencias_expedicion_entrega: AlertaItem[];
-  inconsistencias_devolucion_recogida: AlertaItem[];
-  cierre_pendiente: boolean;
-}
 
 export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [data, setData] = useState<AlertsResponse>({
+  const [data, setData] = useState<AlertaResponse>({
     total: 0,
     usuarios_recientes: 0,
     inconsistencias_expedicion_entrega: [],
@@ -95,11 +82,11 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
           .concat(data.inconsistencias_devolucion_recogida)
           .map((alerta) => (
             <div
-              key={`${alerta.tipo}-${alerta.centro_distribucion}`}
+              key={`${alerta.tipo}-${alerta.nombre}`}
               className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
             >
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Existe inconsistencias en el centro {alerta.centro_distribucion}
+                Existe inconsistencias en el centro {alerta.nombre}
               </p>
               <p className="mt-1 text-sm text-slate-700">{alerta.detalle}</p>
             </div>

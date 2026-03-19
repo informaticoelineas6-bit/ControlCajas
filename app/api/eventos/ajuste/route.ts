@@ -1,32 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { userRole } from "../../utils";
+import { usuarioCookie } from "../../../../lib/utils";
+import { EventoAjusteForm } from "@/components/FormularioEvento";
+import { EVENTOS_ARRAY } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json();
-    const { tipo_evento, id, ajuste, nombre } = data;
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (usuario.rol !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    if (!tipo_evento || !id || !ajuste || !nombre) {
+    const data = await request.json();
+    const { tipo_evento, ajuste }: EventoAjusteForm = data;
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!tipo_evento || !id || !ajuste || !usuario.nombre) {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
     }
 
-    const useRole = userRole(request);
-    if (useRole === null)
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (useRole !== "informatico")
-      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+    if (!EVENTOS_ARRAY.includes(tipo_evento)) {
+      return NextResponse.json(
+        { error: "Tipo de evento inválido" },
+        { status: 400 },
+      );
+    }
 
     const { db } = await connectToDatabase();
     const collection = db.collection(tipo_evento);
 
     const filter = { _id: ObjectId.createFromHexString(id) };
-    const update = {
-      $set: {
-        ajuste: { ...ajuste, nombre },
-      },
-    };
+    const update = ["Devolucion", "Recogida"].includes(tipo_evento)
+      ? {
+          $set: {
+            ajuste: {
+              cajas: ajuste.cajas,
+              cajas_rotas: ajuste.cajas_rotas,
+              tapas_rotas: ajuste.tapas_rotas,
+              nombre: usuario.nombre,
+            },
+          },
+        }
+      : {
+          $set: {
+            ajuste: { cajas: ajuste.cajas, nombre: usuario.nombre },
+          },
+        };
 
     const result = await collection.updateOne(filter, update);
     if (result.matchedCount === 0) {
@@ -36,7 +59,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      message: "Evento actualizado exitosamente.",
+    });
   } catch (err) {
     console.error("Error adjusting event:", err);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });

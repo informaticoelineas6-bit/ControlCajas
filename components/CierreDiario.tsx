@@ -8,29 +8,20 @@ import {
   Entrega,
   Devolucion,
   Recogida,
+  ItemComparacionEntrega,
+  ItemComparacionRecogida,
+  COLECCIONES,
 } from "@/lib/constants";
-import { ItemExpedicionEntrega } from "./TablaExpedicionEntrega";
-import { ItemRecogidaDevolucion } from "./TablaRecogidaDevolucion";
-
-const totalCajas = (cajas: Cajas) =>
-  (cajas?.blancas ?? 0) + (cajas?.negras ?? 0) + (cajas?.verdes ?? 0);
+import { AjusteStr, totalCajas } from "@/lib/utils";
 
 export default function CierreDiario({
   fecha,
   expedicionEntregaData,
   recogidaDevolucionData,
-  expedicionData,
-  recogidaData,
-  entregaData,
-  devolucionData,
 }: Readonly<{
   fecha: string;
-  expedicionEntregaData: ItemExpedicionEntrega[];
-  recogidaDevolucionData: ItemRecogidaDevolucion[];
-  expedicionData: Expedicion[];
-  recogidaData: Recogida[];
-  entregaData: Entrega[];
-  devolucionData: Devolucion[];
+  expedicionEntregaData: ItemComparacionEntrega[];
+  recogidaDevolucionData: ItemComparacionRecogida[];
 }>) {
   const [cierre, setCierre] = useState<Cierre>({
     fecha,
@@ -62,12 +53,6 @@ export default function CierreDiario({
     setAlertas(false);
   }, [expedicionEntregaData, recogidaDevolucionData]);
 
-  useEffect(() => {
-    if (!existente) {
-      setCierre(nuevoCierre());
-    }
-  }, [expedicionData, recogidaData, entregaData, devolucionData]);
-
   const fetchDatos = async () => {
     setLoading(true);
     setExistente(false);
@@ -79,7 +64,10 @@ export default function CierreDiario({
       if (respCierre.ok && dataCierre) {
         setCierre(dataCierre);
         setExistente(true);
-      } else if (!respCierre.ok) {
+      } else if (respCierre.ok) {
+        const nuevo: Cierre = await nuevoCierre();
+        setCierre(nuevo);
+      } else {
         setError(dataCierre.error || "Error al cargar cierre");
       }
     } catch (err) {
@@ -90,31 +78,49 @@ export default function CierreDiario({
     }
   };
 
-  const nuevoCierre = (): Cierre => ({
-    fecha,
-    cierre_cd: Object.entries(calcularAjustesDeuda()).map(([cd, data]) => ({
-      centro_distribucion: cd,
-      ajuste_deuda: data.cajas,
-      cajas_rotas: data.cajas_rotas,
-      tapas_rotas: data.tapas_rotas,
-    })),
-    cierre_almacen: Object.entries(calcularAjustesStock()).map(
-      ([almacen, data]) => ({
+  const nuevoCierre = async (): Promise<Cierre> => {
+    const [ajustesStock, ajustesDeuda] = await Promise.all([
+      calcularAjustesStock(),
+      calcularAjustesDeuda(),
+    ]);
+
+    return {
+      fecha,
+      cierre_cd: Object.entries(ajustesDeuda).map(([cd, data]) => ({
+        centro_distribucion: cd,
+        ajuste_deuda: data.cajas,
+        cajas_rotas: data.cajas_rotas,
+        tapas_rotas: data.tapas_rotas,
+      })),
+      cierre_almacen: Object.entries(ajustesStock).map(([almacen, data]) => ({
         almacen,
         ajuste_stock: data.cajas,
         cajas_rotas: data.cajas_rotas,
         tapas_rotas: data.tapas_rotas,
-      }),
-    ),
-  });
+      })),
+    };
+  };
 
-  const calcularAjustesStock = () => {
+  const calcularAjustesStock = async () => {
     const ajustesMap: Record<
       string,
       { cajas: Cajas; cajas_rotas: Cajas; tapas_rotas: Cajas }
     > = {};
 
-    devolucionData.forEach((item: Devolucion) => {
+    const [devolucionData, expedicionData] = await Promise.all([
+      (
+        await fetch(
+          `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.DEVOLUCION}`,
+        )
+      ).json() as Promise<AjusteStr<Devolucion>[]>,
+      (
+        await fetch(
+          `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.EXPEDICION}`,
+        )
+      ).json() as Promise<AjusteStr<Expedicion>[]>,
+    ]);
+
+    devolucionData.forEach((item: AjusteStr<Devolucion>) => {
       if (!ajustesMap[item.almacen]) {
         ajustesMap[item.almacen] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
@@ -136,11 +142,9 @@ export default function CierreDiario({
         item.tapas_rotas.blancas ?? 0;
       ajustesMap[item.almacen].tapas_rotas.negras +=
         item.tapas_rotas.negras ?? 0;
-      ajustesMap[item.almacen].tapas_rotas.verdes +=
-        item.tapas_rotas.verdes ?? 0;
     });
 
-    expedicionData.forEach((item: Expedicion) => {
+    expedicionData.forEach((item: AjusteStr<Expedicion>) => {
       if (!ajustesMap[item.almacen]) {
         ajustesMap[item.almacen] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
@@ -156,13 +160,26 @@ export default function CierreDiario({
     return ajustesMap;
   };
 
-  const calcularAjustesDeuda = () => {
+  const calcularAjustesDeuda = async () => {
     const ajustesMap: Record<
       string,
       { cajas: Cajas; cajas_rotas: Cajas; tapas_rotas: Cajas }
     > = {};
 
-    entregaData.forEach((item: Entrega) => {
+    const [entregaData, recogidaData] = await Promise.all([
+      (
+        await fetch(
+          `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.ENTREGA}`,
+        )
+      ).json() as Promise<AjusteStr<Entrega>[]>,
+      (
+        await fetch(
+          `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.RECOGIDA}`,
+        )
+      ).json() as Promise<AjusteStr<Recogida>[]>,
+    ]);
+
+    entregaData.forEach((item: AjusteStr<Entrega>) => {
       if (!ajustesMap[item.centro_distribucion]) {
         ajustesMap[item.centro_distribucion] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
@@ -178,7 +195,7 @@ export default function CierreDiario({
         item.cajas.verdes ?? 0;
     });
 
-    recogidaData.forEach((item: Recogida) => {
+    recogidaData.forEach((item: AjusteStr<Recogida>) => {
       if (!ajustesMap[item.centro_distribucion]) {
         ajustesMap[item.centro_distribucion] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
@@ -204,8 +221,6 @@ export default function CierreDiario({
         item.tapas_rotas.blancas ?? 0;
       ajustesMap[item.centro_distribucion].tapas_rotas.negras +=
         item.tapas_rotas.negras ?? 0;
-      ajustesMap[item.centro_distribucion].tapas_rotas.verdes +=
-        item.tapas_rotas.verdes ?? 0;
     });
 
     return ajustesMap;
@@ -366,7 +381,7 @@ export default function CierreDiario({
                           {totalCajas(item.cajas_rotas)}
                         </td>
                         <td
-                          title={`Blancas: ${item.tapas_rotas.blancas}, Negras: ${item.tapas_rotas.negras}, Verdes: ${item.tapas_rotas.verdes}`}
+                          title={`Blancas: ${item.tapas_rotas.blancas}, Negras: ${item.tapas_rotas.negras}`}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.tapas_rotas)}
@@ -450,7 +465,7 @@ export default function CierreDiario({
                           {totalCajas(item.cajas_rotas)}
                         </td>
                         <td
-                          title={`Blancas: ${item.tapas_rotas.blancas}, Negras: ${item.tapas_rotas.negras}, Verdes: ${item.tapas_rotas.verdes}`}
+                          title={`Blancas: ${item.tapas_rotas.blancas}, Negras: ${item.tapas_rotas.negras}`}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.tapas_rotas)}

@@ -1,41 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Cajas,
-  Devolucion,
-  Entrega,
-  Expedicion,
-  Recogida,
-} from "@/lib/constants";
-
-export interface ItemDashboard {
-  dashboardData: {
-    nombre: string;
-    deuda: Cajas;
-    rotacion: number;
-    fechaRot: string;
-    estadoRot?: "Pendiente" | "Retrasada" | "En tiempo" | "Cumplida";
-    roturasTotal: number;
-  }[];
-  movementToday: {
-    expediciones: Expedicion[];
-    entregas: Entrega[];
-    recogidas: Recogida[];
-    devoluciones: Devolucion[];
-  };
-  stockTotal: number;
-  deudaTotal: number;
-  roturaTotal: number;
-  roturaActual: number;
-}
-
-export interface Movement {
-  nombre: string;
-  centro_distribucion: string;
-  totalCajas: number;
-  totalRoturas: number;
-}
+import { DashboardData } from "@/app/api/dashboard/route";
+import { totalCajas } from "@/lib/utils";
 
 interface MetricCardProps {
   eyebrow: string;
@@ -65,79 +32,38 @@ function MetricCard({
 }
 
 export default function TablaInformacion() {
-  const [data, setData] = useState<ItemDashboard>({
+  const [data, setData] = useState<DashboardData>({
     dashboardData: [],
-    movementToday: {
-      expediciones: [],
-      entregas: [],
-      recogidas: [],
-      devoluciones: [],
-    },
+    movementToday: 0,
+    enviosHoy: 0,
+    recogidasHoy: 0,
+    rotasHoy: 0,
     stockTotal: 0,
     deudaTotal: 0,
     roturaTotal: 0,
     roturaActual: 0,
   });
   const [loading, setLoading] = useState(false);
-  const [movementData, setMovementData] = useState<Movement[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const movement = [
-      ...data.movementToday.expediciones.map((el) => {
-        return {
-          nombre: el.nombre,
-          centro_distribucion: el.centro_distribucion,
-          totalCajas: totalCajas(el.cajas),
-          totalRoturas: 0,
-        };
-      }),
-      ...data.movementToday.entregas.map((el) => {
-        return {
-          nombre: el.nombre,
-          centro_distribucion: el.centro_distribucion,
-          totalCajas: totalCajas(el.cajas),
-          totalRoturas: 0,
-        };
-      }),
-      ...data.movementToday.recogidas.map((el) => {
-        return {
-          nombre: el.nombre,
-          centro_distribucion: el.centro_distribucion,
-          totalCajas: totalCajas(el.cajas),
-          totalRoturas: totalRoturas(el),
-        };
-      }),
-      ...data.movementToday.devoluciones.map((el) => {
-        return {
-          nombre: el.nombre,
-          centro_distribucion: el.centro_distribucion,
-          totalCajas: totalCajas(el.cajas),
-          totalRoturas: totalRoturas(el),
-        };
-      }),
-    ];
-    setMovementData(movement);
-  }, [data.movementToday]);
-
   const fetchData = async () => {
     setLoading(true);
     setError("");
 
     try {
-      const resCentros = await fetch("/api/dashboard");
-      const dataCentros = await resCentros.json();
+      const resDashboard = await fetch("/api/dashboard");
+      const dataDashboard = await resDashboard.json();
 
-      if (!resCentros.ok) {
-        setError(dataCentros.error || "Error al cargar centros");
+      if (!resDashboard.ok) {
+        setError(dataDashboard.error || "Error al cargar centros");
         return;
       }
 
-      setData(dataCentros as ItemDashboard);
+      setData(dataDashboard as DashboardData);
     } catch {
       setError("Error en el servidor");
     } finally {
@@ -145,19 +71,7 @@ export default function TablaInformacion() {
     }
   };
 
-  const totalCajas = (cajas: Cajas) =>
-    (cajas?.blancas ?? 0) + (cajas?.negras ?? 0) + (cajas?.verdes ?? 0);
-
   const totalCentros = data.dashboardData.length;
-  const averageRotacion =
-    totalCentros > 0
-      ? Math.round(
-          data.dashboardData.reduce(
-            (acc, centro) => acc + (centro.rotacion ?? 0),
-            0,
-          ) / totalCentros,
-        )
-      : 0;
   const centrosConRetraso = data.dashboardData
     .filter((centro) => centro.estadoRot === "Retrasada")
     .map((centro) => centro.nombre);
@@ -190,34 +104,6 @@ export default function TablaInformacion() {
 
   const deudaWidth = (cantidad: number) =>
     deudaMaxima > 0 ? `${Math.max((cantidad / deudaMaxima) * 100, 8)}%` : "0%";
-
-  const totalRoturas = (item: { cajas_rotas?: Cajas; tapas_rotas?: Cajas }) =>
-    totalCajas(item.cajas_rotas ?? { blancas: 0, negras: 0, verdes: 0 }) +
-    totalCajas(item.tapas_rotas ?? { blancas: 0, negras: 0, verdes: 0 });
-
-  const enviosHoy = () => {
-    let total = 0;
-    data.movementToday.entregas.forEach((element) => {
-      total += totalCajas(element.cajas);
-    });
-    return total;
-  };
-
-  const recogidasHoy = () => {
-    let total = 0;
-    data.movementToday.recogidas.forEach((element) => {
-      total += totalCajas(element.cajas);
-    });
-    return total;
-  };
-
-  const rotasHoy = () => {
-    let total = 0;
-    data.movementToday.recogidas.forEach((element) => {
-      total += totalRoturas(element);
-    });
-    return total;
-  };
 
   return (
     <div className="space-y-8">
@@ -253,8 +139,8 @@ export default function TablaInformacion() {
       )}
 
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
               className="h-40 animate-pulse rounded-[28px] bg-white/70 shadow-sm"
@@ -263,7 +149,7 @@ export default function TablaInformacion() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <MetricCard
               eyebrow="Deuda total CDs"
               value={data.deudaTotal}
@@ -276,33 +162,27 @@ export default function TablaInformacion() {
               detail="Cajas disponibles en almacenes"
               accent="bg-blue-500"
             />
-            <MetricCard
+            {/* <MetricCard
               eyebrow="Eventos del día"
               value={movementData.length}
               detail="Movimientos registrados en la jornada"
               accent="bg-cyan-500"
-            />
-            <MetricCard
-              eyebrow="Rotación media"
-              value={`${averageRotacion}d`}
-              detail="Promedio de días configurado por centro"
-              accent="bg-emerald-500"
-            />
+            /> */}
             <MetricCard
               eyebrow="Envíos del día"
-              value={enviosHoy()}
+              value={data.enviosHoy}
               detail="Total de cajas entregadas en el día"
               accent="bg-emerald-500"
             />
             <MetricCard
               eyebrow="Recogidas del día"
-              value={recogidasHoy()}
+              value={data.recogidasHoy}
               detail="Total de cajas recogidas en el día"
               accent="bg-indigo-500"
             />
             <MetricCard
               eyebrow="Roturas del día"
-              value={rotasHoy()}
+              value={data.rotasHoy}
               detail="Roturas detectadas en el día"
               accent="bg-rose-500"
             />

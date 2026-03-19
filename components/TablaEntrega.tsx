@@ -1,45 +1,45 @@
 "use client";
 
-import { Entrega } from "@/lib/constants";
+import { COLECCIONES, Entrega, TIPOS_EVENTO } from "@/lib/constants";
+import { AjusteStr, applyAjuste } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 export default function TablaEntrega({
   usuario,
-  datos,
-  loading,
-  error,
+  fecha,
   onAjustar,
 }: Readonly<{
   usuario: any;
-  datos: Entrega[];
-  loading: boolean;
-  error: string;
-  onAjustar?: (tipo: string, id: string) => void;
+  fecha: string;
+  onAjustar?: (tipo: TIPOS_EVENTO, id: string) => void;
 }>) {
-  // const [datos, setDatos] = useState<Entrega[]>([]);
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState("");
+  const [datos, setDatos] = useState<AjusteStr<Entrega>[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // useEffect(() => {
-  //   fetchDatos();
-  // }, [fecha]);
+  useEffect(() => {
+    fetchDatos();
+  }, [fecha]);
 
-  // const fetchDatos = async () => {
-  //   setLoading(true);
-  //   setError("");
-  //   try {
-  //     const res = await fetch(`/api/eventos/list?fecha=${fecha}&tipo=Entrega`);
-  //     const data = await res.json();
-  //     if (res.ok) {
-  //       setDatos(data);
-  //     } else {
-  //       setError(data.error || "Error al cargar eventos");
-  //     }
-  //   } catch {
-  //     setError("Error en el servidor");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const fetchDatos = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(
+        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.ENTREGA}`,
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setDatos(data.map(applyAjuste));
+      } else {
+        setError(data.error || "Error al cargar eventos");
+      }
+    } catch {
+      setError("Error en el servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.35)]">
@@ -134,7 +134,7 @@ export default function TablaEntrega({
                         <div>
                           <p className="text-slate-500">Ajustado por</p>
                           <p className="font-medium text-slate-700">
-                            {item.ajuste || "-"}
+                            {item.ajuste ?? "-"}
                           </p>
                         </div>
                       )}
@@ -212,7 +212,7 @@ export default function TablaEntrega({
                         </td>
                         {usuario.rol === "informatico" && (
                           <td className="px-5 py-4 text-center text-slate-500">
-                            {item.ajuste || "-"}
+                            {item.ajuste ?? "-"}
                           </td>
                         )}
                         {usuario.rol === "informatico" && (

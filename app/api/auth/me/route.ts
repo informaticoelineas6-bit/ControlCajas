@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { usuarioCookie } from "../../../../lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
-    const usuarioCookie = request.cookies.get("usuario");
+    const usuario = usuarioCookie(request);
 
-    if (!usuarioCookie) {
+    if (!usuario) {
       return NextResponse.json(
         { error: "No estás autenticado" },
         { status: 401 },
       );
     }
-
-    const usuario = JSON.parse(usuarioCookie.value);
 
     return NextResponse.json({
       success: true,

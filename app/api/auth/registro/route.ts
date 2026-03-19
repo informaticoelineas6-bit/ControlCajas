@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { hashPassword } from "@/lib/auth";
-import { COLECCIONES } from "@/lib/constants";
-
-const ROLES_VALIDOS = new Set([
-  "informatico",
-  "chofer",
-  "almacenero",
-  "expedidor",
-]);
+import { COLECCIONES, ROLES_ARRAY } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!ROLES_VALIDOS.has(rol)) {
+    if (!ROLES_ARRAY.includes(rol)) {
       return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
     }
 
@@ -31,42 +24,40 @@ export async function POST(request: NextRequest) {
     const usuarioExistente = await usuarios.findOne({ nombre });
     if (usuarioExistente) {
       return NextResponse.json(
-        { error: "El usuario ya existe" },
+        { error: "Ya existe un usuario con ese nombre" },
         { status: 400 },
       );
     }
 
     const hashedPassword = await hashPassword(contrasena);
 
-    const resultado = await usuarios.insertOne({
+    await usuarios.insertOne({
       nombre,
       contrasena: hashedPassword,
       rol,
       creacion: new Date().toISOString().split("T")[0],
+      habilitado: false,
     });
 
     const response = NextResponse.json({
+      message:
+        "Su usuario ha sido creado exitosamente, póngase en contacto con un administrador del sistema para su autorización",
       success: true,
-      usuario: {
-        id: resultado.insertedId.toString(),
-        nombre,
-        rol,
-      },
     });
 
-    response.cookies.set(
-      "usuario",
-      JSON.stringify({
-        id: resultado.insertedId.toString(),
-        nombre,
-        rol,
-      }),
-      {
-        httpOnly: true,
-        maxAge: 86400,
-        path: "/",
-      },
-    );
+    // response.cookies.set(
+    //   "usuario",
+    //   JSON.stringify({
+    //     id: resultado.insertedId.toString(),
+    //     nombre,
+    //     rol,
+    //   }),
+    //   {
+    //     httpOnly: true,
+    //     maxAge: 86400,
+    //     path: "/",
+    //   },
+    // );
 
     return response;
   } catch (error) {
