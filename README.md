@@ -35,7 +35,7 @@ npm install
 El archivo `.env.local` ya está configurado con la cadena de conexión a MongoDB:
 
 ```
-MONGODB_URI=mongodb+srv://informaticoelineas6_db_user:Informatico*789@cajascluster.qjorpm7.mongodb.net/ControlCajas
+MONGODB_URI=mongodb+srv://[user]:[password]@cajascluster.qjorpm7.mongodb.net/ControlCajas
 JWT_SECRET=your-secret-key-change-this-in-production-env
 ```
 
