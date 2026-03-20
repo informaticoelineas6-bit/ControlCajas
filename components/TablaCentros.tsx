@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   CAJAS_ARRAY,
   CentroDistribucion,
+  COLORES_CAJAS,
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
@@ -75,20 +76,75 @@ export default function TablaCentros({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+    const color = name.split("_").pop() as COLORES_CAJAS;
     if (type === "checkbox") {
-      const color = name.replace("habilitado_", "");
-      setForm((current) => ({
-        ...current,
-        [name]: checked,
-        [`deuda_${color}`]: 0,
-        [`roturas_cajas_${color}`]: 0,
-        [`roturas_tapas_${color}`]: 0,
-      }));
+      setForm(
+        (current): CentroDistribucion => ({
+          ...current,
+          habilitado: { ...current.habilitado, [color]: checked },
+          deuda: { ...current.deuda, [color]: 0 },
+          roturas: {
+            ...current.roturas,
+            cajas: {
+              ...current.roturas.cajas,
+              [color]: 0,
+            },
+            tapas: {
+              ...current.roturas.tapas,
+              [color]: 0,
+            },
+          },
+        }),
+      );
     } else {
-      setForm((current) => ({
-        ...current,
-        [name]: value,
-      }));
+      if (name.startsWith("tapas_rotas_")) {
+        setForm(
+          (current): CentroDistribucion => ({
+            ...current,
+            roturas: {
+              ...current.roturas,
+              cajas: {
+                ...current.roturas.cajas,
+              },
+              tapas: {
+                ...current.roturas.tapas,
+                [color]: value,
+              },
+            },
+          }),
+        );
+      } else if (name.startsWith("cajas_rotas_")) {
+        setForm(
+          (current): CentroDistribucion => ({
+            ...current,
+            roturas: {
+              ...current.roturas,
+              cajas: {
+                ...current.roturas.cajas,
+                [color]: value,
+              },
+              tapas: {
+                ...current.roturas.tapas,
+              },
+            },
+          }),
+        );
+      } else if (name.startsWith("deuda_")) {
+        setForm(
+          (current): CentroDistribucion => ({
+            ...current,
+            deuda: {
+              ...current.deuda,
+              [color]: value,
+            },
+          }),
+        );
+      } else {
+        setForm((current) => ({
+          ...current,
+          [name]: value,
+        }));
+      }
     }
     setError("");
   };
@@ -300,16 +356,16 @@ export default function TablaCentros({
               </div>
             ))}
             {TAPAS_ARRAY.map((color) => (
-              <div key={`tapas_rotas${color}`}>
+              <div key={`tapas_rota_s${color}`}>
                 <label
-                  htmlFor={`tapas_rotas${color}`}
+                  htmlFor={`tapas_rotas_${color}`}
                   className="mb-2 block text-sm font-medium text-slate-600"
                 >
                   {`Tapas ${color} rotas`}
                 </label>
                 <input
-                  id={`tapas_rotas${color}`}
-                  name={`tapas_rotas${color}`}
+                  id={`tapas_rotas_${color}`}
+                  name={`tapas_rotas_${color}`}
                   type="number"
                   value={form.roturas.tapas[color] ?? 0}
                   disabled={!form.habilitado[color]}

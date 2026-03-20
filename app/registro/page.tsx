@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROLES_ARRAY } from "@/lib/constants";
 
@@ -55,9 +54,6 @@ export default function Registro() {
 
       if (response.ok) {
         setMessage(data.message);
-        setTimeout(() => {
-          router.push("/login");
-        }, 5000);
       } else {
         setError(data.error || "Error en el registro");
       }
@@ -67,6 +63,10 @@ export default function Registro() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const redirectLogin = () => {
+    router.push("/");
   };
 
   return (
@@ -183,12 +183,12 @@ export default function Registro() {
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             ¿Ya tienes cuenta?{" "}
-            <Link
-              href="/"
+            <button
+              onClick={redirectLogin}
               className="text-blue-600 hover:text-blue-700 font-semibold"
             >
               Inicia sesión aquí
-            </Link>
+            </button>
           </p>
         </div>
       </div>

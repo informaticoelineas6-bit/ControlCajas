@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Almacen, CAJAS_ARRAY, TAPAS_ARRAY, Usuario } from "@/lib/constants";
+import {
+  Almacen,
+  CAJAS_ARRAY,
+  COLORES_CAJAS,
+  TAPAS_ARRAY,
+  Usuario,
+} from "@/lib/constants";
 
 export default function TablaAlmacenes({
   usuario,
@@ -74,15 +80,68 @@ export default function TablaAlmacenes({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+    const color = name.split("_").pop() as COLORES_CAJAS;
     if (type === "checkbox") {
-      const color = name.replace("habilitado_", "");
-      setForm((current) => ({
-        ...current,
-        [name]: checked,
-        [`stock_${color}`]: 0,
-        [`roturas_cajas_${color}`]: 0,
-        [`roturas_tapas_${color}`]: 0,
-      }));
+      setForm(
+        (current): Almacen => ({
+          ...current,
+          habilitado: { ...current.habilitado, [color]: checked },
+          stock: { ...current.stock, [color]: 0 },
+          roturas: {
+            ...current.roturas,
+            cajas: {
+              ...current.roturas.cajas,
+              [color]: 0,
+            },
+            tapas: {
+              ...current.roturas.tapas,
+              [color]: 0,
+            },
+          },
+        }),
+      );
+    } else if (name.startsWith("tapas_rotas_")) {
+      setForm(
+        (current): Almacen => ({
+          ...current,
+          roturas: {
+            ...current.roturas,
+            cajas: {
+              ...current.roturas.cajas,
+            },
+            tapas: {
+              ...current.roturas.tapas,
+              [color]: value,
+            },
+          },
+        }),
+      );
+    } else if (name.startsWith("cajas_rotas_")) {
+      setForm(
+        (current): Almacen => ({
+          ...current,
+          roturas: {
+            ...current.roturas,
+            cajas: {
+              ...current.roturas.cajas,
+              [color]: value,
+            },
+            tapas: {
+              ...current.roturas.tapas,
+            },
+          },
+        }),
+      );
+    } else if (name.startsWith("stock_")) {
+      setForm(
+        (current): Almacen => ({
+          ...current,
+          stock: {
+            ...current.stock,
+            [color]: value,
+          },
+        }),
+      );
     } else {
       setForm((current) => ({
         ...current,
