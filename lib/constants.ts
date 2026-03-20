@@ -4,6 +4,7 @@ export type ROLES = (typeof ROLES_ARRAY)[number];
 export type TIPOS_EVENTO = (typeof EVENTOS_ARRAY)[number];
 
 export type COLORES_CAJAS = (typeof CAJAS_ARRAY)[number];
+export type COLORES_TAPAS = (typeof TAPAS_ARRAY)[number];
 
 export const ROLES_ARRAY = [
   "chofer",
@@ -22,6 +23,7 @@ export const EVENTOS_ARRAY = [
 ] as const;
 
 export const CAJAS_ARRAY = ["blancas", "negras", "verdes"] as const;
+export const TAPAS_ARRAY = ["blancas", "negras"] as const;
 
 export enum COLECCIONES {
   ALMACEN = "Almacen",
@@ -109,6 +111,8 @@ export interface Ajuste {
 
 export interface AjusteRoturas extends Ajuste, CajasRoturas {}
 
+export type Nuevo<Even> = Omit<Even, "_id">;
+
 export interface Evento {
   _id?: string;
   centro_distribucion: string;
@@ -143,14 +147,14 @@ export interface Devolucion extends EventoRotura {
 }
 
 export interface ItemComparacion {
-  nombre: string | null;
+  nombre?: string;
   cajas: Cajas;
-  ajuste: string | null;
+  ajuste?: string;
 }
 export interface ItemComparacionEntrega {
-  chapa: string | null;
+  chapa?: string;
   centro_distribucion: string;
-  almacen: string | null;
+  almacen?: string;
   expedicion: ItemComparacion | null;
   traspaso: ItemComparacion | null;
   entrega: ItemComparacion | null;
@@ -159,8 +163,8 @@ export interface ItemComparacionEntrega {
 
 export interface ItemComparacionRecogida {
   centro_distribucion: string;
-  almacen: string | null;
-  chapa: string | null;
+  almacen?: string;
+  chapa?: string;
   recogida: (ItemComparacion & CajasRoturas) | null;
   devolucion: (ItemComparacion & CajasRoturas) | null;
   alerta: boolean;

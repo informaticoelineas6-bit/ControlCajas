@@ -27,17 +27,17 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
-    const filter: any = { fecha };
+    const filter: { fecha: string; nombre?: string } = { fecha };
     if (usuario?.rol !== "informatico") {
       filter.nombre = usuario.nombre;
     }
 
-    const collection = await db.collection(tipo);
+    const collection = db.collection<Evento>(tipo);
     if (!collection) {
       return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
     }
 
-    let items = (await collection.find(filter).toArray()) as Evento[];
+    const items = (await collection.find(filter).toArray()) as Evento[];
 
     // convert ObjectId to string and apply ajuste values to cajas
     const adjItems: AjusteStr<Evento | EventoRotura>[] = items.map(

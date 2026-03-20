@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Cierre,
   Cajas,
@@ -34,10 +34,6 @@ export default function CierreDiario({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchDatos();
-  }, [fecha]);
-
-  useEffect(() => {
     for (const item of expedicionEntregaData ?? []) {
       if (item.alerta) {
         setAlertas(true);
@@ -53,55 +49,7 @@ export default function CierreDiario({
     setAlertas(false);
   }, [expedicionEntregaData, recogidaDevolucionData]);
 
-  const fetchDatos = async () => {
-    setLoading(true);
-    setExistente(false);
-    setError("");
-    try {
-      const respCierre = await fetch(`/api/cierre?fecha=${fecha}`);
-      const dataCierre = await respCierre.json();
-
-      if (respCierre.ok && dataCierre) {
-        setCierre(dataCierre);
-        setExistente(true);
-      } else if (respCierre.ok) {
-        const nuevo: Cierre = await nuevoCierre();
-        setCierre(nuevo);
-      } else {
-        setError(dataCierre.error || "Error al cargar cierre");
-      }
-    } catch (err) {
-      setError("Error al cargar datos");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const nuevoCierre = async (): Promise<Cierre> => {
-    const [ajustesStock, ajustesDeuda] = await Promise.all([
-      calcularAjustesStock(),
-      calcularAjustesDeuda(),
-    ]);
-
-    return {
-      fecha,
-      cierre_cd: Object.entries(ajustesDeuda).map(([cd, data]) => ({
-        centro_distribucion: cd,
-        ajuste_deuda: data.cajas,
-        cajas_rotas: data.cajas_rotas,
-        tapas_rotas: data.tapas_rotas,
-      })),
-      cierre_almacen: Object.entries(ajustesStock).map(([almacen, data]) => ({
-        almacen,
-        ajuste_stock: data.cajas,
-        cajas_rotas: data.cajas_rotas,
-        tapas_rotas: data.tapas_rotas,
-      })),
-    };
-  };
-
-  const calcularAjustesStock = async () => {
+  const calcularAjustesStock = useCallback(async () => {
     const ajustesMap: Record<
       string,
       { cajas: Cajas; cajas_rotas: Cajas; tapas_rotas: Cajas }
@@ -158,9 +106,9 @@ export default function CierreDiario({
     });
 
     return ajustesMap;
-  };
+  }, [fecha]);
 
-  const calcularAjustesDeuda = async () => {
+  const calcularAjustesDeuda = useCallback(async () => {
     const ajustesMap: Record<
       string,
       { cajas: Cajas; cajas_rotas: Cajas; tapas_rotas: Cajas }
@@ -224,7 +172,59 @@ export default function CierreDiario({
     });
 
     return ajustesMap;
-  };
+  }, [fecha]);
+
+  const nuevoCierre = useCallback(async (): Promise<Cierre> => {
+    const [ajustesStock, ajustesDeuda] = await Promise.all([
+      calcularAjustesStock(),
+      calcularAjustesDeuda(),
+    ]);
+
+    return {
+      fecha,
+      cierre_cd: Object.entries(ajustesDeuda).map(([cd, data]) => ({
+        centro_distribucion: cd,
+        ajuste_deuda: data.cajas,
+        cajas_rotas: data.cajas_rotas,
+        tapas_rotas: data.tapas_rotas,
+      })),
+      cierre_almacen: Object.entries(ajustesStock).map(([almacen, data]) => ({
+        almacen,
+        ajuste_stock: data.cajas,
+        cajas_rotas: data.cajas_rotas,
+        tapas_rotas: data.tapas_rotas,
+      })),
+    };
+  }, [calcularAjustesDeuda, calcularAjustesStock, fecha]);
+
+  const fetchDatos = useCallback(async () => {
+    setLoading(true);
+    setExistente(false);
+    setError("");
+    try {
+      const respCierre = await fetch(`/api/cierre?fecha=${fecha}`);
+      const dataCierre = await respCierre.json();
+
+      if (respCierre.ok && dataCierre) {
+        setCierre(dataCierre);
+        setExistente(true);
+      } else if (respCierre.ok) {
+        const nuevo: Cierre = await nuevoCierre();
+        setCierre(nuevo);
+      } else {
+        setError(dataCierre.error || "Error al cargar cierre");
+      }
+    } catch (err) {
+      setError("Error al cargar datos");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [fecha, nuevoCierre]);
+
+  useEffect(() => {
+    fetchDatos();
+  }, [fetchDatos]);
 
   const handleCrearCierre = async () => {
     const confirmar = globalThis.confirm(

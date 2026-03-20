@@ -2,7 +2,7 @@
 
 import { ItemComparacionEntrega } from "@/lib/constants";
 import { totalCajas } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function TablaExpedicionEntrega({
   fecha,
@@ -16,11 +16,7 @@ export default function TablaExpedicionEntrega({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchDatos();
-  }, [fecha]);
-
-  const fetchDatos = async () => {
+  const fetchDatos = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -38,7 +34,11 @@ export default function TablaExpedicionEntrega({
     } finally {
       setLoading(false);
     }
-  };
+  }, [fecha, setDatos]);
+
+  useEffect(() => {
+    fetchDatos();
+  }, [fetchDatos]);
 
   return (
     <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_-36px_rgba(15,23,42,0.4)]">

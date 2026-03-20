@@ -45,24 +45,28 @@ export async function GET(request: NextRequest) {
       devolucionesRaw,
     ] = await Promise.all([
       db
-        .collection(COLECCIONES.CENTRO_DISTRIBUCION)
+        .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
         .find()
         .toArray() as Promise<CentroDistribucion[]>,
-      db.collection(COLECCIONES.ALMACEN).find().toArray() as Promise<Almacen[]>,
+      db.collection<Almacen>(COLECCIONES.ALMACEN).find().toArray() as Promise<
+        Almacen[]
+      >,
       db
-        .collection(COLECCIONES.EXPEDICION)
+        .collection<Expedicion>(COLECCIONES.EXPEDICION)
         .find({ fecha: today })
         .toArray() as Promise<Expedicion[]>,
-      db.collection(COLECCIONES.TRASPASO).find().toArray() as Promise<
+      db.collection<Traspaso>(COLECCIONES.TRASPASO).find().toArray() as Promise<
         Traspaso[]
       >,
-      db.collection(COLECCIONES.ENTREGA).find().toArray() as Promise<Entrega[]>,
+      db.collection<Entrega>(COLECCIONES.ENTREGA).find().toArray() as Promise<
+        Entrega[]
+      >,
       db
-        .collection(COLECCIONES.RECOGIDA)
+        .collection<Recogida>(COLECCIONES.RECOGIDA)
         .find({ fecha: today })
         .toArray() as Promise<Recogida[]>,
       db
-        .collection(COLECCIONES.DEVOLUCION)
+        .collection<Devolucion>(COLECCIONES.DEVOLUCION)
         .find({ fecha: today })
         .toArray() as Promise<Devolucion[]>,
     ]);
@@ -93,7 +97,7 @@ export async function GET(request: NextRequest) {
       devoluciones.filter((evento) => evento.fecha === today).length;
 
     for (const centro of centros) {
-      let iteration: DashboardRow = {
+      const iteration: DashboardRow = {
         nombre: centro.nombre,
         deuda: centro.deuda,
         rotacion: centro.rotacion,
@@ -110,7 +114,7 @@ export async function GET(request: NextRequest) {
         (entrega) => entrega.centro_distribucion === centro.nombre,
       );
 
-      let deuda: Cajas = {
+      const deuda: Cajas = {
         blancas: centro.deuda.blancas,
         negras: centro.deuda.negras,
         verdes: centro.deuda.verdes,

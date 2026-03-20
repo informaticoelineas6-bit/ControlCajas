@@ -1,3 +1,4 @@
+import { Db } from "mongodb";
 import {
   Cajas,
   COLECCIONES,
@@ -19,24 +20,30 @@ import {
 } from "./utils";
 
 export async function getComparacionEntrega(
-  db: any,
+  db: Db,
   fecha: string,
 ): Promise<ItemComparacionEntrega[]> {
   // Obtener expediciones y entregas
   const expediciones = (
-    await db.collection(COLECCIONES.EXPEDICION).find({ fecha }).toArray()
+    await db
+      .collection<Expedicion>(COLECCIONES.EXPEDICION)
+      .find({ fecha })
+      .toArray()
   )
     .map(applyAjuste)
     .filter(hasCajas) as Expedicion[];
 
   const entregas = (
-    await db.collection(COLECCIONES.ENTREGA).find({ fecha }).toArray()
+    await db.collection<Entrega>(COLECCIONES.ENTREGA).find({ fecha }).toArray()
   )
     .map(applyAjuste)
     .filter(hasCajas) as Entrega[];
 
   const traspasos = (
-    await db.collection(COLECCIONES.TRASPASO).find({ fecha }).toArray()
+    await db
+      .collection<Traspaso>(COLECCIONES.TRASPASO)
+      .find({ fecha })
+      .toArray()
   )
     .map(applyAjuste)
     .filter(hasCajas) as Traspaso[];
@@ -69,8 +76,8 @@ export async function getComparacionEntrega(
           cajas: current.cajas,
           ajuste: current.ajuste as unknown as string | undefined,
         },
-        traspaso: undefined,
-        entrega: undefined,
+        traspaso: null,
+        entrega: null,
         alerta: false,
       });
     }
@@ -97,13 +104,13 @@ export async function getComparacionEntrega(
         centro_distribucion: centro,
         almacen: current.almacen,
         chapa: current.chapa,
-        expedicion: undefined,
+        expedicion: null,
         traspaso: {
           nombre: current.nombre,
           cajas: current.cajas,
           ajuste: current.ajuste as unknown as string | undefined,
         },
-        entrega: undefined,
+        entrega: null,
         alerta: false,
       });
     }
@@ -129,8 +136,8 @@ export async function getComparacionEntrega(
         centro_distribucion: centro,
         almacen: undefined,
         chapa: current.chapa,
-        expedicion: undefined,
-        traspaso: undefined,
+        expedicion: null,
+        traspaso: null,
         entrega: {
           nombre: current.nombre,
           cajas: current.cajas,
@@ -145,18 +152,24 @@ export async function getComparacionEntrega(
 }
 
 export async function getComparacionRecogida(
-  db: any,
+  db: Db,
   fecha: string,
 ): Promise<ItemComparacionRecogida[]> {
   // Obtener devoluciones y recogidas
-  const recogidas = (
-    await db.collection(COLECCIONES.RECOGIDA).find({ fecha }).toArray()
+  const recogidas: Recogida[] = (
+    await db
+      .collection<Recogida>(COLECCIONES.RECOGIDA)
+      .find({ fecha })
+      .toArray()
   )
     .map(applyAjuste)
     .filter(hasCajas) as Recogida[];
 
   const devoluciones = (
-    await db.collection(COLECCIONES.DEVOLUCION).find({ fecha }).toArray()
+    await db
+      .collection<Devolucion>(COLECCIONES.DEVOLUCION)
+      .find({ fecha })
+      .toArray()
   )
     .map(applyAjuste)
     .filter(hasCajas) as Devolucion[];
@@ -197,7 +210,7 @@ export async function getComparacionRecogida(
           tapas_rotas: current.tapas_rotas,
           ajuste: current.ajuste as unknown as string | undefined,
         },
-        devolucion: undefined,
+        devolucion: null,
         alerta: false,
         rotura: false,
       });
@@ -233,7 +246,7 @@ export async function getComparacionRecogida(
         centro_distribucion: centro,
         almacen: current.almacen,
         chapa: undefined,
-        recogida: undefined,
+        recogida: null,
         devolucion: {
           nombre: current.nombre,
           cajas: current.cajas,

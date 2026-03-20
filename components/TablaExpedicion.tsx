@@ -1,15 +1,20 @@
 "use client";
 
-import { COLECCIONES, Expedicion, TIPOS_EVENTO } from "@/lib/constants";
+import {
+  COLECCIONES,
+  Expedicion,
+  TIPOS_EVENTO,
+  Usuario,
+} from "@/lib/constants";
 import { AjusteStr } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function TablaExpedicion({
   usuario,
   fecha,
   onAjustar,
 }: Readonly<{
-  usuario: any;
+  usuario: Usuario;
   fecha: string;
   onAjustar?: (tipo: TIPOS_EVENTO, id: string) => void;
 }>) {
@@ -17,11 +22,7 @@ export default function TablaExpedicion({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchDatos();
-  }, [fecha]);
-
-  const fetchDatos = async () => {
+  const fetchDatos = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -39,7 +40,11 @@ export default function TablaExpedicion({
     } finally {
       setLoading(false);
     }
-  };
+  }, [fecha]);
+
+  useEffect(() => {
+    fetchDatos();
+  }, [fetchDatos]);
 
   return (
     <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/95 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.35)]">

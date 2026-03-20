@@ -3,9 +3,15 @@ import { connectToDatabase } from "@/lib/mongodb";
 import {
   Cajas,
   COLECCIONES,
+  Devolucion,
+  Entrega,
   Evento,
   EVENTOS_ARRAY,
+  Expedicion,
+  Nuevo,
+  Recogida,
   TIPOS_EVENTO,
+  Traspaso,
 } from "@/lib/constants";
 import {
   AjusteStr,
@@ -16,9 +22,10 @@ import {
   usuarioCookie,
 } from "../../../../lib/utils";
 import { EventoCreateForm } from "@/components/FormularioEvento";
+import { Db } from "mongodb";
 
 async function buildMessage(
-  db: any,
+  db: Db,
   tipoEvento: TIPOS_EVENTO,
   fecha: string,
   centro_distribucion: string,
@@ -37,10 +44,10 @@ async function buildMessage(
   }
 
   const referenciaEventos = (
-    await db
+    (await db
       .collection(ref.collection)
       .find({ fecha, centro_distribucion })
-      .toArray()
+      .toArray()) as unknown as Evento[]
   )
     .map(applyAjuste)
     .filter(hasCajas) as AjusteStr<Evento>[];
@@ -101,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
-    let coleccion = db.collection(tipo_evento);
+    const coleccion = db.collection(tipo_evento);
 
     if (!coleccion) {
       return NextResponse.json(
@@ -110,37 +117,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let documento: any = {
+    const documentoBase = {
       centro_distribucion,
       fecha: new Date().toISOString().split("T")[0],
       nombre: usuario.nombre,
       cajas: cajas || { blancas: 0, negras: 0, verdes: 0 },
     };
 
-    if (
-      tipo_evento === "Traspaso" ||
-      tipo_evento === "Entrega" ||
-      tipo_evento === "Recogida"
-    ) {
-      documento.chapa = chapa;
-    }
-    if (
-      tipo_evento === "Expedicion" ||
-      tipo_evento === "Traspaso" ||
-      tipo_evento === "Devolucion"
-    ) {
-      documento.almacen = almacen;
-    }
-    if (tipo_evento === "Recogida" || tipo_evento === "Devolucion") {
-      documento.cajas_rotas = cajas_rotas || {
-        blancas: 0,
-        negras: 0,
-        verdes: 0,
-      };
-      documento.tapas_rotas = tapas_rotas || {
-        blancas: 0,
-        negras: 0,
-      };
+    let documento;
+    switch (tipo_evento) {
+      case "Entrega":
+        documento = { ...documentoBase, chapa } as Nuevo<Entrega>;
+        break;
+      case "Recogida":
+        documento = {
+          ...documentoBase,
+          chapa,
+          cajas_rotas,
+          tapas_rotas,
+        } as Nuevo<Recogida>;
+        break;
+      case "Traspaso":
+        documento = { ...documentoBase, chapa, almacen } as Nuevo<Traspaso>;
+        break;
+      case "Expedicion":
+        documento = {
+          ...documentoBase,
+          almacen,
+        } as Nuevo<Expedicion>;
+        break;
+      case "Devolucion":
+        documento = {
+          ...documentoBase,
+          almacen,
+          cajas_rotas,
+          tapas_rotas,
+        } as Nuevo<Devolucion>;
+        break;
     }
 
     const resultado = await coleccion.insertOne(documento);
@@ -148,7 +161,7 @@ export async function POST(request: NextRequest) {
       (await buildMessage(
         db,
         tipo_evento,
-        documento.fecha,
+        documentoBase.fecha,
         centro_distribucion,
         cajas,
       )) ?? "Evento creado exitosamente.";

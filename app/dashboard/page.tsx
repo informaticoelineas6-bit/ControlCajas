@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import FormularioEvento, {
-  EventoAjusteProp,
-} from "@/components/FormularioEvento";
 import TablaExpedicionEntrega from "@/components/TablaExpedicionEntrega";
 import TablaRecogidaDevolucion from "@/components/TablaRecogidaDevolucion";
 import TablaExpedicion from "@/components/TablaExpedicion";
@@ -16,6 +13,7 @@ import TablaVehiculos from "@/components/TablaVehiculos";
 import TablaAlmacenes from "@/components/TablaAlmacenes";
 import TablaCentros from "@/components/TablaCentros";
 import {
+  Evento,
   ItemComparacionEntrega,
   ItemComparacionRecogida,
   TIPOS_EVENTO,
@@ -25,6 +23,7 @@ import CierreDiario from "@/components/CierreDiario";
 import TablaUsuarios from "@/components/TablaUsuarios";
 import TablaInformacion from "@/components/TablaInformacion";
 import TablaTraspaso from "@/components/TablaTraspaso";
+import FormularioEvento, { AjusteProp } from "@/components/FormularioEvento";
 
 type DashboardTab =
   | "eventos"
@@ -39,9 +38,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("mis_eventos");
   const [loading, setLoading] = useState(true);
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
-  const [adjustingEvent, setAdjustingEvent] = useState<EventoAjusteProp | null>(
-    null,
-  );
+  const [adjustingEvent, setAdjustingEvent] =
+    useState<AjusteProp<Evento> | null>(null);
   const [expedicionEntregaData, setExpedicionEntregaData] = useState<
     ItemComparacionEntrega[]
   >([]);
@@ -114,7 +112,7 @@ export default function Dashboard() {
       const res = await fetch(
         `/api/eventos/get?tipo=${tipoEvento}&id=${eventoId}`,
       );
-      const evento: any = await res.json();
+      const evento: AjusteProp<Evento> = await res.json();
       if (res.ok) {
         setAdjustingEvent({ ...evento, tipo_evento: tipoEvento });
       }
@@ -254,35 +252,35 @@ export default function Dashboard() {
             <div className="space-y-8">
               {(isInformatico || usuario?.rol === "expedidor") && (
                 <TablaExpedicion
-                  usuario={usuario}
+                  usuario={usuario!}
                   fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />
               )}
               {(isInformatico || usuario?.rol === "chofer") && (
                 <TablaTraspaso
-                  usuario={usuario}
+                  usuario={usuario!}
                   fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />
               )}
               {(isInformatico || usuario?.rol === "chofer") && (
                 <TablaEntrega
-                  usuario={usuario}
+                  usuario={usuario!}
                   fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />
               )}
               {(isInformatico || usuario?.rol === "chofer") && (
                 <TablaRecogida
-                  usuario={usuario}
+                  usuario={usuario!}
                   fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />
               )}
               {(isInformatico || usuario?.rol === "almacenero") && (
                 <TablaDevolucion
-                  usuario={usuario}
+                  usuario={usuario!}
                   fecha={fecha}
                   onAjustar={handleAjustarClick}
                 />

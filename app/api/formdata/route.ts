@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const { db } = await connectToDatabase();
 
     let eventos;
-    let resultado: EventoFormData = {
+    const resultado: EventoFormData = {
       almacenes: [],
       centros: [],
       vehiculos: [],
@@ -41,17 +41,17 @@ export async function GET(request: NextRequest) {
     switch (tipo) {
       case "Expedicion":
         resultado.centros = (await db
-          .collection(COLECCIONES.CENTRO_DISTRIBUCION)
+          .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
           .find({})
           .toArray()) as CentroDistribucion[];
         resultado.almacenes = (await db
-          .collection(COLECCIONES.ALMACEN)
+          .collection<Almacen>(COLECCIONES.ALMACEN)
           .find({})
           .toArray()) as Almacen[];
         return NextResponse.json(resultado);
       case "Traspaso":
         eventos = (await db
-          .collection(COLECCIONES.EXPEDICION)
+          .collection<Expedicion>(COLECCIONES.EXPEDICION)
           .find({ fecha })
           .toArray()) as Expedicion[];
         if (eventos.length === 0) {
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
           ) {
             resultado.almacenes.push(
               (await db
-                .collection(COLECCIONES.ALMACEN)
+                .collection<Almacen>(COLECCIONES.ALMACEN)
                 .findOne({ nombre: element.almacen })) as Almacen,
             );
           }
@@ -79,20 +79,22 @@ export async function GET(request: NextRequest) {
             )
           ) {
             resultado.centros.push(
-              (await db.collection(COLECCIONES.CENTRO_DISTRIBUCION).findOne({
-                nombre: element.centro_distribucion,
-              })) as CentroDistribucion,
+              (await db
+                .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
+                .findOne({
+                  nombre: element.centro_distribucion,
+                })) as CentroDistribucion,
             );
           }
         }
         resultado.vehiculos = (await db
-          .collection(COLECCIONES.VEHICULO)
+          .collection<Vehiculo>(COLECCIONES.VEHICULO)
           .find({})
           .toArray()) as Vehiculo[];
         return NextResponse.json(resultado);
       case "Entrega":
         eventos = (await db
-          .collection(COLECCIONES.TRASPASO)
+          .collection<Traspaso>(COLECCIONES.TRASPASO)
           .find({ fecha })
           .toArray()) as Traspaso[];
         if (eventos.length === 0) {
@@ -109,9 +111,11 @@ export async function GET(request: NextRequest) {
             )
           ) {
             resultado.centros.push(
-              (await db.collection(COLECCIONES.CENTRO_DISTRIBUCION).findOne({
-                nombre: element.centro_distribucion,
-              })) as CentroDistribucion,
+              (await db
+                .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
+                .findOne({
+                  nombre: element.centro_distribucion,
+                })) as CentroDistribucion,
             );
           }
           if (
@@ -121,7 +125,7 @@ export async function GET(request: NextRequest) {
           ) {
             resultado.vehiculos.push(
               (await db
-                .collection(COLECCIONES.VEHICULO)
+                .collection<Vehiculo>(COLECCIONES.VEHICULO)
                 .findOne({ chapa: element.chapa })) as Vehiculo,
             );
           }
@@ -129,17 +133,17 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(resultado);
       case "Recogida":
         resultado.centros = (await db
-          .collection(COLECCIONES.CENTRO_DISTRIBUCION)
+          .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
           .find({})
           .toArray()) as CentroDistribucion[];
         resultado.vehiculos = (await db
-          .collection(COLECCIONES.VEHICULO)
+          .collection<Vehiculo>(COLECCIONES.VEHICULO)
           .find({})
           .toArray()) as Vehiculo[];
         return NextResponse.json(resultado);
       case "Devolucion":
         eventos = (await db
-          .collection(COLECCIONES.RECOGIDA)
+          .collection<Recogida>(COLECCIONES.RECOGIDA)
           .find({ fecha })
           .toArray()) as Recogida[];
         if (eventos.length === 0) {
@@ -156,14 +160,16 @@ export async function GET(request: NextRequest) {
             )
           ) {
             resultado.centros.push(
-              (await db.collection(COLECCIONES.CENTRO_DISTRIBUCION).findOne({
-                nombre: element.centro_distribucion,
-              })) as CentroDistribucion,
+              (await db
+                .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
+                .findOne({
+                  nombre: element.centro_distribucion,
+                })) as CentroDistribucion,
             );
           }
         }
         resultado.almacenes = (await db
-          .collection(COLECCIONES.ALMACEN)
+          .collection<Almacen>(COLECCIONES.ALMACEN)
           .find({})
           .toArray()) as Almacen[];
         return NextResponse.json(resultado);

@@ -109,7 +109,7 @@ export function appendNombre(
 
 export function usuarioCookie(request: NextRequest): Usuario | null {
   const usuarioCookie = request.cookies.get("usuario");
-  let usuario: any = null;
+  let usuario: Usuario | null = null;
   if (usuarioCookie) {
     try {
       usuario = JSON.parse(usuarioCookie.value);

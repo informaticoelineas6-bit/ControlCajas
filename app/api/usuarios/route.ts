@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { db } = await connectToDatabase();
-    const usuarios = db.collection(COLECCIONES.USUARIO);
+    const usuarios = db.collection<Usuario>(COLECCIONES.USUARIO);
     const listaUsuarios = (await usuarios.find({}).toArray()).map(
       (u: Usuario) => ({
         _id: u._id?.toString(),

@@ -36,7 +36,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [usuario.rol]);
 
   useEffect(() => {
     fetchAlerts();

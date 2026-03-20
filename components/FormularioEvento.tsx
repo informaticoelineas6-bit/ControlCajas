@@ -10,10 +10,9 @@ import {
   Cajas,
   Tapas,
   COLORES_CAJAS,
-  Evento,
 } from "@/lib/constants";
 import { totalCajas } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 // Verificar la tardanza de el warning/message.
 
@@ -22,8 +21,8 @@ export interface EventoCreateForm {
   centro_distribucion?: string;
   chapa?: string;
   cajas: Cajas;
-  cajas_rotas?: Cajas;
-  tapas_rotas?: Tapas;
+  cajas_rotas: Cajas;
+  tapas_rotas: Tapas;
 }
 
 export interface EventoAjusteForm {
@@ -35,14 +34,16 @@ export interface EventoAjusteForm {
   };
 }
 
-export type EventoAjusteProp = {
+export type AjusteProp<Orig> = Orig & {
   _id: string;
   tipo_evento: TIPOS_EVENTO;
-} & (Evento & EventoCreateForm & EventoAjusteForm);
+};
+
+export type EventoForm = EventoCreateForm & EventoAjusteForm;
 
 interface FormularioEventoProps {
   usuario: Usuario;
-  initialData?: EventoAjusteProp; // full event document when editing
+  initialData?: AjusteProp<Partial<EventoForm>>; // full event document when editing
   isAdjustment?: boolean;
   onAdjustmentSaved?: () => void; // callback when adjustment is saved
 }
@@ -71,28 +72,20 @@ export default function FormularioEvento({
     verdes: false,
   });
 
-  const [formData, setFormData] = useState<EventoCreateForm & EventoAjusteForm>(
-    {
-      tipo_evento: tipoEvento,
-      almacen: undefined,
-      centro_distribucion: undefined,
-      chapa: undefined,
+  const [formData, setFormData] = useState<EventoForm>({
+    tipo_evento: tipoEvento,
+    almacen: undefined,
+    centro_distribucion: undefined,
+    chapa: undefined,
+    cajas: { blancas: 0, negras: 0, verdes: 0 },
+    cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+    tapas_rotas: { blancas: 0, negras: 0 },
+    ajuste: {
       cajas: { blancas: 0, negras: 0, verdes: 0 },
       cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
       tapas_rotas: { blancas: 0, negras: 0 },
-      ajuste: {
-        cajas: { blancas: 0, negras: 0, verdes: 0 },
-        cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-        tapas_rotas: { blancas: 0, negras: 0 },
-      },
     },
-  );
-
-  useEffect(() => {
-    if (tipoEvento) {
-      fetchDatos();
-    }
-  }, [tipoEvento]);
+  });
 
   // populate when editing/adjustment
   useEffect(() => {
@@ -105,9 +98,13 @@ export default function FormularioEvento({
         centro_distribucion: initialData.centro_distribucion,
         almacen: initialData.almacen,
         chapa: initialData.chapa,
-        cajas: initialData.cajas,
-        cajas_rotas: initialData.cajas_rotas,
-        tapas_rotas: initialData.tapas_rotas,
+        cajas: initialData.cajas ?? { blancas: 0, negras: 0, verdes: 0 },
+        cajas_rotas: initialData.cajas_rotas ?? {
+          blancas: 0,
+          negras: 0,
+          verdes: 0,
+        },
+        tapas_rotas: initialData.tapas_rotas ?? { blancas: 0, negras: 0 },
         ajuste: initialData.ajuste ?? {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
           cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
@@ -128,7 +125,10 @@ export default function FormularioEvento({
     );
   }, [formData.centro_distribucion, centros]);
 
-  const fetchDatos = async () => {
+  const fetchDatos = useCallback(async () => {
+    if (!tipoEvento) {
+      return;
+    }
     setLoading(true);
     setAlmacenes([]);
     setCentros([]);
@@ -145,7 +145,11 @@ export default function FormularioEvento({
     } finally {
       setLoading(false);
     }
-  };
+  }, [tipoEvento]);
+
+  useEffect(() => {
+    fetchDatos();
+  }, [tipoEvento, fetchDatos]);
 
   const resetForm = () => {
     setTipoEvento(undefined);
@@ -244,7 +248,7 @@ export default function FormularioEvento({
         );
         return;
       }
-      setFormData((prev: any) => ({
+      setFormData((prev) => ({
         ...prev,
         tapas_rotas: { ...prev.tapas_rotas, [color]: numValue || 0 },
       }));
@@ -257,20 +261,20 @@ export default function FormularioEvento({
         );
         return;
       }
-      setFormData((prev: any) => ({
+      setFormData((prev) => ({
         ...prev,
         cajas_rotas: { ...prev.cajas_rotas, [color]: numValue || 0 },
       }));
       setMensaje("");
     } else if (name.startsWith("cajas_")) {
       const [, color] = name.split("_");
-      setFormData((prev: any) => ({
+      setFormData((prev) => ({
         ...prev,
         cajas: { ...prev.cajas, [color]: numValue || 0 },
       }));
       setMensaje("");
     } else {
-      setFormData((prev: any) => ({
+      setFormData((prev) => ({
         ...prev,
         [name]: value,
       }));
@@ -611,7 +615,7 @@ export default function FormularioEvento({
 
               {mostrarRoturas &&
                 formCajas(
-                  formData.cajas_rotas as Cajas,
+                  formData.cajas_rotas,
                   "Cajas Rotas",
                   "cajas_rotas",
                   !!(
@@ -625,7 +629,7 @@ export default function FormularioEvento({
 
               {mostrarRoturas &&
                 formCajas(
-                  formData.tapas_rotas as Tapas,
+                  formData.tapas_rotas,
                   "Tapas Rotas",
                   "tapas_rotas",
                   !!(

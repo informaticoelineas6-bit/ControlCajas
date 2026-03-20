@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Almacen, Usuario } from "@/lib/constants";
+import { Almacen, CAJAS_ARRAY, TAPAS_ARRAY, Usuario } from "@/lib/constants";
 
 export default function TablaAlmacenes({
   usuario,
@@ -9,20 +9,22 @@ export default function TablaAlmacenes({
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<Partial<any>>({
+  const [form, setForm] = useState<Almacen>({
     nombre: "",
-    stock_blancas: 0,
-    stock_negras: 0,
-    stock_verdes: 0,
-    habilitado_blancas: false,
-    habilitado_negras: false,
-    habilitado_verdes: false,
-    roturas_cajas_blancas: 0,
-    roturas_cajas_negras: 0,
-    roturas_cajas_verdes: 0,
-    roturas_tapas_blancas: 0,
-    roturas_tapas_negras: 0,
-    roturas_tapas_verdes: 0,
+    stock: {
+      blancas: 0,
+      negras: 0,
+      verdes: 0,
+    },
+    habilitado: {
+      blancas: false,
+      negras: false,
+      verdes: false,
+    },
+    roturas: {
+      cajas: { blancas: 0, negras: 0, verdes: 0 },
+      tapas: { blancas: 0, negras: 0 },
+    },
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -51,18 +53,20 @@ export default function TablaAlmacenes({
   const resetForm = () => {
     setForm({
       nombre: "",
-      stock_blancas: 0,
-      stock_negras: 0,
-      stock_verdes: 0,
-      habilitado_blancas: false,
-      habilitado_negras: false,
-      habilitado_verdes: false,
-      roturas_cajas_blancas: 0,
-      roturas_cajas_negras: 0,
-      roturas_cajas_verdes: 0,
-      roturas_tapas_blancas: 0,
-      roturas_tapas_negras: 0,
-      roturas_tapas_verdes: 0,
+      stock: {
+        blancas: 0,
+        negras: 0,
+        verdes: 0,
+      },
+      habilitado: {
+        blancas: false,
+        negras: false,
+        verdes: false,
+      },
+      roturas: {
+        cajas: { blancas: 0, negras: 0, verdes: 0 },
+        tapas: { blancas: 0, negras: 0 },
+      },
     });
     setEditingId(null);
     setError("");
@@ -102,35 +106,35 @@ export default function TablaAlmacenes({
         _id: editingId || undefined,
         nombre: form.nombre,
         stock: {
-          blancas: form.habilitado_blancas
-            ? Number(form.stock_blancas) || 0
+          blancas: form.habilitado.blancas
+            ? Number(form.stock.blancas) || 0
             : 0,
-          negras: form.habilitado_negras ? Number(form.stock_negras) || 0 : 0,
-          verdes: form.habilitado_verdes ? Number(form.stock_verdes) || 0 : 0,
+          negras: form.habilitado.negras ? Number(form.stock.negras) || 0 : 0,
+          verdes: form.habilitado.verdes ? Number(form.stock.verdes) || 0 : 0,
         },
         habilitado: {
-          blancas: form.habilitado_blancas,
-          negras: form.habilitado_negras,
-          verdes: form.habilitado_verdes,
+          blancas: form.habilitado.blancas,
+          negras: form.habilitado.negras,
+          verdes: form.habilitado.verdes,
         },
         roturas: {
           cajas: {
-            blancas: form.habilitado_blancas
-              ? Number(form.roturas_cajas_blancas) || 0
+            blancas: form.habilitado.blancas
+              ? Number(form.roturas.cajas.blancas) || 0
               : 0,
-            negras: form.habilitado_negras
-              ? Number(form.roturas_cajas_negras) || 0
+            negras: form.habilitado.negras
+              ? Number(form.roturas.cajas.negras) || 0
               : 0,
-            verdes: form.habilitado_verdes
-              ? Number(form.roturas_cajas_verdes) || 0
+            verdes: form.habilitado.verdes
+              ? Number(form.roturas.cajas.verdes) || 0
               : 0,
           },
           tapas: {
-            blancas: form.habilitado_blancas
-              ? Number(form.roturas_tapas_blancas) || 0
+            blancas: form.habilitado.blancas
+              ? Number(form.roturas.tapas.blancas) || 0
               : 0,
-            negras: form.habilitado_negras
-              ? Number(form.roturas_tapas_negras) || 0
+            negras: form.habilitado.negras
+              ? Number(form.roturas.tapas.negras) || 0
               : 0,
           },
         },
@@ -158,17 +162,9 @@ export default function TablaAlmacenes({
   const startEdit = (almacen: Almacen) => {
     setForm({
       nombre: almacen.nombre,
-      stock_blancas: almacen.stock?.blancas || 0,
-      stock_negras: almacen.stock?.negras || 0,
-      stock_verdes: almacen.stock?.verdes || 0,
-      habilitado_blancas: almacen.habilitado?.blancas ?? false,
-      habilitado_negras: almacen.habilitado?.negras ?? false,
-      habilitado_verdes: almacen.habilitado?.verdes ?? false,
-      roturas_cajas_blancas: almacen.roturas?.cajas?.blancas || 0,
-      roturas_cajas_negras: almacen.roturas?.cajas?.negras || 0,
-      roturas_cajas_verdes: almacen.roturas?.cajas?.verdes || 0,
-      roturas_tapas_blancas: almacen.roturas?.tapas?.blancas || 0,
-      roturas_tapas_negras: almacen.roturas?.tapas?.negras || 0,
+      stock: almacen.stock,
+      habilitado: almacen.habilitado,
+      roturas: almacen.roturas,
     });
     setEditingId(almacen._id ?? null);
   };
@@ -219,7 +215,7 @@ export default function TablaAlmacenes({
             </div>
           )}
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}>
             <div className="col-span-3">
               <label
                 htmlFor="nombre"
@@ -235,11 +231,7 @@ export default function TablaAlmacenes({
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
               />
             </div>
-            {[
-              ["blancas", "Stock blancas"],
-              ["negras", "Stock negras"],
-              ["verdes", "Stock verdes"],
-            ].map(([color, label]) => (
+            {CAJAS_ARRAY.map((color) => (
               <div key={color}>
                 <label
                   htmlFor={`stock_${color}`}
@@ -249,44 +241,56 @@ export default function TablaAlmacenes({
                     id={`habilitado_${color}`}
                     name={`habilitado_${color}`}
                     type="checkbox"
-                    checked={form[`habilitado_${color}`]}
+                    checked={form.habilitado[color]}
                     onChange={handleInputChange}
                     className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                   />
-                  {label}
+                  {`Stock de cajas ${color}`}
                 </label>
                 <input
                   id={`stock_${color}`}
                   name={`stock_${color}`}
                   type="number"
-                  value={form[`stock_${color}`]}
-                  disabled={!form[`habilitado_${color}`]}
+                  value={form.stock[color]}
+                  disabled={!form.habilitado[color]}
                   onChange={handleInputChange}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
             ))}
-            {[
-              ["blancas", "Roturas de cajas blancas", "roturas_cajas"],
-              ["negras", "Roturas de cajas negras", "roturas_cajas"],
-              ["verdes", "Roturas de cajas verdes", "roturas_cajas"],
-              ["blancas", "Roturas de tapas blancas", "roturas_tapas"],
-              ["negras", "Roturas de tapas negras", "roturas_tapas"],
-              ["verdes", "Roturas de tapas verdes", "roturas_tapas"],
-            ].map(([color, label, prefix]) => (
-              <div key={`${prefix}_${color}`}>
+            {CAJAS_ARRAY.map((color) => (
+              <div key={`cajas_rotas_${color}`}>
                 <label
-                  htmlFor={`${prefix}_${color}`}
+                  htmlFor={`cajas_rotas_${color}`}
                   className="mb-2 block text-sm font-medium text-slate-600"
                 >
-                  {label}
+                  {`Roturas de cajas ${color}`}
                 </label>
                 <input
-                  id={`${prefix}_${color}`}
-                  name={`${prefix}_${color}`}
+                  id={`cajas_rotas_${color}`}
+                  name={`cajas_rotas_${color}`}
                   type="number"
-                  value={form[`${prefix}_${color}`] ?? 0}
-                  disabled={!form[`habilitado_${color}`]}
+                  value={form.roturas.cajas[color] ?? 0}
+                  disabled={!form.habilitado[color]}
+                  onChange={handleInputChange}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                />
+              </div>
+            ))}
+            {TAPAS_ARRAY.map((color) => (
+              <div key={`tapas_rotas_${color}`}>
+                <label
+                  htmlFor={`tapas_rotas_${color}`}
+                  className="mb-2 block text-sm font-medium text-slate-600"
+                >
+                  {`Roturas de tapas ${color}`}
+                </label>
+                <input
+                  id={`tapas_rotas_${color}`}
+                  name={`tapas_rotas_${color}`}
+                  type="number"
+                  value={form.roturas.tapas[color] ?? 0}
+                  disabled={!form.habilitado[color]}
                   onChange={handleInputChange}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 />

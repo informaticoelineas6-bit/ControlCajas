@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CentroDistribucion, Usuario } from "@/lib/constants";
+import {
+  CAJAS_ARRAY,
+  CentroDistribucion,
+  TAPAS_ARRAY,
+  Usuario,
+} from "@/lib/constants";
 
 export default function TablaCentros({
   usuario,
@@ -9,21 +14,19 @@ export default function TablaCentros({
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<Partial<any>>({
+  const [form, setForm] = useState<CentroDistribucion>({
     nombre: "",
-    deuda_blancas: 0,
-    deuda_negras: 0,
-    deuda_verdes: 0,
+    deuda: {
+      blancas: 0,
+      negras: 0,
+      verdes: 0,
+    },
     rotacion: 0,
-    habilitado_blancas: false,
-    habilitado_negras: false,
-    habilitado_verdes: false,
-    roturas_cajas_blancas: 0,
-    roturas_cajas_negras: 0,
-    roturas_cajas_verdes: 0,
-    roturas_tapas_blancas: 0,
-    roturas_tapas_negras: 0,
-    roturas_tapas_verdes: 0,
+    habilitado: { blancas: false, negras: false, verdes: false },
+    roturas: {
+      cajas: { blancas: 0, negras: 0, verdes: 0 },
+      tapas: { blancas: 0, negras: 0 },
+    },
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -54,19 +57,17 @@ export default function TablaCentros({
   const resetForm = () => {
     setForm({
       nombre: "",
-      deuda_blancas: 0,
-      deuda_negras: 0,
-      deuda_verdes: 0,
+      deuda: {
+        blancas: 0,
+        negras: 0,
+        verdes: 0,
+      },
       rotacion: 0,
-      habilitado_blancas: false,
-      habilitado_negras: false,
-      habilitado_verdes: false,
-      roturas_cajas_blancas: 0,
-      roturas_cajas_negras: 0,
-      roturas_cajas_verdes: 0,
-      roturas_tapas_blancas: 0,
-      roturas_tapas_negras: 0,
-      roturas_tapas_verdes: 0,
+      habilitado: { blancas: false, negras: false, verdes: false },
+      roturas: {
+        cajas: { blancas: 0, negras: 0, verdes: 0 },
+        tapas: { blancas: 0, negras: 0 },
+      },
     });
     setEditingId(null);
     setError("");
@@ -106,39 +107,36 @@ export default function TablaCentros({
         _id: editingId || undefined,
         nombre: form.nombre,
         deuda: {
-          blancas: form.habilitado_blancas
-            ? Number(form.deuda_blancas) || 0
+          blancas: form.habilitado.blancas
+            ? Number(form.deuda.blancas) || 0
             : 0,
-          negras: form.habilitado_negras ? Number(form.deuda_negras) || 0 : 0,
-          verdes: form.habilitado_verdes ? Number(form.deuda_verdes) || 0 : 0,
+          negras: form.habilitado.negras ? Number(form.deuda.negras) || 0 : 0,
+          verdes: form.habilitado.verdes ? Number(form.deuda.verdes) || 0 : 0,
         },
         habilitado: {
-          blancas: form.habilitado_blancas,
-          negras: form.habilitado_negras,
-          verdes: form.habilitado_verdes,
+          blancas: form.habilitado.blancas,
+          negras: form.habilitado.negras,
+          verdes: form.habilitado.verdes,
         },
         rotacion: Number(form.rotacion) || 0,
         roturas: {
           cajas: {
-            blancas: form.habilitado_blancas
-              ? Number(form.roturas_cajas_blancas) || 0
+            blancas: form.habilitado.blancas
+              ? Number(form.roturas.cajas.blancas) || 0
               : 0,
-            negras: form.habilitado_negras
-              ? Number(form.roturas_cajas_negras) || 0
+            negras: form.habilitado.negras
+              ? Number(form.roturas.cajas.negras) || 0
               : 0,
-            verdes: form.habilitado_verdes
-              ? Number(form.roturas_cajas_verdes) || 0
+            verdes: form.habilitado.verdes
+              ? Number(form.roturas.cajas.verdes) || 0
               : 0,
           },
           tapas: {
-            blancas: form.habilitado_blancas
-              ? Number(form.roturas_tapas_blancas) || 0
+            blancas: form.habilitado.blancas
+              ? Number(form.roturas.tapas.blancas) || 0
               : 0,
-            negras: form.habilitado_negras
-              ? Number(form.roturas_tapas_negras) || 0
-              : 0,
-            verdes: form.habilitado_verdes
-              ? Number(form.roturas_tapas_verdes) || 0
+            negras: form.habilitado.negras
+              ? Number(form.roturas.tapas.negras) || 0
               : 0,
           },
         },
@@ -166,19 +164,10 @@ export default function TablaCentros({
   const startEdit = (centro: CentroDistribucion) => {
     setForm({
       nombre: centro.nombre,
-      deuda_blancas: centro.deuda?.blancas || 0,
-      deuda_negras: centro.deuda?.negras || 0,
-      deuda_verdes: centro.deuda?.verdes || 0,
-      rotacion: centro.rotacion || 0,
-      habilitado_blancas: centro.habilitado?.blancas ?? false,
-      habilitado_negras: centro.habilitado?.negras ?? false,
-      habilitado_verdes: centro.habilitado?.verdes ?? false,
-      roturas_cajas_blancas: centro.roturas?.cajas?.blancas || 0,
-      roturas_cajas_negras: centro.roturas?.cajas?.negras || 0,
-      roturas_cajas_verdes: centro.roturas?.cajas?.verdes || 0,
-      roturas_tapas_blancas: centro.roturas?.tapas?.blancas || 0,
-      roturas_tapas_negras: centro.roturas?.tapas?.negras || 0,
-      roturas_tapas_verdes: centro.roturas?.tapas?.verdes || 0,
+      deuda: centro.deuda,
+      rotacion: centro.rotacion,
+      habilitado: centro.habilitado,
+      roturas: centro.roturas,
     });
     setEditingId(centro._id ?? null);
   };
@@ -263,12 +252,8 @@ export default function TablaCentros({
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              ["blancas", "Deuda blancas"],
-              ["negras", "Deuda negras"],
-              ["verdes", "Deuda verdes"],
-            ].map(([color, label]) => (
+          <div className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}>
+            {CAJAS_ARRAY.map((color) => (
               <div key={color}>
                 <label
                   htmlFor={`deuda_${color}`}
@@ -278,44 +263,56 @@ export default function TablaCentros({
                     id={`habilitado_${color}`}
                     name={`habilitado_${color}`}
                     type="checkbox"
-                    checked={form[`habilitado_${color}`]}
+                    checked={form.habilitado[color]}
                     onChange={handleInputChange}
                     className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
                   />
-                  {label}
+                  {`Deuda de cajas ${color}`}
                 </label>
                 <input
                   id={`deuda_${color}`}
                   name={`deuda_${color}`}
                   type="number"
-                  value={form[`deuda_${color}`]}
-                  disabled={!form[`habilitado_${color}`]}
+                  value={form.deuda[color]}
+                  disabled={!form.habilitado[color]}
                   onChange={handleInputChange}
                   className={numberFieldClass}
                 />
               </div>
             ))}
-            {[
-              ["blancas", "Roturas de cajas blancas", "roturas_cajas"],
-              ["negras", "Roturas de cajas negras", "roturas_cajas"],
-              ["verdes", "Roturas de cajas verdes", "roturas_cajas"],
-              ["blancas", "Roturas de tapas blancas", "roturas_tapas"],
-              ["negras", "Roturas de tapas negras", "roturas_tapas"],
-              ["verdes", "Roturas de tapas verdes", "roturas_tapas"],
-            ].map(([color, label, prefix]) => (
-              <div key={`${prefix}_${color}`}>
+            {CAJAS_ARRAY.map((color) => (
+              <div key={`cajas_rotas_${color}`}>
                 <label
-                  htmlFor={`${prefix}_${color}`}
+                  htmlFor={`cajas_rotas_${color}`}
                   className="mb-2 block text-sm font-medium text-slate-600"
                 >
-                  {label}
+                  {`Cajas ${color} rotas`}
                 </label>
                 <input
-                  id={`${prefix}_${color}`}
-                  name={`${prefix}_${color}`}
+                  id={`cajas_rotas_${color}`}
+                  name={`cajas_rotas_${color}`}
                   type="number"
-                  value={form[`${prefix}_${color}`] ?? 0}
-                  disabled={!form[`habilitado_${color}`]}
+                  value={form.roturas.cajas[color] ?? 0}
+                  disabled={!form.habilitado[color]}
+                  onChange={handleInputChange}
+                  className={numberFieldClass}
+                />
+              </div>
+            ))}
+            {TAPAS_ARRAY.map((color) => (
+              <div key={`tapas_rotas${color}`}>
+                <label
+                  htmlFor={`tapas_rotas${color}`}
+                  className="mb-2 block text-sm font-medium text-slate-600"
+                >
+                  {`Tapas ${color} rotas`}
+                </label>
+                <input
+                  id={`tapas_rotas${color}`}
+                  name={`tapas_rotas${color}`}
+                  type="number"
+                  value={form.roturas.tapas[color] ?? 0}
+                  disabled={!form.habilitado[color]}
                   onChange={handleInputChange}
                   className={numberFieldClass}
                 />
