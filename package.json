@@ -8,13 +8,12 @@
     "start": "next start",
     "lint": "eslint .",
     "seed": "node scripts/seed.js",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "preview": "npx wrangler pages dev ./",
+    "deploy": "npx wrangler pages deploy ./",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.17.1",
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "js-cookie": "^3.0.5",
