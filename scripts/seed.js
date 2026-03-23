@@ -3,7 +3,7 @@
  * Ejecutar con: node scripts/seed.js
  */
 
-const { MongoClient } = require("mongodb");
+import { MongoClient } from "mongodb";
 
 const MONGODB_URI =
   "mongodb+srv://informaticoelineas6_db_user:Informatico*789@cajascluster.qjorpm7.mongodb.net/ControlCajas";
