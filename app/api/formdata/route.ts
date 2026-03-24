@@ -11,7 +11,7 @@ import {
   Traspaso,
   Vehiculo,
 } from "@/lib/constants";
-import { usuarioCookie } from "../../../lib/utils";
+import { isEnabled, usuarioCookie } from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,14 +40,15 @@ export async function GET(request: NextRequest) {
     };
     switch (tipo) {
       case "Expedicion":
-        resultado.centros = (await db
-          .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-          .find({})
-          .toArray()) as CentroDistribucion[];
-        resultado.almacenes = (await db
-          .collection<Almacen>(COLECCIONES.ALMACEN)
-          .find({})
-          .toArray()) as Almacen[];
+        resultado.centros = (
+          await db
+            .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
+            .find({})
+            .toArray()
+        ).filter(isEnabled) as CentroDistribucion[];
+        resultado.almacenes = (
+          await db.collection<Almacen>(COLECCIONES.ALMACEN).find({}).toArray()
+        ).filter(isEnabled) as Almacen[];
         return NextResponse.json(resultado);
       case "Traspaso":
         eventos = (await db
@@ -87,10 +88,9 @@ export async function GET(request: NextRequest) {
             );
           }
         }
-        resultado.vehiculos = (await db
-          .collection<Vehiculo>(COLECCIONES.VEHICULO)
-          .find({})
-          .toArray()) as Vehiculo[];
+        resultado.vehiculos = (
+          await db.collection<Vehiculo>(COLECCIONES.VEHICULO).find({}).toArray()
+        ).filter(isEnabled) as Vehiculo[];
         return NextResponse.json(resultado);
       case "Entrega":
         eventos = (await db
@@ -132,14 +132,15 @@ export async function GET(request: NextRequest) {
         }
         return NextResponse.json(resultado);
       case "Recogida":
-        resultado.centros = (await db
-          .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-          .find({})
-          .toArray()) as CentroDistribucion[];
-        resultado.vehiculos = (await db
-          .collection<Vehiculo>(COLECCIONES.VEHICULO)
-          .find({})
-          .toArray()) as Vehiculo[];
+        resultado.centros = (
+          await db
+            .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
+            .find({})
+            .toArray()
+        ).filter(isEnabled) as CentroDistribucion[];
+        resultado.vehiculos = (
+          await db.collection<Vehiculo>(COLECCIONES.VEHICULO).find({}).toArray()
+        ).filter(isEnabled) as Vehiculo[];
         return NextResponse.json(resultado);
       case "Devolucion":
         eventos = (await db
@@ -168,10 +169,9 @@ export async function GET(request: NextRequest) {
             );
           }
         }
-        resultado.almacenes = (await db
-          .collection<Almacen>(COLECCIONES.ALMACEN)
-          .find({})
-          .toArray()) as Almacen[];
+        resultado.almacenes = (
+          await db.collection<Almacen>(COLECCIONES.ALMACEN).find({}).toArray()
+        ).filter(isEnabled) as Almacen[];
         return NextResponse.json(resultado);
       default:
         return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });

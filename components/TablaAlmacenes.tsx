@@ -151,7 +151,7 @@ export default function TablaAlmacenes({
     setError("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!form.nombre) {
       setError("Nombre es requerido");
@@ -197,7 +197,13 @@ export default function TablaAlmacenes({
               : 0,
           },
         },
-        ajuste: editingId ? usuario.nombre : undefined,
+        ajuste: editingId
+          ? {
+              nombre: usuario.nombre,
+              fechaHora: new Date().toISOString(),
+              habilitado: true,
+            }
+          : undefined,
       };
       const res = await fetch("/api/almacenes", {
         method,
@@ -228,17 +234,25 @@ export default function TablaAlmacenes({
     setEditingId(almacen._id ?? null);
   };
 
-  const handleDelete = async (almacen: Almacen) => {
-    if (!confirm("¿Eliminar el almacén " + almacen.nombre + "?")) return;
+  const enableAlmacen = async (target: Almacen, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/almacenes?id=${almacen._id}`, {
-        method: "DELETE",
+      const res = await fetch(`/api/almacenes?id=${target._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          _id: target._id,
+          ajuste: {
+            nombre: usuario.nombre,
+            fechaHora: new Date().toISOString(),
+            habilitado: habilitado,
+          },
+        } as Partial<Almacen>),
       });
       if (res.ok) {
         fetchAlmacenes();
       } else {
         const data = await res.json();
-        setError(data.error || "Error eliminando");
+        setError(data.error || "Error habilitando almacén");
       }
     } catch {
       setError("Error en el servidor");
@@ -286,6 +300,7 @@ export default function TablaAlmacenes({
                 id="nombre"
                 name="nombre"
                 value={form.nombre || ""}
+                disabled={!!editingId}
                 onChange={handleInputChange}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
               />
@@ -388,6 +403,7 @@ export default function TablaAlmacenes({
                   <th className="px-5 py-4 text-left font-semibold">Blancas</th>
                   <th className="px-5 py-4 text-left font-semibold">Negras</th>
                   <th className="px-5 py-4 text-left font-semibold">Verdes</th>
+                  <th className="px-5 py-4 text-left font-semibold">Estado</th>
                   <th className="px-5 py-4 text-left font-semibold">
                     Editado por
                   </th>
@@ -397,38 +413,75 @@ export default function TablaAlmacenes({
                 </tr>
               </thead>
               <tbody>
-                {almacenes.map((almacen) => (
+                {almacenes.map((item) => (
                   <tr
-                    key={almacen._id}
+                    key={item._id}
                     className="border-t border-slate-100 transition hover:bg-slate-50"
                   >
                     <td className="px-5 py-4 font-semibold text-slate-800">
-                      {almacen.nombre}
+                      {item.nombre}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {almacen.stock.blancas ?? 0}
+                      {item.stock.blancas ?? 0}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {almacen.stock.negras ?? 0}
+                      {item.stock.negras ?? 0}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {almacen.stock.verdes ?? 0}
+                      {item.stock.verdes ?? 0}
                     </td>
-                    <td className="px-5 py-4 text-slate-500">
-                      {almacen.ajuste || "-"}
+                    <td className="px-5 py-4 text-slate-600">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                          item.ajuste?.habilitado
+                            ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                            : "bg-rose-50 text-rose-700 ring-rose-200"
+                        }`}
+                      >
+                        {item.ajuste?.habilitado
+                          ? "Habilitado"
+                          : "Deshabilitado"}
+                      </span>
+                    </td>
+                    <td
+                      title={
+                        item.ajuste
+                          ? "Ajustado el " +
+                            new Date(item.ajuste?.fechaHora).toLocaleString(
+                              "es-MX",
+                              {
+                                dateStyle: "full",
+                                timeStyle: "short",
+                              },
+                            )
+                          : undefined
+                      }
+                      className={
+                        "px-5 py-4 text-slate-500" + !!item.ajuste
+                          ? " hover:bg-slate-300"
+                          : ""
+                      }
+                    >
+                      {item.ajuste?.nombre ?? "-"}
                     </td>
                     <td className="px-5 py-4 text-center">
                       <button
-                        onClick={() => startEdit(almacen)}
-                        className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                        onClick={() => startEdit(item)}
+                        className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                       >
                         Editar
                       </button>
                       <button
-                        onClick={() => handleDelete(almacen)}
-                        className="ml-2 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+                        onClick={() =>
+                          enableAlmacen(item, !item.ajuste?.habilitado)
+                        }
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                          item.ajuste?.habilitado
+                            ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        }`}
                       >
-                        Eliminar
+                        {item.ajuste?.habilitado ? "Deshabilitar" : "Habilitar"}
                       </button>
                     </td>
                   </tr>

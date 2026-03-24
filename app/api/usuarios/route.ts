@@ -14,15 +14,12 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase();
     const usuarios = db.collection<Usuario>(COLECCIONES.USUARIO);
-    const listaUsuarios = (await usuarios.find({}).toArray()).map(
-      (u: Usuario) => ({
-        _id: u._id?.toString(),
-        nombre: u.nombre,
-        rol: u.rol,
-        habilitado: u.habilitado,
-        ajuste: u.ajuste,
-      }),
-    );
+    const listaUsuarios = (await usuarios.find({}).toArray()).map((u) => ({
+      _id: u._id?.toString(),
+      nombre: u.nombre,
+      rol: u.rol,
+      ajuste: u.ajuste,
+    }));
     return NextResponse.json(listaUsuarios);
   } catch (error) {
     console.error("Error fetching usuarios:", error);

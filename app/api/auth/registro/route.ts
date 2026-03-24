@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { hashPassword } from "@/lib/auth";
-import { COLECCIONES, ROLES_ARRAY } from "@/lib/constants";
+import { COLECCIONES, Nuevo, ROLES_ARRAY, Usuario } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
-    const usuarios = db.collection(COLECCIONES.USUARIO);
+    const usuarios = db.collection<Usuario>(COLECCIONES.USUARIO);
 
     const usuarioExistente = await usuarios.findOne({ nombre });
     if (usuarioExistente) {
@@ -36,28 +36,13 @@ export async function POST(request: NextRequest) {
       contrasena: hashedPassword,
       rol,
       creacion: new Date().toISOString().split("T")[0],
-      habilitado: false,
-    });
+    } as Nuevo<Usuario>);
 
     const response = NextResponse.json({
       message:
         "Su usuario ha sido creado exitosamente, póngase en contacto con un administrador del sistema para su autorización",
       success: true,
     });
-
-    // response.cookies.set(
-    //   "usuario",
-    //   JSON.stringify({
-    //     id: resultado.insertedId.toString(),
-    //     nombre,
-    //     rol,
-    //   }),
-    //   {
-    //     httpOnly: true,
-    //     maxAge: 86400,
-    //     path: "/",
-    //   },
-    // );
 
     return response;
   } catch (error) {

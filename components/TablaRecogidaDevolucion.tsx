@@ -158,7 +158,7 @@ export default function TablaRecogidaDevolucion({
                         {item.recogida?.nombre ?? "-"}
                       </td>
                       <td className="px-5 py-4 text-center text-slate-500">
-                        {item.recogida?.ajuste || "-"}
+                        {item.recogida?.ajuste ?? "-"}
                       </td>
                       <td
                         title={`Blancas: ${item.recogida?.cajas.blancas ?? 0}, Negras: ${item.recogida?.cajas.negras ?? 0}, Verdes: ${item.recogida?.cajas.verdes ?? 0}`}
@@ -170,7 +170,7 @@ export default function TablaRecogidaDevolucion({
                         {item.devolucion?.nombre ?? "-"}
                       </td>
                       <td className="px-5 py-4 text-center text-slate-500">
-                        {item.devolucion?.ajuste || "-"}
+                        {item.devolucion?.ajuste ?? "-"}
                       </td>
                       <td
                         title={`Blancas: ${item.devolucion?.cajas.blancas ?? 0}, Negras: ${item.devolucion?.cajas.negras ?? 0}, Verdes: ${item.devolucion?.cajas.verdes ?? 0}`}

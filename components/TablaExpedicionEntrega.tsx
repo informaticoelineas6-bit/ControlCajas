@@ -157,7 +157,7 @@ export default function TablaExpedicionEntrega({
                         {item.expedicion?.nombre ?? "-"}
                       </td>
                       <td className="px-5 py-4 text-center text-slate-500">
-                        {item.expedicion?.ajuste || "-"}
+                        {item.expedicion?.ajuste ?? "-"}
                       </td>
                       <td
                         title={`Blancas: ${item.expedicion?.cajas.blancas ?? 0}, Negras: ${item.expedicion?.cajas.negras ?? 0}, Verdes: ${item.expedicion?.cajas.verdes ?? 0}`}
@@ -171,7 +171,7 @@ export default function TablaExpedicionEntrega({
                         {item.traspaso?.nombre ?? "-"}
                       </td>
                       <td className="px-5 py-4 text-center text-slate-500">
-                        {item.traspaso?.ajuste || "-"}
+                        {item.traspaso?.ajuste ?? "-"}
                       </td>
                       <td
                         title={`Blancas: ${item.traspaso?.cajas.blancas ?? 0}, Negras: ${item.traspaso?.cajas.negras ?? 0}, Verdes: ${item.traspaso?.cajas.verdes ?? 0}`}
@@ -185,7 +185,7 @@ export default function TablaExpedicionEntrega({
                         {item.entrega?.nombre ?? "-"}
                       </td>
                       <td className="px-5 py-4 text-center text-slate-500">
-                        {item.entrega?.ajuste || "-"}
+                        {item.entrega?.ajuste ?? "-"}
                       </td>
                       <td
                         title={`Blancas: ${item.entrega?.cajas.blancas ?? 0}, Negras: ${item.entrega?.cajas.negras ?? 0}, Verdes: ${item.entrega?.cajas.verdes ?? 0}`}

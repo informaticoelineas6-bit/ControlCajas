@@ -66,8 +66,7 @@ export interface Usuario {
   rol: ROLES;
   fechaCreacion?: string;
   contrasena?: string;
-  habilitado?: boolean;
-  ajuste?: string;
+  ajuste?: AjusteObjetos;
 }
 
 export interface Almacen {
@@ -79,7 +78,7 @@ export interface Almacen {
     cajas: Cajas;
     tapas: Tapas;
   };
-  ajuste?: string;
+  ajuste?: AjusteObjetos;
 }
 
 export interface CentroDistribucion {
@@ -92,7 +91,7 @@ export interface CentroDistribucion {
     cajas: Cajas;
     tapas: Tapas;
   };
-  ajuste?: string;
+  ajuste?: AjusteObjetos;
 }
 
 export interface Vehiculo {
@@ -101,15 +100,23 @@ export interface Vehiculo {
   chapa: string;
   marca: string;
   modelo: string;
-  ajuste?: string;
+  ajuste?: AjusteObjetos;
 }
 
 export interface Ajuste {
-  cajas: Cajas;
   nombre: string;
+  fechaHora: string;
 }
 
-export interface AjusteRoturas extends Ajuste, CajasRoturas {}
+export interface AjusteCajas extends Ajuste {
+  cajas: Cajas;
+}
+
+export interface AjusteRoturas extends AjusteCajas, CajasRoturas {}
+
+export interface AjusteObjetos extends Ajuste {
+  habilitado: boolean;
+}
 
 export type Nuevo<Even> = Omit<Even, "_id">;
 
@@ -119,7 +126,7 @@ export interface Evento {
   fecha: string;
   nombre: string;
   cajas: Cajas;
-  ajuste?: Ajuste;
+  ajuste?: AjusteCajas;
 }
 
 export interface EventoRotura extends Evento, CajasRoturas {

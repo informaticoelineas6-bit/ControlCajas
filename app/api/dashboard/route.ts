@@ -15,6 +15,7 @@ import {
   AjusteStr,
   applyAjuste,
   hasCajas,
+  isEnabled,
   totalCajas,
   usuarioCookie,
 } from "../../../lib/utils";
@@ -36,8 +37,8 @@ export async function GET(request: NextRequest) {
 
     // Run all database queries in parallel
     const [
-      centros,
-      almacenes,
+      centrosRaw,
+      almacenesRaw,
       expedicionesRaw,
       traspasosRaw,
       entregasRaw,
@@ -72,6 +73,8 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Apply post-processing (map, filter, sort) to the raw results
+    const centros = centrosRaw.filter(isEnabled);
+    const almacenes = almacenesRaw.filter(isEnabled);
     const expediciones = expedicionesRaw
       .map(applyAjuste)
       .filter(hasCajas) as AjusteStr<Expedicion>[];

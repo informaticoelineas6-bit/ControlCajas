@@ -53,7 +53,7 @@ export default function TablaVehiculos({
     setError("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!form.chapa || !form.categoria) {
       setError("Chapa y categoría son requeridos");
@@ -63,13 +63,20 @@ export default function TablaVehiculos({
     setSubmitting(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const body = editingId
-        ? {
-            _id: editingId,
-            ...form,
-            ajuste: usuario.nombre,
-          }
-        : form;
+      const body: Vehiculo = {
+        _id: editingId || undefined,
+        categoria: form.categoria,
+        chapa: form.chapa,
+        marca: form.marca!,
+        modelo: form.modelo!,
+        ajuste: editingId
+          ? {
+              fechaHora: new Date().toISOString(),
+              habilitado: true,
+              nombre: usuario.nombre,
+            }
+          : undefined,
+      };
       const res = await fetch("/api/vehiculos", {
         method,
         headers: { "Content-Type": "application/json" },
@@ -94,17 +101,25 @@ export default function TablaVehiculos({
     setEditingId(vehiculo._id ?? null);
   };
 
-  const handleDelete = async (vehiculo: Vehiculo) => {
-    if (!confirm("¿Eliminar el vehículo " + vehiculo.chapa + "?")) return;
+  const enableVehiculo = async (target: Vehiculo, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/vehiculos?id=${vehiculo._id}`, {
-        method: "DELETE",
+      const res = await fetch(`/api/vehiculos?id=${target._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          _id: target._id,
+          ajuste: {
+            nombre: usuario.nombre,
+            fechaHora: new Date().toISOString(),
+            habilitado: habilitado,
+          },
+        } as Partial<Vehiculo>),
       });
       if (res.ok) {
         fetchVehiculos();
       } else {
         const data = await res.json();
-        setError(data.error || "Error eliminando");
+        setError(data.error || "Error habilitando vehículo");
       }
     } catch {
       setError("Error en el servidor");
@@ -169,6 +184,7 @@ export default function TablaVehiculos({
                 name="chapa"
                 required
                 value={form.chapa || ""}
+                disabled={!!editingId}
                 onChange={handleInputChange}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
               />
@@ -238,6 +254,7 @@ export default function TablaVehiculos({
                   <th className="px-5 py-4 text-left font-semibold">Chapa</th>
                   <th className="px-5 py-4 text-left font-semibold">Marca</th>
                   <th className="px-5 py-4 text-left font-semibold">Modelo</th>
+                  <th className="px-5 py-4 text-left font-semibold">Estado</th>
                   <th className="px-5 py-4 text-left font-semibold">
                     Editado por
                   </th>
@@ -247,40 +264,73 @@ export default function TablaVehiculos({
                 </tr>
               </thead>
               <tbody>
-                {vehiculos.map((vehiculo) => (
+                {vehiculos.map((item) => (
                   <tr
-                    key={vehiculo._id}
+                    key={item._id}
                     className="border-t border-slate-100 transition hover:bg-slate-50"
                   >
                     <td className="px-5 py-4">
                       <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200">
-                        {vehiculo.categoria ?? "-"}
+                        {item.categoria ?? "-"}
                       </span>
                     </td>
                     <td className="px-5 py-4 font-semibold text-slate-800">
-                      {vehiculo.chapa ?? "-"}
+                      {item.chapa ?? "-"}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {vehiculo.marca || "-"}
+                      {item.marca ?? "-"}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {vehiculo.modelo || "-"}
+                      {item.modelo ?? "-"}
                     </td>
-                    <td className="px-5 py-4 text-slate-500">
-                      {vehiculo.ajuste || "-"}
+                    <td className="px-5 py-4 text-slate-600">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                          item.ajuste?.habilitado
+                            ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                            : "bg-rose-50 text-rose-700 ring-rose-200"
+                        }`}
+                      >
+                        {item.ajuste?.habilitado
+                          ? "Habilitado"
+                          : "Deshabilitado"}
+                      </span>
+                    </td>
+                    <td
+                      title={
+                        item.ajuste
+                          ? "Ajustado el " +
+                            new Date(item.ajuste?.fechaHora).toLocaleString(
+                              "es-MX",
+                              {
+                                dateStyle: "full",
+                                timeStyle: "short",
+                              },
+                            )
+                          : undefined
+                      }
+                      className="px-5 py-4 text-slate-500 hover:bg-slate-300"
+                    >
+                      {item.ajuste?.nombre ?? "-"}
                     </td>
                     <td className="px-5 py-4 text-center">
                       <button
-                        onClick={() => startEdit(vehiculo)}
-                        className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+                        onClick={() => startEdit(item)}
+                        className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                       >
                         Editar
                       </button>
                       <button
-                        onClick={() => handleDelete(vehiculo)}
-                        className="ml-2 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+                        onClick={() =>
+                          enableVehiculo(item, !item.ajuste?.habilitado)
+                        }
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                          item.ajuste?.habilitado
+                            ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        }`}
                       >
-                        Eliminar
+                        {item.ajuste?.habilitado ? "Deshabilitar" : "Habilitar"}
                       </button>
                     </td>
                   </tr>

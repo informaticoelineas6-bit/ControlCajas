@@ -1,4 +1,13 @@
-import { Cajas, Evento, EventoRotura, Tapas, Usuario } from "@/lib/constants";
+import {
+  Almacen,
+  Cajas,
+  CentroDistribucion,
+  Evento,
+  EventoRotura,
+  Tapas,
+  Usuario,
+  Vehiculo,
+} from "@/lib/constants";
 import { NextRequest } from "next/server";
 
 export type AjusteStr<Str> = Omit<Str, "ajuste"> & { ajuste?: string };
@@ -95,6 +104,12 @@ export function hasCajas(item: { cajas: Cajas }): boolean {
   } else {
     return false;
   }
+}
+
+export function isEnabled(
+  item: Almacen | CentroDistribucion | Vehiculo | Usuario,
+): boolean {
+  return item.ajuste?.habilitado ?? true;
 }
 
 export function appendNombre(

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { comparePassword } from "@/lib/auth";
-import { COLECCIONES } from "@/lib/constants";
+import { COLECCIONES, Usuario } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
-    const usuarios = db.collection(COLECCIONES.USUARIO);
+    const usuarios = db.collection<Usuario>(COLECCIONES.USUARIO);
 
     const usuario = await usuarios.findOne({ nombre });
 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!usuario.habilitado) {
+    if (!usuario.ajuste?.habilitado) {
       return NextResponse.json(
         {
           error:
@@ -36,7 +36,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const passwordMatch = await comparePassword(contrasena, usuario.contrasena);
+    const passwordMatch = await comparePassword(
+      contrasena,
+      usuario.contrasena!,
+    );
 
     if (!passwordMatch) {
       return NextResponse.json(

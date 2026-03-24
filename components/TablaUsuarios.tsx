@@ -38,9 +38,12 @@ export default function TablaUsuarios({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           _id: target._id,
-          habilitado,
-          ajuste: usuario.nombre,
-        }),
+          ajuste: {
+            nombre: usuario.nombre,
+            fechaHora: new Date().toISOString(),
+            habilitado: habilitado,
+          },
+        } as Partial<Usuario>),
       });
       if (res.ok) {
         fetchUsuarios();
@@ -116,27 +119,45 @@ export default function TablaUsuarios({
                     <td className="px-5 py-4">
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                          item.habilitado
+                          item.ajuste?.habilitado
                             ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                             : "bg-rose-50 text-rose-700 ring-rose-200"
                         }`}
                       >
-                        {item.habilitado ? "Habilitado" : "Deshabilitado"}
+                        {item.ajuste?.habilitado
+                          ? "Habilitado"
+                          : "Deshabilitado"}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-slate-500">
-                      {item.ajuste || "-"}
+                    <td
+                      title={
+                        item.ajuste
+                          ? "Ajustado el " +
+                            new Date(item.ajuste?.fechaHora).toLocaleString(
+                              "es-MX",
+                              {
+                                dateStyle: "full",
+                                timeStyle: "short",
+                              },
+                            )
+                          : undefined
+                      }
+                      className="px-5 py-4 text-slate-500 hover:bg-slate-300"
+                    >
+                      {item.ajuste?.nombre ?? "-"}
                     </td>
                     <td className="px-5 py-4 text-center">
                       <button
-                        onClick={() => enableUsuario(item, !item.habilitado)}
+                        onClick={() =>
+                          enableUsuario(item, !item.ajuste?.habilitado)
+                        }
                         className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                          item.habilitado
+                          item.ajuste?.habilitado
                             ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                             : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                         }`}
                       >
-                        {item.habilitado ? "Deshabilitar" : "Habilitar"}
+                        {item.ajuste?.habilitado ? "Deshabilitar" : "Habilitar"}
                       </button>
                     </td>
                   </tr>

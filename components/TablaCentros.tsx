@@ -96,60 +96,59 @@ export default function TablaCentros({
           },
         }),
       );
-    } else {
-      if (name.startsWith("tapas_rotas_")) {
-        setForm(
-          (current): CentroDistribucion => ({
-            ...current,
-            roturas: {
-              ...current.roturas,
-              cajas: {
-                ...current.roturas.cajas,
-              },
-              tapas: {
-                ...current.roturas.tapas,
-                [color]: value,
-              },
+    } else if (name.startsWith("tapas_rotas_")) {
+      setForm(
+        (current): CentroDistribucion => ({
+          ...current,
+          roturas: {
+            ...current.roturas,
+            cajas: {
+              ...current.roturas.cajas,
             },
-          }),
-        );
-      } else if (name.startsWith("cajas_rotas_")) {
-        setForm(
-          (current): CentroDistribucion => ({
-            ...current,
-            roturas: {
-              ...current.roturas,
-              cajas: {
-                ...current.roturas.cajas,
-                [color]: value,
-              },
-              tapas: {
-                ...current.roturas.tapas,
-              },
-            },
-          }),
-        );
-      } else if (name.startsWith("deuda_")) {
-        setForm(
-          (current): CentroDistribucion => ({
-            ...current,
-            deuda: {
-              ...current.deuda,
+            tapas: {
+              ...current.roturas.tapas,
               [color]: value,
             },
-          }),
-        );
-      } else {
-        setForm((current) => ({
+          },
+        }),
+      );
+    } else if (name.startsWith("cajas_rotas_")) {
+      setForm(
+        (current): CentroDistribucion => ({
           ...current,
-          [name]: value,
-        }));
-      }
+          roturas: {
+            ...current.roturas,
+            cajas: {
+              ...current.roturas.cajas,
+              [color]: value,
+            },
+            tapas: {
+              ...current.roturas.tapas,
+            },
+          },
+        }),
+      );
+    } else if (name.startsWith("deuda_")) {
+      setForm(
+        (current): CentroDistribucion => ({
+          ...current,
+          deuda: {
+            ...current.deuda,
+            [color]: value,
+          },
+        }),
+      );
+    } else {
+      setForm((current) => ({
+        ...current,
+        [name]: value,
+      }));
     }
+
     setError("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!form.nombre) {
       setError("Nombre es requerido");
@@ -196,7 +195,13 @@ export default function TablaCentros({
               : 0,
           },
         },
-        ajuste: editingId ? usuario.nombre : undefined,
+        ajuste: editingId
+          ? {
+              nombre: usuario.nombre,
+              fechaHora: new Date().toISOString(),
+              habilitado: true,
+            }
+          : undefined,
       };
       const res = await fetch("/api/centros", {
         method,
@@ -228,17 +233,28 @@ export default function TablaCentros({
     setEditingId(centro._id ?? null);
   };
 
-  const handleDelete = async (centro: CentroDistribucion) => {
-    if (!confirm("¿Eliminar el centro " + centro.nombre + "?")) return;
+  const enableCentro = async (
+    target: CentroDistribucion,
+    habilitado: boolean,
+  ) => {
     try {
-      const res = await fetch(`/api/centros?id=${centro._id}`, {
-        method: "DELETE",
+      const res = await fetch(`/api/centros?id=${target._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          _id: target._id,
+          ajuste: {
+            nombre: usuario.nombre,
+            fechaHora: new Date().toISOString(),
+            habilitado: habilitado,
+          },
+        } as Partial<CentroDistribucion>),
       });
       if (res.ok) {
         fetchCentros();
       } else {
         const data = await res.json();
-        setError(data.error || "Error eliminando");
+        setError(data.error || "Error habilitando centro");
       }
     } catch {
       setError("Error en el servidor");
@@ -286,6 +302,7 @@ export default function TablaCentros({
                 id="nombre"
                 name="nombre"
                 value={form.nombre || ""}
+                disabled={!!editingId}
                 onChange={handleInputChange}
                 className={numberFieldClass}
               />
@@ -410,6 +427,7 @@ export default function TablaCentros({
                   <th className="px-5 py-4 text-left font-semibold">
                     Rotación
                   </th>
+                  <th className="px-5 py-4 text-left font-semibold">Estado</th>
                   <th className="px-5 py-4 text-left font-semibold">
                     Editado por
                   </th>
@@ -419,43 +437,80 @@ export default function TablaCentros({
                 </tr>
               </thead>
               <tbody>
-                {centros.map((centro) => (
+                {centros.map((item) => (
                   <tr
-                    key={centro._id}
+                    key={item._id}
                     className="border-t border-slate-100 transition hover:bg-slate-50"
                   >
                     <td className="px-5 py-4 font-semibold text-slate-800">
-                      {centro.nombre}
+                      {item.nombre}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {centro.deuda.blancas ?? 0}
+                      {item.deuda.blancas ?? 0}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {centro.deuda.negras ?? 0}
+                      {item.deuda.negras ?? 0}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {centro.deuda.verdes ?? 0}
+                      {item.deuda.verdes ?? 0}
                     </td>
                     <td className="px-5 py-4">
                       <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
-                        {centro.rotacion ?? 0} días
+                        {item.rotacion ?? 0} días
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-slate-500">
-                      {centro.ajuste || "-"}
+                    <td className="px-5 py-4 text-slate-600">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                          item.ajuste?.habilitado
+                            ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                            : "bg-rose-50 text-rose-700 ring-rose-200"
+                        }`}
+                      >
+                        {item.ajuste?.habilitado
+                          ? "Habilitado"
+                          : "Deshabilitado"}
+                      </span>
+                    </td>
+                    <td
+                      title={
+                        item.ajuste
+                          ? "Ajustado el " +
+                            new Date(item.ajuste?.fechaHora).toLocaleString(
+                              "es-MX",
+                              {
+                                dateStyle: "full",
+                                timeStyle: "short",
+                              },
+                            )
+                          : undefined
+                      }
+                      className={
+                        "px-5 py-4 text-slate-500" + !!item.ajuste
+                          ? " hover:bg-slate-300"
+                          : ""
+                      }
+                    >
+                      {item.ajuste?.nombre ?? "-"}
                     </td>
                     <td className="px-5 py-4 text-center">
                       <button
-                        onClick={() => startEdit(centro)}
-                        className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
+                        onClick={() => startEdit(item)}
+                        className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                       >
                         Editar
                       </button>
                       <button
-                        onClick={() => handleDelete(centro)}
-                        className="ml-2 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+                        onClick={() =>
+                          enableCentro(item, !item.ajuste?.habilitado)
+                        }
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                          item.ajuste?.habilitado
+                            ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        }`}
                       >
-                        Eliminar
+                        {item.ajuste?.habilitado ? "Deshabilitar" : "Habilitar"}
                       </button>
                     </td>
                   </tr>
