@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const usuario = usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (usuario.rol !== "informatico")
+    if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);

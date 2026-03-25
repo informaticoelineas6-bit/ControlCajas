@@ -16,6 +16,7 @@ import {
   Evento,
   ItemComparacionEntrega,
   ItemComparacionRecogida,
+  ROLES,
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
@@ -25,17 +26,32 @@ import TablaInformacion from "@/components/TablaInformacion";
 import TablaTraspaso from "@/components/TablaTraspaso";
 import FormularioEvento, { AjusteProp } from "@/components/FormularioEvento";
 
-type DashboardTab =
-  | "eventos"
+type TabNames =
+  | "new_eventos"
   | "mis_eventos"
-  | "ver_eventos"
-  | "informacion"
+  | "cierre_eventos"
+  | "dashboard"
   | "administracion";
+
+interface DashboardTab {
+  key: TabNames;
+  title: string;
+  helper: string;
+  description: string;
+}
+
+const pageAccess: Record<ROLES, TabNames[]> = {
+  almacenero: ["new_eventos", "mis_eventos"],
+  auditor: ["dashboard", "cierre_eventos", "administracion"],
+  chofer: ["new_eventos", "mis_eventos"],
+  expedidor: ["new_eventos", "mis_eventos"],
+  informatico: ["administracion", "cierre_eventos", "mis_eventos", "dashboard"],
+};
 
 export default function Dashboard() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [activeTab, setActiveTab] = useState<DashboardTab>("mis_eventos");
+  const [activeTab, setActiveTab] = useState<TabNames>("mis_eventos");
   const [loading, setLoading] = useState(true);
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [adjustingEvent, setAdjustingEvent] =
@@ -70,30 +86,9 @@ export default function Dashboard() {
   }, [router]);
 
   useEffect(() => {
-    if (!usuario) {
-      return;
-    }
-
-    let activeTab: DashboardTab;
-    switch (usuario.rol) {
-      case "almacenero":
-        activeTab = "mis_eventos";
-        break;
-      case "chofer":
-        activeTab = "eventos";
-        break;
-      case "expedidor":
-        activeTab = "mis_eventos";
-        break;
-      case "informatico":
-        activeTab = "ver_eventos";
-        break;
-      case "auditor":
-        activeTab = "informacion";
-        break;
-    }
-
-    setActiveTab(activeTab);
+    if (usuario) {
+      setActiveTab(pageAccess[usuario.rol][0]);
+    } else return;
   }, [usuario]);
 
   if (loading || !usuario) {
@@ -121,255 +116,179 @@ export default function Dashboard() {
     }
   };
 
-  const isInformatico = usuario.rol === "informatico";
-
-  const tabItems = () => {
-    const tabArray = [];
-    switch (usuario.rol) {
-      case "informatico":
-        tabArray.push(
-          {
-            key: "administracion" as DashboardTab,
-            label: "Administración",
-            helper: "Modificación de datos",
-          },
-          {
-            key: "mis_eventos" as DashboardTab,
-            label: "Listado",
-            helper: "Listado general de eventos",
-          },
-          {
-            key: "ver_eventos" as DashboardTab,
-            label: "Eventos del día",
-            helper: "Revisión y cierre",
-          },
-        );
-      case "auditor":
-        tabArray.push({
-          key: "informacion" as DashboardTab,
-          label: "Dashboard",
-          helper: "Información general",
-        });
-        break;
-      case "chofer":
-      case "almacenero":
-      case "expedidor":
-        tabArray.push(
-          {
-            key: "eventos" as DashboardTab,
-            label: "Nuevo evento",
-            helper: "Registrar movimiento",
-          },
-          {
-            key: "mis_eventos" as DashboardTab,
-            label: "Mis eventos",
-            helper: "Seguimiento diario",
-          },
-        );
-        break;
-      default:
-        break;
-    }
-    return tabArray;
-  };
-
-  const pageTitles: Record<DashboardTab, string> = {
-    // TODO: Actualizar los títulos.
-    eventos: "Registro de eventos",
-    mis_eventos: isInformatico ? "Listado de eventos" : "Mis eventos",
-    ver_eventos: "Cruce operativo diario",
-    informacion: "Vista ejecutiva de cajas",
-    administracion: "Configuración general",
-  };
-
-  const pageDescriptions: Record<DashboardTab, string> = {
-    // TODO: actualizar las descripciones. Hacer un tipo que las envuelva.
-    eventos: "Crea expediciones, entregas, recogidas y devoluciones.",
-    mis_eventos: "Consulta y ajusta los movimientos relevantes según tu rol.",
-    ver_eventos:
-      "Compara expediciones con entregas y recogidas con devoluciones.",
-    informacion:
-      "Indicadores de deuda, stock y rotación para seguimiento central.",
-    administracion:
-      "Mantén vehículos, almacenes, centros y usuarios habilitados.",
+  const pageTabs: Record<TabNames, DashboardTab> = {
+    administracion: {
+      key: "administracion",
+      title: "Administración",
+      description: "Administración de datos",
+      helper:
+        "Crea y actualiza vehículos, almacenes, centros y autoriza la entrada de nuevos usuarios",
+    },
+    cierre_eventos: {
+      key: "cierre_eventos",
+      title: "Cierre diario",
+      description: "Validación y cierre diario",
+      helper:
+        "Valida los movimientos del día y dale un cierre a los eventos para actualizar las deudas de forma acorde",
+    },
+    dashboard: {
+      key: "dashboard",
+      title: "Tablero general",
+      description: "Información general",
+      helper:
+        "Indicadores de deuda, stock, roturas y otras estadísticas para seguimiento central",
+    },
+    mis_eventos: {
+      key: "mis_eventos",
+      description: "Movimientos diarios e históricos",
+      helper:
+        "Permite visualizar un listado de los eventos de cada día y su ajuste de ser necesario",
+      title: "Listado de eventos",
+    },
+    new_eventos: {
+      key: "new_eventos",
+      description: "Registro de nuevos eventos",
+      helper:
+        "Registra expediciones, traspasos, entregas, recogidas o devoluciones de cajas",
+      title: "Nuevos eventos",
+    },
   };
 
   const contentCardClass =
     "rounded-[32px] border border-white/60 bg-white/78 p-5 shadow-[0_30px_80px_-46px_rgba(15,23,42,0.5)] backdrop-blur sm:p-8";
 
-  const renderDateLabel = () => {
-    try {
-      return new Intl.DateTimeFormat("es-ES", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-      }).format(new Date(`${fecha}T00:00:00`));
-    } catch {
-      return fecha;
-    }
+  const pageRender: Record<TabNames, React.JSX.Element> = {
+    administracion: (
+      <div className={contentCardClass}>
+        <div className="space-y-8">
+          <TablaVehiculos usuario={usuario} />
+          <TablaAlmacenes usuario={usuario} />
+          <TablaCentros usuario={usuario} />
+          <TablaUsuarios usuario={usuario} />
+        </div>
+      </div>
+    ),
+    cierre_eventos: (
+      <div className={contentCardClass}>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Comparación
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold text-slate-900">
+              Cuadre entre eventos
+            </h3>
+          </div>
+          <div>
+            <label
+              htmlFor="fechaRenderCruce"
+              className="mb-2 block text-sm font-medium text-slate-600"
+            >
+              Fecha
+            </label>
+            <input
+              id="fechaRenderCruce"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+        <div className="space-y-8">
+          <TablaExpedicionEntrega
+            fecha={fecha}
+            datos={expedicionEntregaData}
+            setDatos={setExpedicionEntregaData}
+          />
+          <TablaRecogidaDevolucion
+            fecha={fecha}
+            datos={recogidaDevolucionData}
+            setDatos={setRecogidaDevolucionData}
+          />
+          <CierreDiario
+            fecha={fecha}
+            usuario={usuario}
+            expedicionEntregaData={expedicionEntregaData}
+            recogidaDevolucionData={recogidaDevolucionData}
+          />
+        </div>
+      </div>
+    ),
+    dashboard: <TablaInformacion />,
+    mis_eventos: (
+      <div className={contentCardClass}>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Filtro principal
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold text-slate-900">
+              Movimientos por fecha
+            </h3>
+          </div>
+          <div>
+            <label
+              htmlFor="fechaRender"
+              className="mb-2 block text-sm font-medium text-slate-600"
+            >
+              Fecha
+            </label>
+            <input
+              id="fechaRender"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+        <div className="space-y-8">
+          {(usuario?.rol === "informatico" || usuario?.rol === "expedidor") && (
+            <TablaExpedicion
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+          {(usuario?.rol === "informatico" || usuario?.rol === "chofer") && (
+            <TablaTraspaso
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+          {(usuario?.rol === "informatico" || usuario?.rol === "chofer") && (
+            <TablaEntrega
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+          {(usuario?.rol === "informatico" || usuario?.rol === "chofer") && (
+            <TablaRecogida
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+          {(usuario?.rol === "informatico" ||
+            usuario?.rol === "almacenero") && (
+            <TablaDevolucion
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+        </div>
+      </div>
+    ),
+    new_eventos: (
+      <div className={contentCardClass}>
+        <FormularioEvento usuario={usuario} />
+      </div>
+    ),
   };
-
-  function renderView() {
-    switch (activeTab) {
-      case "eventos":
-        return isInformatico ? (
-          <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
-            Los informáticos no pueden crear eventos.
-          </div>
-        ) : (
-          <div className={contentCardClass}>
-            <FormularioEvento usuario={usuario!} />
-          </div>
-        );
-      case "mis_eventos":
-        return (
-          <div className={contentCardClass}>
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                  Filtro principal
-                </p>
-                <h3 className="mt-2 text-2xl font-semibold text-slate-900">
-                  Movimientos por fecha
-                </h3>
-              </div>
-              <div>
-                <label
-                  htmlFor="fechaRender"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Fecha
-                </label>
-                <input
-                  id="fechaRender"
-                  type="date"
-                  value={fecha}
-                  onChange={(e) => setFecha(e.target.value)}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-            </div>
-            <div className="space-y-8">
-              {(isInformatico || usuario?.rol === "expedidor") && (
-                <TablaExpedicion
-                  usuario={usuario!}
-                  fecha={fecha}
-                  onAjustar={handleAjustarClick}
-                />
-              )}
-              {(isInformatico || usuario?.rol === "chofer") && (
-                <TablaTraspaso
-                  usuario={usuario!}
-                  fecha={fecha}
-                  onAjustar={handleAjustarClick}
-                />
-              )}
-              {(isInformatico || usuario?.rol === "chofer") && (
-                <TablaEntrega
-                  usuario={usuario!}
-                  fecha={fecha}
-                  onAjustar={handleAjustarClick}
-                />
-              )}
-              {(isInformatico || usuario?.rol === "chofer") && (
-                <TablaRecogida
-                  usuario={usuario!}
-                  fecha={fecha}
-                  onAjustar={handleAjustarClick}
-                />
-              )}
-              {(isInformatico || usuario?.rol === "almacenero") && (
-                <TablaDevolucion
-                  usuario={usuario!}
-                  fecha={fecha}
-                  onAjustar={handleAjustarClick}
-                />
-              )}
-            </div>
-          </div>
-        );
-      case "ver_eventos":
-        return isInformatico ? (
-          <div className={contentCardClass}>
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                  Comparación
-                </p>
-                <h3 className="mt-2 text-2xl font-semibold text-slate-900">
-                  Cuadre entre eventos
-                </h3>
-              </div>
-              <div>
-                <label
-                  htmlFor="fechaRenderCruce"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Fecha
-                </label>
-                <input
-                  id="fechaRenderCruce"
-                  type="date"
-                  value={fecha}
-                  onChange={(e) => setFecha(e.target.value)}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-            </div>
-            <div className="space-y-8">
-              <TablaExpedicionEntrega
-                fecha={fecha}
-                datos={expedicionEntregaData}
-                setDatos={setExpedicionEntregaData}
-              />
-              <TablaRecogidaDevolucion
-                fecha={fecha}
-                datos={recogidaDevolucionData}
-                setDatos={setRecogidaDevolucionData}
-              />
-              <CierreDiario
-                fecha={fecha}
-                expedicionEntregaData={expedicionEntregaData}
-                recogidaDevolucionData={recogidaDevolucionData}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
-            Sólo los informáticos pueden ver los eventos.
-          </div>
-        );
-      case "informacion":
-        return isInformatico || usuario?.rol === "auditor" ? (
-          <TablaInformacion />
-        ) : (
-          <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
-            Sólo los informáticos pueden ver esta información.
-          </div>
-        );
-      case "administracion":
-        return isInformatico ? (
-          <div className={contentCardClass}>
-            <div className="space-y-8">
-              <TablaVehiculos usuario={usuario!} />
-              <TablaAlmacenes usuario={usuario!} />
-              <TablaCentros usuario={usuario!} />
-              <TablaUsuarios usuario={usuario!} />
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
-            Sólo los informáticos pueden administrar los datos.
-          </div>
-        );
-      default:
-        return (
-          <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
-            Esta vista aún no ha sido implementada.
-          </div>
-        );
-    }
-  }
 
   return (
     <>
@@ -391,26 +310,28 @@ export default function Dashboard() {
               </div>
 
               <nav className="mt-6 space-y-2">
-                {tabItems().map((item) => {
-                  const isActive = activeTab === item.key;
+                {pageAccess[usuario.rol].map((item) => {
+                  const isActive = activeTab === item;
                   return (
                     <button
-                      key={item.key}
-                      title={pageDescriptions[item.key]}
-                      onClick={() => setActiveTab(item.key)}
+                      key={item}
+                      title={pageTabs[item].helper}
+                      onClick={() => setActiveTab(item)}
                       className={`w-full rounded-[22px] px-4 py-4 text-left transition ${
                         isActive
                           ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_18px_35px_-18px_rgba(59,130,246,0.9)]"
                           : "bg-white/0 text-slate-200 hover:bg-white/8 hover:text-white"
                       }`}
                     >
-                      <p className="text-base font-semibold">{item.label}</p>
+                      <p className="text-base font-semibold">
+                        {pageTabs[item].title}
+                      </p>
                       <p
                         className={`mt-1 text-sm ${
                           isActive ? "text-blue-50" : "text-slate-400"
                         }`}
                       >
-                        {item.helper}
+                        {pageTabs[item].description}
                       </p>
                     </button>
                   );
@@ -419,31 +340,13 @@ export default function Dashboard() {
             </aside>
 
             <main className="space-y-6">
-              <section className="overflow-hidden rounded-[34px] border border-white/60 bg-white/72 p-6 shadow-[0_30px_80px_-46px_rgba(15,23,42,0.35)] backdrop-blur sm:p-8">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                  <div className="max-w-2xl">
-                    <p className="text-xs font-semibold uppercase tracking-[0.34em] text-slate-500">
-                      Panel de control
-                    </p>
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                      {pageTitles[activeTab]}
-                    </h1>
-                    <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
-                      {pageDescriptions[activeTab]}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    <div className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-                      {renderDateLabel()}
-                    </div>
-                    {/* <div className="rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200">
-                      {isInformatico ? "Modo auditoría" : "Modo operativo"}
-                    </div> */}
-                  </div>
+              {pageAccess[usuario.rol].includes("administracion") ? (
+                pageRender[activeTab]
+              ) : (
+                <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
+                  No tiene acceso a esta información.
                 </div>
-              </section>
-
-              {renderView()}
+              )}
             </main>
           </div>
         </div>

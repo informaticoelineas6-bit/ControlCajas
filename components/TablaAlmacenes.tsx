@@ -281,116 +281,118 @@ export default function TablaAlmacenes({
       </div>
 
       <div className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {error && (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-              {error}
-            </div>
-          )}
-
-          <div className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}>
-            <div className="col-span-3">
-              <label
-                htmlFor="nombre"
-                className="mb-2 block text-sm font-medium text-slate-600"
-              >
-                Nombre
-              </label>
-              <input
-                id="nombre"
-                name="nombre"
-                value={form.nombre || ""}
-                disabled={!!editingId}
-                onChange={handleInputChange}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-              />
-            </div>
-            {CAJAS_ARRAY.map((color) => (
-              <div key={color}>
-                <label
-                  htmlFor={`stock_${color}`}
-                  className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600"
-                >
-                  <input
-                    id={`habilitado_${color}`}
-                    name={`habilitado_${color}`}
-                    type="checkbox"
-                    checked={form.habilitado[color]}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  {`Stock de cajas ${color}`}
-                </label>
-                <input
-                  id={`stock_${color}`}
-                  name={`stock_${color}`}
-                  type="number"
-                  value={form.stock[color]}
-                  disabled={!form.habilitado[color]}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                />
+        {usuario.rol === "informatico" && (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                {error}
               </div>
-            ))}
-            {CAJAS_ARRAY.map((color) => (
-              <div key={`cajas_rotas_${color}`}>
-                <label
-                  htmlFor={`cajas_rotas_${color}`}
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  {`Roturas de cajas ${color}`}
-                </label>
-                <input
-                  id={`cajas_rotas_${color}`}
-                  name={`cajas_rotas_${color}`}
-                  type="number"
-                  value={form.roturas.cajas[color] ?? 0}
-                  disabled={!form.habilitado[color]}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                />
-              </div>
-            ))}
-            {TAPAS_ARRAY.map((color) => (
-              <div key={`tapas_rotas_${color}`}>
-                <label
-                  htmlFor={`tapas_rotas_${color}`}
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  {`Roturas de tapas ${color}`}
-                </label>
-                <input
-                  id={`tapas_rotas_${color}`}
-                  name={`tapas_rotas_${color}`}
-                  type="number"
-                  value={form.roturas.tapas[color] ?? 0}
-                  disabled={!form.habilitado[color]}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(5,150,105,0.9)] transition hover:from-emerald-500 hover:to-teal-400 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {editingId ? "Guardar cambios" : "Agregar almacén"}
-            </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
-              >
-                Cancelar
-              </button>
             )}
-          </div>
-        </form>
+
+            <div className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}>
+              <div className="col-span-3">
+                <label
+                  htmlFor="nombre"
+                  className="mb-2 block text-sm font-medium text-slate-600"
+                >
+                  Nombre
+                </label>
+                <input
+                  id="nombre"
+                  name="nombre"
+                  value={form.nombre || ""}
+                  disabled={!!editingId}
+                  onChange={handleInputChange}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                />
+              </div>
+              {CAJAS_ARRAY.map((color) => (
+                <div key={color}>
+                  <label
+                    htmlFor={`stock_${color}`}
+                    className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600"
+                  >
+                    <input
+                      id={`habilitado_${color}`}
+                      name={`habilitado_${color}`}
+                      type="checkbox"
+                      checked={form.habilitado[color]}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    {`Stock de cajas ${color}`}
+                  </label>
+                  <input
+                    id={`stock_${color}`}
+                    name={`stock_${color}`}
+                    type="number"
+                    value={form.stock[color]}
+                    disabled={!form.habilitado[color]}
+                    onChange={handleInputChange}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                  />
+                </div>
+              ))}
+              {CAJAS_ARRAY.map((color) => (
+                <div key={`cajas_rotas_${color}`}>
+                  <label
+                    htmlFor={`cajas_rotas_${color}`}
+                    className="mb-2 block text-sm font-medium text-slate-600"
+                  >
+                    {`Roturas de cajas ${color}`}
+                  </label>
+                  <input
+                    id={`cajas_rotas_${color}`}
+                    name={`cajas_rotas_${color}`}
+                    type="number"
+                    value={form.roturas.cajas[color] ?? 0}
+                    disabled={!form.habilitado[color]}
+                    onChange={handleInputChange}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                  />
+                </div>
+              ))}
+              {TAPAS_ARRAY.map((color) => (
+                <div key={`tapas_rotas_${color}`}>
+                  <label
+                    htmlFor={`tapas_rotas_${color}`}
+                    className="mb-2 block text-sm font-medium text-slate-600"
+                  >
+                    {`Roturas de tapas ${color}`}
+                  </label>
+                  <input
+                    id={`tapas_rotas_${color}`}
+                    name={`tapas_rotas_${color}`}
+                    type="number"
+                    value={form.roturas.tapas[color] ?? 0}
+                    disabled={!form.habilitado[color]}
+                    onChange={handleInputChange}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(5,150,105,0.9)] transition hover:from-emerald-500 hover:to-teal-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {editingId ? "Guardar cambios" : "Agregar almacén"}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </form>
+        )}
 
         {loading ? (
           <p className="mt-6 text-sm text-slate-500">Cargando...</p>
@@ -407,9 +409,11 @@ export default function TablaAlmacenes({
                   <th className="px-5 py-4 text-left font-semibold">
                     Editado por
                   </th>
-                  <th className="px-5 py-4 text-center font-semibold">
-                    Acciones
-                  </th>
+                  {usuario.rol === "informatico" && (
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Acciones
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -464,26 +468,30 @@ export default function TablaAlmacenes({
                     >
                       {item.ajuste?.nombre ?? "-"}
                     </td>
-                    <td className="px-5 py-4 text-center">
-                      <button
-                        onClick={() => startEdit(item)}
-                        className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() =>
-                          enableAlmacen(item, !item.ajuste?.habilitado)
-                        }
-                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                          item.ajuste?.habilitado
-                            ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                        }`}
-                      >
-                        {item.ajuste?.habilitado ? "Deshabilitar" : "Habilitar"}
-                      </button>
-                    </td>
+                    {usuario.rol === "informatico" && (
+                      <td className="px-5 py-4 text-center">
+                        <button
+                          onClick={() => startEdit(item)}
+                          className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() =>
+                            enableAlmacen(item, !item.ajuste?.habilitado)
+                          }
+                          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                            item.ajuste?.habilitado
+                              ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          }`}
+                        >
+                          {item.ajuste?.habilitado
+                            ? "Deshabilitar"
+                            : "Habilitar"}
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {almacenes.length === 0 && (

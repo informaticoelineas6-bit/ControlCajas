@@ -11,15 +11,18 @@ import {
   ItemComparacionEntrega,
   ItemComparacionRecogida,
   COLECCIONES,
+  Usuario,
 } from "@/lib/constants";
 import { AjusteStr, totalCajas } from "@/lib/utils";
 
 export default function CierreDiario({
   fecha,
+  usuario,
   expedicionEntregaData,
   recogidaDevolucionData,
 }: Readonly<{
   fecha: string;
+  usuario: Usuario;
   expedicionEntregaData: ItemComparacionEntrega[];
   recogidaDevolucionData: ItemComparacionRecogida[];
 }>) {
@@ -281,7 +284,7 @@ export default function CierreDiario({
           >
             {existente ? "Día cerrado" : "Pendiente de cierre"}
           </span>
-          {!existente && (
+          {!existente && usuario.rol === "informatico" && (
             <button
               onClick={handleCrearCierre}
               disabled={alertas || loading}
@@ -347,7 +350,7 @@ export default function CierreDiario({
                   {cierre.cierre_almacen.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={7}
                         className="px-5 py-10 text-center text-slate-500"
                       >
                         No hay datos
@@ -431,7 +434,7 @@ export default function CierreDiario({
                   {cierre.cierre_cd.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-5 py-10 text-center text-slate-500"
                       >
                         No hay datos

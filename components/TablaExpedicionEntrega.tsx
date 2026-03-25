@@ -58,7 +58,7 @@ export default function TablaExpedicionEntrega({
         </div>
       </div>
 
-      <div className="p-6">
+      <div>
         {error && (
           <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
             {error}
@@ -66,7 +66,7 @@ export default function TablaExpedicionEntrega({
         )}
 
         {loading ? (
-          <p className="text-sm text-slate-500">Cargando...</p>
+          <p className="p-6 text-sm text-slate-500">Cargando...</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">

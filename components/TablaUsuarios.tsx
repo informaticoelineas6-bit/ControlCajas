@@ -97,9 +97,11 @@ export default function TablaUsuarios({
                   <th className="px-5 py-4 text-left font-semibold">
                     Autorizado por
                   </th>
-                  <th className="px-5 py-4 text-center font-semibold">
-                    Acciones
-                  </th>
+                  {usuario.rol === "informatico" && (
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Acciones
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -146,20 +148,24 @@ export default function TablaUsuarios({
                     >
                       {item.ajuste?.nombre ?? "-"}
                     </td>
-                    <td className="px-5 py-4 text-center">
-                      <button
-                        onClick={() =>
-                          enableUsuario(item, !item.ajuste?.habilitado)
-                        }
-                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                          item.ajuste?.habilitado
-                            ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                        }`}
-                      >
-                        {item.ajuste?.habilitado ? "Deshabilitar" : "Habilitar"}
-                      </button>
-                    </td>
+                    {usuario.rol === "informatico" && (
+                      <td className="px-5 py-4 text-center">
+                        <button
+                          onClick={() =>
+                            enableUsuario(item, !item.ajuste?.habilitado)
+                          }
+                          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                            item.ajuste?.habilitado
+                              ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          }`}
+                        >
+                          {item.ajuste?.habilitado
+                            ? "Deshabilitar"
+                            : "Habilitar"}
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {usuarios.length === 0 && (
