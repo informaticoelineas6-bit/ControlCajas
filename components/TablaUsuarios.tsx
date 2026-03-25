@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Usuario } from "@/lib/constants";
+import { ROLES_ARRAY, Usuario } from "@/lib/constants";
 
 export default function TablaUsuarios({
   usuario,
@@ -9,6 +9,12 @@ export default function TablaUsuarios({
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [form, setForm] = useState<Partial<Usuario>>({
+    nombre: "",
+    rol: "chofer",
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchUsuarios();
@@ -31,6 +37,68 @@ export default function TablaUsuarios({
     }
   };
 
+  const resetForm = () => {
+    setForm({
+      nombre: "",
+      rol: "chofer",
+    });
+    setEditingId(null);
+    setError("");
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setForm((current) => ({ ...current, [name]: value }));
+    setError("");
+  };
+
+  const handleSubmit = async (e: React.SubmitEvent) => {
+    e.preventDefault();
+
+    setSubmitting(true);
+    try {
+      if (!editingId) {
+        setError(
+          "Ha ocurrido un error extraño. Has intentado modificar un usuario?",
+        );
+        return;
+      }
+      const method = "PUT";
+      const body: Partial<Usuario> = {
+        _id: editingId,
+        rol: form.rol,
+        ajuste: {
+          nombre: usuario.nombre,
+          fechaHora: new Date().toISOString(),
+          habilitado: form.ajuste?.habilitado ?? false,
+        },
+      };
+      const res = await fetch("/api/usuarios", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        resetForm();
+        fetchUsuarios();
+      } else {
+        setError(data.error || "Error en la operación");
+      }
+    } catch {
+      setError("Error en el servidor");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const startEdit = (usuario: Usuario) => {
+    setForm(usuario);
+    setEditingId(usuario._id ?? null);
+  };
+
   const enableUsuario = async (target: Usuario, habilitado: boolean) => {
     try {
       const res = await fetch(`/api/usuarios?id=${target._id}`, {
@@ -42,6 +110,11 @@ export default function TablaUsuarios({
             nombre: usuario.nombre,
             fechaHora: new Date().toISOString(),
             habilitado: habilitado,
+            ajuste: {
+              nombre: usuario.nombre,
+              fechaHora: new Date().toISOString(),
+              habilitado: form.ajuste?.habilitado,
+            },
           },
         } as Partial<Usuario>),
       });
@@ -84,10 +157,75 @@ export default function TablaUsuarios({
           </div>
         )}
 
+        {usuario.rol === "informatico" && (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="nombre"
+                  className="mb-2 block text-sm font-medium text-slate-600"
+                >
+                  Nombre
+                </label>
+                <input
+                  id="nombre"
+                  name="nombre"
+                  disabled
+                  value={form.nombre || ""}
+                  onChange={handleInputChange}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="rol"
+                  className="mb-2 block text-sm font-medium text-slate-600"
+                >
+                  Rol
+                </label>
+                <select
+                  id="rol"
+                  name="rol"
+                  required
+                  value={form.rol}
+                  disabled={!editingId}
+                  onChange={handleInputChange}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                >
+                  {ROLES_ARRAY.map((rol) => (
+                    <option key={rol} value={rol}>
+                      {rol.charAt(0).toUpperCase() + rol.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="submit"
+                disabled={submitting || !editingId}
+                className="rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {"Guardar"}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+
         {loading ? (
-          <p className="mt-2 text-sm text-slate-500">Cargando...</p>
+          <p className="mt-6 text-sm text-slate-500">Cargando...</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="mt-8 overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 text-slate-500">
                 <tr>
@@ -163,6 +301,12 @@ export default function TablaUsuarios({
                           {item.ajuste?.habilitado
                             ? "Deshabilitar"
                             : "Habilitar"}
+                        </button>
+                        <button
+                          onClick={() => startEdit(item)}
+                          className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                        >
+                          Editar rol
                         </button>
                       </td>
                     )}

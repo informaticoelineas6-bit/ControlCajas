@@ -283,14 +283,14 @@ export default function TablaCentros({
       </div>
 
       <div className="p-6">
+        {error && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+            {error}
+          </div>
+        )}
+
         {usuario.rol === "informatico" && (
           <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-                {error}
-              </div>
-            )}
-
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label
