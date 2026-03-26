@@ -90,14 +90,6 @@ export default function TablaTraspaso({
                           {item.centro_distribucion ?? "-"}
                         </h4>
                       </div>
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                          Almacén
-                        </p>
-                        <h4 className="mt-1 text-base font-semibold text-slate-900">
-                          {item.almacen ?? "-"}
-                        </h4>
-                      </div>
                       {usuario.rol === "informatico" && (
                         <button
                           className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
@@ -108,6 +100,12 @@ export default function TablaTraspaso({
                       )}
                     </div>
                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-slate-500">Almacén</p>
+                        <p className="font-medium text-slate-700">
+                          {item.almacen ?? "-"}
+                        </p>
+                      </div>
                       <div>
                         <p className="text-slate-500">Chofer</p>
                         <p className="font-medium text-slate-700">
@@ -138,14 +136,12 @@ export default function TablaTraspaso({
                           {item.cajas?.verdes ?? "-"}
                         </p>
                       </div>
-                      {usuario.rol === "informatico" && (
-                        <div>
-                          <p className="text-slate-500">Ajustado por</p>
-                          <p className="font-medium text-slate-700">
-                            {item.ajuste ?? "-"}
-                          </p>
-                        </div>
-                      )}
+                      <div>
+                        <p className="text-slate-500">Ajustado por</p>
+                        <p className="font-medium text-slate-700">
+                          {item.ajuste ?? "-"}
+                        </p>
+                      </div>
                     </div>
                   </article>
                 ))
@@ -175,11 +171,9 @@ export default function TablaTraspaso({
                     <th className="px-5 py-4 text-center font-semibold">
                       Verdes
                     </th>
-                    {usuario.rol === "informatico" && (
-                      <th className="px-5 py-4 text-center font-semibold">
-                        Ajustado por
-                      </th>
-                    )}
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Ajustado por
+                    </th>
                     {usuario.rol === "informatico" && (
                       <th className="px-5 py-4 text-center font-semibold">
                         Acción
@@ -224,11 +218,9 @@ export default function TablaTraspaso({
                         <td className="px-5 py-4 text-center text-slate-700">
                           {item.cajas?.verdes ?? "-"}
                         </td>
-                        {usuario.rol === "informatico" && (
-                          <td className="px-5 py-4 text-center text-slate-500">
-                            {item.ajuste ?? "-"}
-                          </td>
-                        )}
+                        <td className="px-5 py-4 text-center text-slate-500">
+                          {item.ajuste ?? "-"}
+                        </td>
                         {usuario.rol === "informatico" && (
                           <td className="px-5 py-4 text-center">
                             <button

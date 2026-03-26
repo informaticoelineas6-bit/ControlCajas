@@ -130,14 +130,12 @@ export default function TablaEntrega({
                           {item.cajas?.verdes ?? "-"}
                         </p>
                       </div>
-                      {usuario.rol === "informatico" && (
-                        <div>
-                          <p className="text-slate-500">Ajustado por</p>
-                          <p className="font-medium text-slate-700">
-                            {item.ajuste ?? "-"}
-                          </p>
-                        </div>
-                      )}
+                      <div>
+                        <p className="text-slate-500">Ajustado por</p>
+                        <p className="font-medium text-slate-700">
+                          {item.ajuste ?? "-"}
+                        </p>
+                      </div>
                     </div>
                   </article>
                 ))
@@ -164,11 +162,9 @@ export default function TablaEntrega({
                     <th className="px-5 py-4 text-center font-semibold">
                       Verdes
                     </th>
-                    {usuario.rol === "informatico" && (
-                      <th className="px-5 py-4 text-center font-semibold">
-                        Ajustado por
-                      </th>
-                    )}
+                    <th className="px-5 py-4 text-center font-semibold">
+                      Ajustado por
+                    </th>
                     {usuario.rol === "informatico" && (
                       <th className="px-5 py-4 text-center font-semibold">
                         Acción
@@ -210,11 +206,9 @@ export default function TablaEntrega({
                         <td className="px-5 py-4 text-center text-slate-700">
                           {item.cajas?.verdes ?? "-"}
                         </td>
-                        {usuario.rol === "informatico" && (
-                          <td className="px-5 py-4 text-center text-slate-500">
-                            {item.ajuste ?? "-"}
-                          </td>
-                        )}
+                        <td className="px-5 py-4 text-center text-slate-500">
+                          {item.ajuste ?? "-"}
+                        </td>
                         {usuario.rol === "informatico" && (
                           <td className="px-5 py-4 text-center">
                             <button
