@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { COLECCIONES } from "@/lib/constants";
+import {
+  CentroDistribucion,
+  COLECCIONES,
+  Nuevo,
+  Provincia,
+} from "@/lib/constants";
 import { usuarioCookie } from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
@@ -33,9 +38,34 @@ export async function POST(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body = await request.json();
+    const body: Nuevo<CentroDistribucion> = await request.json();
     const { db } = await connectToDatabase();
-    const centros = db.collection(COLECCIONES.CENTRO_DISTRIBUCION);
+
+    body.nombre = body.nombre.trim();
+    const centros = db.collection<CentroDistribucion>(
+      COLECCIONES.CENTRO_DISTRIBUCION,
+    );
+
+    const existente = await centros.findOne({ nombre: body.nombre });
+    if (existente) {
+      return NextResponse.json(
+        { error: "Ya se encuentra registrado un centro con ese nombre" },
+        { status: 409 },
+      );
+    }
+
+    const provincias = db.collection<Provincia>(COLECCIONES.PROVINCIA);
+    const provincia = await provincias.findOne({ nombre: body.nombre });
+    if (provincia) {
+      return NextResponse.json(
+        {
+          error:
+            "Ya se encuentra registrada una provincia asociada a un centro con ese nombre",
+        },
+        { status: 409 },
+      );
+    }
+
     const result = await centros.insertOne(body);
     return NextResponse.json({ _id: result.insertedId, ...body });
   } catch (error) {

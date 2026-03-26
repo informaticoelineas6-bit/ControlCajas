@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { COLECCIONES } from "@/lib/constants";
+import { COLECCIONES, Nuevo, Vehiculo } from "@/lib/constants";
 import { usuarioCookie } from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
@@ -33,9 +33,20 @@ export async function POST(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body = await request.json();
+    const body: Nuevo<Vehiculo> = await request.json();
     const { db } = await connectToDatabase();
-    const vehiculos = db.collection(COLECCIONES.VEHICULO);
+
+    body.chapa = body.chapa.trim();
+    const vehiculos = db.collection<Vehiculo>(COLECCIONES.VEHICULO);
+
+    const existente = await vehiculos.findOne({ chapa: body.chapa });
+    if (existente) {
+      return NextResponse.json(
+        { error: "Ya se encuentra registrado un vehículo con esa matrícula" },
+        { status: 409 },
+      );
+    }
+
     const result = await vehiculos.insertOne(body);
     return NextResponse.json({ _id: result.insertedId, ...body });
   } catch (error) {

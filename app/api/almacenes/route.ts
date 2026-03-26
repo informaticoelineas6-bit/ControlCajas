@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { COLECCIONES } from "@/lib/constants";
+import { Almacen, COLECCIONES, Nuevo } from "@/lib/constants";
 import { usuarioCookie } from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
@@ -33,9 +33,20 @@ export async function POST(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body = await request.json();
+    const body: Nuevo<Almacen> = await request.json();
     const { db } = await connectToDatabase();
-    const almacenes = db.collection(COLECCIONES.ALMACEN);
+
+    body.nombre = body.nombre.trim();
+    const almacenes = db.collection<Almacen>(COLECCIONES.ALMACEN);
+
+    const existente = await almacenes.findOne({ nombre: body.nombre });
+    if (existente) {
+      return NextResponse.json(
+        { error: "Ya se encuentra registrado un almacén con ese nombre" },
+        { status: 409 },
+      );
+    }
+
     const result = await almacenes.insertOne(body);
     return NextResponse.json({ _id: result.insertedId, ...body });
   } catch (error) {
