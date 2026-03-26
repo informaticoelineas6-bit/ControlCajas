@@ -4,6 +4,7 @@ import {
   Almacen,
   CentroDistribucion,
   COLECCIONES,
+  Entrega,
   EVENTOS_ARRAY,
   Expedicion,
   Provincia,
@@ -12,7 +13,15 @@ import {
   Traspaso,
   Vehiculo,
 } from "@/lib/constants";
-import { isEnabled, usuarioCookie } from "../../../lib/utils";
+import {
+  AjusteStr,
+  applyAjuste,
+  DeudaAct,
+  deudaActiva,
+  hasCajas,
+  isEnabled,
+  usuarioCookie,
+} from "../../../lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,6 +41,15 @@ export async function GET(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
+
+    const listaEntregas = (
+      await db
+        .collection<Entrega>(COLECCIONES.ENTREGA)
+        .find({ fecha })
+        .toArray()
+    )
+      .map(applyAjuste)
+      .filter(hasCajas) as AjusteStr<Entrega>[];
 
     const resultado: EventoFormData = {
       almacenes: [],
@@ -55,7 +73,9 @@ export async function GET(request: NextRequest) {
             .find()
             .toArray() as Promise<Provincia[]>,
         ]);
-        resultado.centros = centrosRaw.filter(isEnabled);
+        resultado.centros = centrosRaw
+          .filter(isEnabled)
+          .map((centro) => deudaActiva(centro, listaEntregas));
         resultado.almacenes = almacenesRaw.filter(isEnabled);
         resultado.provincias = provinciasRaw;
         return NextResponse.json(resultado);
@@ -118,9 +138,12 @@ export async function GET(request: NextRequest) {
             )
           ) {
             resultado.centros.push(
-              centrosRaw.find(
-                (item) => item.nombre === element.centro_distribucion,
-              ) as CentroDistribucion,
+              deudaActiva(
+                centrosRaw.find(
+                  (item) => item.nombre === element.centro_distribucion,
+                ) as CentroDistribucion,
+                listaEntregas,
+              ),
             );
           }
           if (
@@ -177,9 +200,12 @@ export async function GET(request: NextRequest) {
             )
           ) {
             resultado.centros.push(
-              centrosRaw.find(
-                (item) => item.nombre === element.centro_distribucion,
-              ) as CentroDistribucion,
+              deudaActiva(
+                centrosRaw.find(
+                  (item) => item.nombre === element.centro_distribucion,
+                ) as CentroDistribucion,
+                listaEntregas,
+              ),
             );
           }
           if (
@@ -221,7 +247,9 @@ export async function GET(request: NextRequest) {
             .find({})
             .toArray() as Promise<Vehiculo[]>,
         ]);
-        resultado.centros = centrosRaw.filter(isEnabled);
+        resultado.centros = centrosRaw
+          .filter(isEnabled)
+          .map((centro) => deudaActiva(centro, listaEntregas));
         resultado.vehiculos = vehiculosRaw.filter(isEnabled);
         return NextResponse.json(resultado);
       }
@@ -257,9 +285,12 @@ export async function GET(request: NextRequest) {
             )
           ) {
             resultado.centros.push(
-              centrosRaw.find(
-                (item) => item.nombre === element.centro_distribucion,
-              ) as CentroDistribucion,
+              deudaActiva(
+                centrosRaw.find(
+                  (item) => item.nombre === element.centro_distribucion,
+                ) as CentroDistribucion,
+                listaEntregas,
+              ),
             );
           }
         }
@@ -280,7 +311,7 @@ export async function GET(request: NextRequest) {
 
 export interface EventoFormData {
   almacenes: Almacen[];
-  centros: CentroDistribucion[];
+  centros: DeudaAct<CentroDistribucion>[];
   vehiculos: Vehiculo[];
   provincias: Provincia[];
 }

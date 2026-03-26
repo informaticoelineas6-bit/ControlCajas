@@ -12,7 +12,7 @@ import {
   COLORES_CAJAS,
   Provincia,
 } from "@/lib/constants";
-import { totalCajas } from "@/lib/utils";
+import { DeudaAct, totalCajas } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 
 // Verificar la tardanza de el warning/message.
@@ -60,7 +60,7 @@ export default function FormularioEvento({
   );
   const [originalId, setOriginalId] = useState<string | null>(null);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
-  const [centros, setCentros] = useState<CentroDistribucion[]>([]);
+  const [centros, setCentros] = useState<DeudaAct<CentroDistribucion>[]>([]);
   const [provincias, setProvincias] = useState<Provincia[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -535,9 +535,7 @@ export default function FormularioEvento({
                         {centro.nombre +
                           (tipoEvento === "Recogida"
                             ? " (deuda: " +
-                              (centro.deuda.blancas +
-                                centro.deuda.negras +
-                                centro.deuda.verdes) +
+                              totalCajas(centro.deuda_activa) +
                               ")"
                             : "")}
                       </option>

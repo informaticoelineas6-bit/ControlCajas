@@ -162,12 +162,6 @@ export default function TablaInformacion() {
               detail="Cajas disponibles en almacenes"
               accent="bg-blue-500"
             />
-            {/* <MetricCard
-              eyebrow="Eventos del día"
-              value={movementData.length}
-              detail="Movimientos registrados en la jornada"
-              accent="bg-cyan-500"
-            /> */}
             <MetricCard
               eyebrow="Envíos del día"
               value={data.enviosHoy}
@@ -260,6 +254,9 @@ export default function TablaInformacion() {
                     </th>
                     <th className="px-6 py-4 text-left font-semibold">Deuda</th>
                     <th className="px-6 py-4 text-left font-semibold">
+                      Deuda activa
+                    </th>
+                    <th className="px-6 py-4 text-left font-semibold">
                       Roturas
                     </th>
                     <th className="px-6 py-4 text-left font-semibold">
@@ -300,6 +297,9 @@ export default function TablaInformacion() {
                               {deuda}
                             </span>
                           </div>
+                        </td>
+                        <td className="px-6 py-4 font-medium text-slate-700">
+                          {totalCajas(centro.deuda_activa)}
                         </td>
                         <td className="px-6 py-4 font-medium text-slate-700">
                           {centro.roturasTotal ?? 0}

@@ -14,6 +14,7 @@ import {
 import {
   AjusteStr,
   applyAjuste,
+  deudaActiva,
   hasCajas,
   isEnabled,
   totalCajas,
@@ -103,6 +104,11 @@ export async function GET(request: NextRequest) {
       const iteration: DashboardRow = {
         nombre: centro.nombre,
         deuda: centro.deuda,
+        deuda_activa: {
+          blancas: 0,
+          negras: 0,
+          verdes: 0,
+        },
         rotacion: centro.rotacion,
         fechaRot: today,
         estadoRot: "En tiempo",
@@ -116,6 +122,10 @@ export async function GET(request: NextRequest) {
       const entregasFiltrado = entregas.filter(
         (entrega) => entrega.centro_distribucion === centro.nombre,
       );
+
+      const { deuda_activa } = deudaActiva(centro, entregasFiltrado);
+
+      iteration.deuda_activa = deuda_activa;
 
       const deuda: Cajas = {
         blancas: centro.deuda.blancas,
@@ -245,6 +255,7 @@ export interface DashboardData {
 export interface DashboardRow {
   nombre: string;
   deuda: Cajas;
+  deuda_activa: Cajas;
   rotacion: number;
   fechaRot: string;
   estadoRot: "Pendiente" | "Retrasada" | "En tiempo" | "Cumplida";
