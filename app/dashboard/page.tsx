@@ -25,6 +25,7 @@ import TablaUsuarios from "@/components/TablaUsuarios";
 import TablaInformacion from "@/components/TablaInformacion";
 import TablaTraspaso from "@/components/TablaTraspaso";
 import FormularioEvento, { AjusteProp } from "@/components/FormularioEvento";
+import TablaProvincias from "@/components/TablaProvincias";
 
 type TabNames =
   | "new_eventos"
@@ -164,6 +165,7 @@ export default function Dashboard() {
           <TablaVehiculos usuario={usuario} />
           <TablaAlmacenes usuario={usuario} />
           <TablaCentros usuario={usuario} />
+          <TablaProvincias usuario={usuario} />
           <TablaUsuarios usuario={usuario} />
         </div>
       </div>

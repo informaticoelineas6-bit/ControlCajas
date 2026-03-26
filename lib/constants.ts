@@ -36,6 +36,7 @@ export enum COLECCIONES {
   DEVOLUCION = "Devolucion",
   RECOGIDA = "Recogida",
   CIERRE = "Cierre",
+  PROVINCIA = "Provincia",
 }
 
 export interface Cajas {
@@ -94,6 +95,13 @@ export interface CentroDistribucion {
   ajuste?: AjusteObjetos;
 }
 
+export interface Provincia {
+  _id?: string;
+  nombre: string;
+  centro_distribucion: string;
+  ajuste?: Ajuste;
+}
+
 export interface Vehiculo {
   _id?: string;
   categoria: string;
@@ -134,15 +142,18 @@ export interface EventoRotura extends Evento, CajasRoturas {
 }
 export interface Expedicion extends Evento {
   almacen: string;
+  provincia?: string;
 }
 
 export interface Traspaso extends Evento {
   almacen: string;
   chapa: string;
+  provincia?: string;
 }
 
 export interface Entrega extends Evento {
   chapa: string;
+  provincia?: string;
 }
 
 export interface Recogida extends EventoRotura {

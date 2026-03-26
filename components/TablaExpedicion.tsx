@@ -89,10 +89,12 @@ export default function TablaExpedicion({
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                          Centro
+                          {item.provincia ? "Provincia" : "Centro"}
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
-                          {item.centro_distribucion ?? "-"}
+                          {(item.provincia
+                            ? item.provincia
+                            : item.centro_distribucion) ?? "-"}
                         </h4>
                       </div>
                       {usuario.rol === "informatico" && (
@@ -152,7 +154,7 @@ export default function TablaExpedicion({
                 <thead className="bg-slate-50 text-slate-500">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold">
-                      Centro
+                      Centro (o Provincia)
                     </th>
                     <th className="px-5 py-4 text-left font-semibold">
                       Almacén
@@ -196,7 +198,9 @@ export default function TablaExpedicion({
                         className="border-t border-slate-100 transition hover:bg-emerald-50/40"
                       >
                         <td className="px-5 py-4 font-semibold text-slate-800">
-                          {item.centro_distribucion ?? "-"}
+                          {(item.provincia
+                            ? item.provincia
+                            : item.centro_distribucion) ?? "-"}
                         </td>
                         <td className="px-5 py-4 text-slate-600">
                           {item.almacen ?? "-"}

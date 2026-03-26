@@ -6,6 +6,7 @@ import {
   COLECCIONES,
   EVENTOS_ARRAY,
   Expedicion,
+  Provincia,
   Recogida,
   TIPOS_EVENTO,
   Traspaso,
@@ -32,147 +33,239 @@ export async function GET(request: NextRequest) {
 
     const { db } = await connectToDatabase();
 
-    let eventos;
     const resultado: EventoFormData = {
       almacenes: [],
       centros: [],
       vehiculos: [],
+      provincias: [],
     };
     switch (tipo) {
-      case "Expedicion":
-        resultado.centros = (
-          await db
+      case "Expedicion": {
+        const [centrosRaw, almacenesRaw, provinciasRaw] = await Promise.all([
+          db
             .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-            .find({})
-            .toArray()
-        ).filter(isEnabled) as CentroDistribucion[];
-        resultado.almacenes = (
-          await db.collection<Almacen>(COLECCIONES.ALMACEN).find({}).toArray()
-        ).filter(isEnabled) as Almacen[];
+            .find()
+            .toArray() as Promise<CentroDistribucion[]>,
+          db
+            .collection<Almacen>(COLECCIONES.ALMACEN)
+            .find()
+            .toArray() as Promise<Almacen[]>,
+          db
+            .collection<Provincia>(COLECCIONES.PROVINCIA)
+            .find()
+            .toArray() as Promise<Provincia[]>,
+        ]);
+        resultado.centros = centrosRaw.filter(isEnabled);
+        resultado.almacenes = almacenesRaw.filter(isEnabled);
+        resultado.provincias = provinciasRaw;
         return NextResponse.json(resultado);
-      case "Traspaso":
-        eventos = (await db
-          .collection<Expedicion>(COLECCIONES.EXPEDICION)
-          .find({ fecha })
-          .toArray()) as Expedicion[];
-        if (eventos.length === 0) {
+      }
+      case "Traspaso": {
+        const [
+          eventosRaw,
+          centrosRaw,
+          almacenesRaw,
+          vehiculosRaw,
+          provinciasRaw,
+        ] = await Promise.all([
+          db
+            .collection<Expedicion>(COLECCIONES.EXPEDICION)
+            .find({ fecha })
+            .toArray() as Promise<Expedicion[]>,
+          db
+            .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
+            .find()
+            .toArray() as Promise<CentroDistribucion[]>,
+          db
+            .collection<Almacen>(COLECCIONES.ALMACEN)
+            .find()
+            .toArray() as Promise<Almacen[]>,
+          db
+            .collection<Vehiculo>(COLECCIONES.VEHICULO)
+            .find()
+            .toArray() as Promise<Vehiculo[]>,
+          db
+            .collection<Provincia>(COLECCIONES.PROVINCIA)
+            .find()
+            .toArray() as Promise<Provincia[]>,
+        ]);
+        if (eventosRaw.length === 0) {
           return NextResponse.json(
             { error: "No se han registrado expediciones" },
             { status: 400 },
           );
         }
-        for (const element of eventos) {
+        for (const element of eventosRaw) {
           if (
             resultado.almacenes.every(
               (el: Almacen) => el.nombre !== element.almacen,
-            )
+            ) &&
+            almacenesRaw.some((item) => item.nombre === element.almacen)
           ) {
             resultado.almacenes.push(
-              (await db
-                .collection<Almacen>(COLECCIONES.ALMACEN)
-                .findOne({ nombre: element.almacen })) as Almacen,
+              almacenesRaw.find(
+                (item) => (item.nombre = element.almacen),
+              ) as Almacen,
             );
           }
           if (
             resultado.centros.every(
               (el: CentroDistribucion) =>
                 el.nombre !== element.centro_distribucion,
+            ) &&
+            centrosRaw.some(
+              (item) => item.nombre === element.centro_distribucion,
             )
           ) {
             resultado.centros.push(
-              (await db
-                .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-                .findOne({
-                  nombre: element.centro_distribucion,
-                })) as CentroDistribucion,
+              centrosRaw.find(
+                (item) => item.nombre === element.centro_distribucion,
+              ) as CentroDistribucion,
+            );
+          }
+          if (
+            element.provincia &&
+            resultado.provincias.every(
+              (el: Provincia) =>
+                element.provincia && el.nombre !== element.provincia,
+            )
+          ) {
+            resultado.provincias.push(
+              provinciasRaw.find(
+                (item) => item.nombre === element.provincia,
+              ) as Provincia,
             );
           }
         }
-        resultado.vehiculos = (
-          await db.collection<Vehiculo>(COLECCIONES.VEHICULO).find({}).toArray()
-        ).filter(isEnabled) as Vehiculo[];
+        resultado.vehiculos = vehiculosRaw.filter(isEnabled);
         return NextResponse.json(resultado);
-      case "Entrega":
-        eventos = (await db
-          .collection<Traspaso>(COLECCIONES.TRASPASO)
-          .find({ fecha })
-          .toArray()) as Traspaso[];
-        if (eventos.length === 0) {
+      }
+      case "Entrega": {
+        const [eventosRaw, centrosRaw, vehiculosRaw, provinciasRaw] =
+          await Promise.all([
+            db
+              .collection<Traspaso>(COLECCIONES.TRASPASO)
+              .find({ fecha })
+              .toArray() as Promise<Traspaso[]>,
+            db
+              .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
+              .find()
+              .toArray() as Promise<CentroDistribucion[]>,
+            db
+              .collection<Vehiculo>(COLECCIONES.VEHICULO)
+              .find({})
+              .toArray() as Promise<Vehiculo[]>,
+            db
+              .collection<Provincia>(COLECCIONES.PROVINCIA)
+              .find()
+              .toArray() as Promise<Provincia[]>,
+          ]);
+        if (eventosRaw.length === 0) {
           return NextResponse.json(
             { error: "No se han registrado traspasos" },
             { status: 400 },
           );
         }
-        for (const element of eventos) {
+        for (const element of eventosRaw) {
           if (
             resultado.centros.every(
               (el: CentroDistribucion) =>
                 el.nombre !== element.centro_distribucion,
+            ) &&
+            centrosRaw.some(
+              (item) => item.nombre === element.centro_distribucion,
             )
           ) {
             resultado.centros.push(
-              (await db
-                .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-                .findOne({
-                  nombre: element.centro_distribucion,
-                })) as CentroDistribucion,
+              centrosRaw.find(
+                (item) => item.nombre === element.centro_distribucion,
+              ) as CentroDistribucion,
             );
           }
           if (
             resultado.vehiculos.every(
               (el: Vehiculo) => el.chapa !== element.chapa,
-            )
+            ) &&
+            vehiculosRaw.some((item) => item.chapa === element.chapa)
           ) {
             resultado.vehiculos.push(
-              (await db
-                .collection<Vehiculo>(COLECCIONES.VEHICULO)
-                .findOne({ chapa: element.chapa })) as Vehiculo,
+              vehiculosRaw.find(
+                (item) => item.chapa === element.chapa,
+              ) as Vehiculo,
+            );
+          }
+          if (
+            element.provincia &&
+            resultado.provincias.every(
+              (el: Provincia) =>
+                element.provincia && el.nombre !== element.provincia,
+            )
+          ) {
+            resultado.provincias.push(
+              provinciasRaw.find(
+                (item) => item.nombre === element.provincia,
+              ) as Provincia,
             );
           }
         }
         return NextResponse.json(resultado);
-      case "Recogida":
-        resultado.centros = (
-          await db
+      }
+      case "Recogida": {
+        const [centrosRaw, vehiculosRaw] = await Promise.all([
+          db
             .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
+            .find()
+            .toArray() as Promise<CentroDistribucion[]>,
+          db
+            .collection<Vehiculo>(COLECCIONES.VEHICULO)
             .find({})
-            .toArray()
-        ).filter(isEnabled) as CentroDistribucion[];
-        resultado.vehiculos = (
-          await db.collection<Vehiculo>(COLECCIONES.VEHICULO).find({}).toArray()
-        ).filter(isEnabled) as Vehiculo[];
+            .toArray() as Promise<Vehiculo[]>,
+        ]);
+        resultado.centros = centrosRaw.filter(isEnabled);
+        resultado.vehiculos = vehiculosRaw.filter(isEnabled);
         return NextResponse.json(resultado);
-      case "Devolucion":
-        eventos = (await db
-          .collection<Recogida>(COLECCIONES.RECOGIDA)
-          .find({ fecha })
-          .toArray()) as Recogida[];
-        if (eventos.length === 0) {
+      }
+      case "Devolucion": {
+        const [eventosRaw, centrosRaw, almacenesRaw] = await Promise.all([
+          db
+            .collection<Recogida>(COLECCIONES.RECOGIDA)
+            .find({ fecha })
+            .toArray() as Promise<Recogida[]>,
+          db
+            .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
+            .find()
+            .toArray() as Promise<CentroDistribucion[]>,
+          db
+            .collection<Almacen>(COLECCIONES.ALMACEN)
+            .find()
+            .toArray() as Promise<Almacen[]>,
+        ]);
+        if (eventosRaw.length === 0) {
           return NextResponse.json(
             { error: "No se han registrado recogidas" },
             { status: 400 },
           );
         }
-        for (const element of eventos) {
+        for (const element of eventosRaw) {
           if (
             resultado.centros.every(
               (el: CentroDistribucion) =>
                 el.nombre !== element.centro_distribucion,
+            ) &&
+            centrosRaw.some(
+              (item) => item.nombre === element.centro_distribucion,
             )
           ) {
             resultado.centros.push(
-              (await db
-                .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-                .findOne({
-                  nombre: element.centro_distribucion,
-                })) as CentroDistribucion,
+              centrosRaw.find(
+                (item) => item.nombre === element.centro_distribucion,
+              ) as CentroDistribucion,
             );
           }
         }
-        resultado.almacenes = (
-          await db.collection<Almacen>(COLECCIONES.ALMACEN).find({}).toArray()
-        ).filter(isEnabled) as Almacen[];
+        resultado.almacenes = almacenesRaw.filter(isEnabled);
         return NextResponse.json(resultado);
+      }
       default:
         return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
     }
@@ -189,4 +282,5 @@ export interface EventoFormData {
   almacenes: Almacen[];
   centros: CentroDistribucion[];
   vehiculos: Vehiculo[];
+  provincias: Provincia[];
 }

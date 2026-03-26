@@ -9,6 +9,7 @@ import {
   EVENTOS_ARRAY,
   Expedicion,
   Nuevo,
+  Provincia,
   Recogida,
   TIPOS_EVENTO,
   Traspaso,
@@ -117,8 +118,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let centro_real = centro_distribucion;
+    let provincia = undefined;
+    const provinciaMap = await db
+      .collection<Provincia>(COLECCIONES.PROVINCIA)
+      .findOne({
+        nombre: centro_distribucion,
+      });
+    if (provinciaMap) {
+      centro_real = provinciaMap.centro_distribucion;
+      provincia = provinciaMap.nombre;
+    }
+
     const documentoBase = {
-      centro_distribucion,
+      centro_distribucion: centro_real,
+      provincia,
       fecha: new Date().toISOString().split("T")[0],
       nombre: usuario.nombre,
       cajas: cajas || { blancas: 0, negras: 0, verdes: 0 },

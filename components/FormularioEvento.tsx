@@ -10,6 +10,7 @@ import {
   Cajas,
   Tapas,
   COLORES_CAJAS,
+  Provincia,
 } from "@/lib/constants";
 import { totalCajas } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
@@ -60,6 +61,7 @@ export default function FormularioEvento({
   const [originalId, setOriginalId] = useState<string | null>(null);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
+  const [provincias, setProvincias] = useState<Provincia[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
@@ -133,6 +135,7 @@ export default function FormularioEvento({
     setAlmacenes([]);
     setCentros([]);
     setVehiculos([]);
+    setProvincias([]);
     try {
       const response = await fetch(`/api/formdata?tipo=${tipoEvento}`);
       const data = await response.json();
@@ -140,6 +143,7 @@ export default function FormularioEvento({
       if (data.almacenes) setAlmacenes(data.almacenes);
       if (data.centros) setCentros(data.centros);
       if (data.vehiculos) setVehiculos(data.vehiculos);
+      if (data.provincias) setProvincias(data.provincias);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -281,7 +285,7 @@ export default function FormularioEvento({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     const check = checkData();
     if (!check.status) {
@@ -510,7 +514,7 @@ export default function FormularioEvento({
                     htmlFor="centro_distribucion"
                     className="mb-2 block text-sm font-medium text-slate-600"
                   >
-                    Centro de distribución *
+                    {`Centro de distribución${mostrarRoturas ? " o Provincia" : ""} *`}
                   </label>
                   <select
                     id="centro_distribucion"
@@ -523,7 +527,9 @@ export default function FormularioEvento({
                     }
                     className={fieldClass}
                   >
-                    <option value={undefined}>Selecciona un centro</option>
+                    <option
+                      value={undefined}
+                    >{`Selecciona un centro${mostrarRoturas ? " o provincia" : ""}`}</option>
                     {centros.map((centro) => (
                       <option key={centro._id} value={centro.nombre}>
                         {centro.nombre +
@@ -536,6 +542,12 @@ export default function FormularioEvento({
                             : "")}
                       </option>
                     ))}
+                    {mostrarRoturas &&
+                      provincias.map((provincia) => (
+                        <option key={provincia._id} value={provincia.nombre}>
+                          {provincia.nombre}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 {mostrarAlmacen && (
