@@ -26,13 +26,17 @@ import TablaInformacion from "@/components/TablaInformacion";
 import TablaTraspaso from "@/components/TablaTraspaso";
 import FormularioEvento, { AjusteProp } from "@/components/FormularioEvento";
 import TablaProvincias from "@/components/TablaProvincias";
+import AuditAlmacen from "@/components/AuditAlmacen";
+import AuditCentro from "@/components/AuditCentro";
+import AuditUsuario from "@/components/AuditUsuario";
 
 type TabNames =
   | "new_eventos"
   | "mis_eventos"
   | "cierre_eventos"
   | "dashboard"
-  | "administracion";
+  | "administracion"
+  | "auditoria";
 
 interface DashboardTab {
   key: TabNames;
@@ -43,10 +47,16 @@ interface DashboardTab {
 
 const pageAccess: Record<ROLES, TabNames[]> = {
   almacenero: ["new_eventos", "mis_eventos"],
-  auditor: ["dashboard", "cierre_eventos", "administracion"],
+  auditor: ["dashboard", "auditoria", "cierre_eventos", "administracion"],
   chofer: ["new_eventos", "mis_eventos"],
   expedidor: ["new_eventos", "mis_eventos"],
-  informatico: ["administracion", "cierre_eventos", "mis_eventos", "dashboard"],
+  informatico: [
+    "administracion",
+    "cierre_eventos",
+    "mis_eventos",
+    "dashboard",
+    "auditoria",
+  ],
 };
 
 export default function Dashboard() {
@@ -152,6 +162,13 @@ export default function Dashboard() {
       helper:
         "Registra expediciones, traspasos, entregas, recogidas o devoluciones de cajas",
       title: "Nuevos eventos",
+    },
+    auditoria: {
+      key: "auditoria",
+      description: "Análisis histórico",
+      helper:
+        "Permite analizar los aportes y el comportamiento de un almacén, centro o usuario a lo largo del tiempo",
+      title: "Auditoría",
     },
   };
 
@@ -288,6 +305,15 @@ export default function Dashboard() {
     new_eventos: (
       <div className={contentCardClass}>
         <FormularioEvento usuario={usuario} />
+      </div>
+    ),
+    auditoria: (
+      <div className={contentCardClass}>
+        <div className="space-y-8">
+          <AuditAlmacen />
+          <AuditCentro />
+          <AuditUsuario />
+        </div>
       </div>
     ),
   };

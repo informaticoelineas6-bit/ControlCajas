@@ -139,6 +139,12 @@ export function usuarioCookie(request: NextRequest): Usuario | null {
   return usuario ?? null;
 }
 
+export function formatDate(date: string): string {
+  return new Date(date).toLocaleString("es-MX", {
+    dateStyle: "long",
+  });
+}
+
 export type DeudaAct<Centro> = Centro & { deuda_activa: Cajas };
 
 export function deudaActiva(
