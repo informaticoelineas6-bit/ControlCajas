@@ -17,6 +17,7 @@ import {
   deudaActiva,
   hasCajas,
   isEnabled,
+  sumCajas,
   totalCajas,
   usuarioCookie,
 } from "../../../lib/utils";
@@ -165,16 +166,19 @@ export async function GET(request: NextRequest) {
       dashboardData.push(iteration);
     }
 
-    const deudaTotal = centros.reduce(
-      (acc: number, centro: CentroDistribucion) => {
-        return acc + totalCajas(centro.deuda);
+    const deudaTotal: Cajas = centros.reduce(
+      (acc: Cajas, centro: CentroDistribucion) => {
+        return sumCajas(acc, centro.deuda) as Cajas;
       },
-      0,
+      { blancas: 0, negras: 0, verdes: 0 },
     );
 
-    const stockTotal = almacenes.reduce((acc: number, almacen: Almacen) => {
-      return acc + totalCajas(almacen.stock);
-    }, 0);
+    const stockTotal: Cajas = almacenes.reduce(
+      (acc: Cajas, almacen: Almacen) => {
+        return sumCajas(acc, almacen.stock) as Cajas;
+      },
+      { blancas: 0, negras: 0, verdes: 0 },
+    );
 
     const roturaTotal = centros.reduce(
       (acc: number, centro: CentroDistribucion) => {
@@ -246,8 +250,8 @@ export interface DashboardData {
   enviosHoy: number;
   recogidasHoy: number;
   rotasHoy: number;
-  deudaTotal: number;
-  stockTotal: number;
+  deudaTotal: Cajas;
+  stockTotal: Cajas;
   roturaTotal: number;
   roturaActual: number;
 }

@@ -11,6 +11,12 @@ interface MetricCardProps {
   accent: string;
 }
 
+interface ColorBarItem {
+  key: keyof DashboardData["deudaTotal"];
+  label: string;
+  barClass: string;
+}
+
 function MetricCard({
   eyebrow,
   value,
@@ -31,6 +37,24 @@ function MetricCard({
   );
 }
 
+const colorBarConfig: ColorBarItem[] = [
+  {
+    key: "blancas",
+    label: "Caja blanca",
+    barClass: "bg-amber-400",
+  },
+  {
+    key: "negras",
+    label: "Caja negra",
+    barClass: "bg-slate-800",
+  },
+  {
+    key: "verdes",
+    label: "Caja verde",
+    barClass: "bg-emerald-500",
+  },
+];
+
 export default function TablaInformacion() {
   const [data, setData] = useState<DashboardData>({
     dashboardData: [],
@@ -38,8 +62,8 @@ export default function TablaInformacion() {
     enviosHoy: 0,
     recogidasHoy: 0,
     rotasHoy: 0,
-    stockTotal: 0,
-    deudaTotal: 0,
+    stockTotal: { blancas: 0, negras: 0, verdes: 0 },
+    deudaTotal: { blancas: 0, negras: 0, verdes: 0 },
     roturaTotal: 0,
     roturaActual: 0,
   });
@@ -105,6 +129,23 @@ export default function TablaInformacion() {
   const deudaWidth = (cantidad: number) =>
     deudaMaxima > 0 ? `${Math.max((cantidad / deudaMaxima) * 100, 8)}%` : "0%";
 
+  const buildColorBars = (values: DashboardData["deudaTotal"]) => {
+    const maxValue = Math.max(...Object.values(values), 0);
+    return colorBarConfig.map((config) => {
+      const amount = values[config.key] ?? 0;
+      const width = maxValue > 0 ? `${(amount / maxValue) * 100}%` : "0%";
+
+      return {
+        ...config,
+        amount,
+        width,
+      };
+    });
+  };
+
+  const deudaColorBars = buildColorBars(data.deudaTotal);
+  const stockColorBars = buildColorBars(data.stockTotal);
+
   return (
     <div className="space-y-8">
       <section className="overflow-hidden rounded-[32px] border border-slate-200/70 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_32%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.16),_transparent_28%),linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(248,250,252,0.92))] p-7 shadow-[0_30px_70px_-42px_rgba(15,23,42,0.45)]">
@@ -152,13 +193,13 @@ export default function TablaInformacion() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <MetricCard
               eyebrow="Deuda total CDs"
-              value={data.deudaTotal}
+              value={totalCajas(data.deudaTotal)}
               detail="Cajas pendientes por retornar"
               accent="bg-amber-500"
             />
             <MetricCard
               eyebrow="Stock global"
-              value={data.stockTotal}
+              value={totalCajas(data.stockTotal)}
               detail="Cajas disponibles en almacenes"
               accent="bg-blue-500"
             />
@@ -227,6 +268,64 @@ export default function TablaInformacion() {
                   ? centrosConRetraso.join(", ")
                   : "Todos los centros están en tiempo o cumplidos."}
               </p>
+            </article>
+
+            <article className="rounded-[28px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.45)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
+                Deuda por color
+              </p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-900">
+                Deuda total por tipo de caja
+              </h3>
+              <div className="mt-5 space-y-4">
+                {deudaColorBars.map((item) => (
+                  <div key={item.key} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium text-slate-700">
+                        {item.label}
+                      </p>
+                      <span className="text-sm font-semibold text-slate-600">
+                        {item.amount} cajas
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className={`h-full rounded-full ${item.barClass}`}
+                        style={{ width: item.width }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-[28px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.45)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
+                Stock por color
+              </p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-900">
+                Stock total por tipo de caja
+              </h3>
+              <div className="mt-5 space-y-4">
+                {stockColorBars.map((item) => (
+                  <div key={item.key} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium text-slate-700">
+                        {item.label}
+                      </p>
+                      <span className="text-sm font-semibold text-slate-600">
+                        {item.amount} cajas
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className={`h-full rounded-full ${item.barClass}`}
+                        style={{ width: item.width }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </article>
           </div>
 
