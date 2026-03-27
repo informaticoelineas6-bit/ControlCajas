@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase, logDelete } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { COLECCIONES, Nuevo, Vehiculo } from "@/lib/constants";
 import { usuarioCookie } from "../../../lib/utils";
@@ -108,8 +108,13 @@ export async function DELETE(request: NextRequest) {
     }
     const { db } = await connectToDatabase();
     const vehiculos = db.collection(COLECCIONES.VEHICULO);
-    await vehiculos.deleteOne({ _id: new ObjectId(id) });
-    return NextResponse.json({ success: true });
+
+    return await logDelete(
+      db,
+      vehiculos,
+      ObjectId.createFromHexString(id),
+      usuario.nombre,
+    );
   } catch (error) {
     console.error("Error deleting vehiculo:", error);
     return NextResponse.json(

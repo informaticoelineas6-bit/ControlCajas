@@ -8,6 +8,7 @@ import {
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
+import ConfirmDeleteButton from "./ConfirmDeleteButton";
 
 export default function TablaCentros({
   usuario,
@@ -31,6 +32,7 @@ export default function TablaCentros({
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const numberFieldClass =
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
 
@@ -258,6 +260,29 @@ export default function TablaCentros({
       }
     } catch {
       setError("Error en el servidor");
+    }
+  };
+
+  const handleDelete = async (centro: CentroDistribucion) => {
+    if (!centro._id) return;
+
+    setDeletingId(centro._id);
+    setError("");
+    try {
+      const res = await fetch(`/api/centros?id=${centro._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        resetForm();
+        fetchCentros();
+      } else {
+        setError(data.error || "Error al eliminar centro");
+      }
+    } catch {
+      setError("Error en el servidor");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -499,26 +524,38 @@ export default function TablaCentros({
                     </td>
                     {usuario.rol === "informatico" && (
                       <td className="px-5 py-4 text-center">
-                        <button
-                          onClick={() => startEdit(item)}
-                          className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() =>
-                            enableCentro(item, !item.ajuste?.habilitado)
-                          }
-                          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                            item.ajuste?.habilitado
-                              ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                          }`}
-                        >
-                          {item.ajuste?.habilitado
-                            ? "Deshabilitar"
-                            : "Habilitar"}
-                        </button>
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => startEdit(item)}
+                            className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() =>
+                              enableCentro(item, !item.ajuste?.habilitado)
+                            }
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                              item.ajuste?.habilitado
+                                ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            }`}
+                          >
+                            {item.ajuste?.habilitado
+                              ? "Deshabilitar"
+                              : "Habilitar"}
+                          </button>
+                          <ConfirmDeleteButton
+                            entityName={`el centro ${item.nombre}`}
+                            disabled={deletingId === item._id}
+                            buttonLabel={
+                              deletingId === item._id
+                                ? "Eliminando..."
+                                : undefined
+                            }
+                            onConfirm={() => handleDelete(item)}
+                          />
+                        </div>
                       </td>
                     )}
                   </tr>

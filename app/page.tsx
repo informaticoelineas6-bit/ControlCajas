@@ -64,7 +64,7 @@ export default function Home() {
               htmlFor="nombre"
               className="block text-gray-700 font-semibold mb-2"
             >
-              Usuario
+              Nombre
             </label>
             <input
               id="nombre"
@@ -73,7 +73,7 @@ export default function Home() {
               value={formData.nombre}
               onChange={handleInputChange}
               required
-              placeholder="Ingresa tu usuario"
+              placeholder="Ingresa tu nombre de usuario"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>

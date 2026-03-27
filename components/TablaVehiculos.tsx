@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Usuario, Vehiculo } from "@/lib/constants";
+import ConfirmDeleteButton from "./ConfirmDeleteButton";
 
 export default function TablaVehiculos({
   usuario,
@@ -17,6 +18,7 @@ export default function TablaVehiculos({
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVehiculos();
@@ -123,6 +125,29 @@ export default function TablaVehiculos({
       }
     } catch {
       setError("Error en el servidor");
+    }
+  };
+
+  const handleDelete = async (vehiculo: Vehiculo) => {
+    if (!vehiculo._id) return;
+
+    setDeletingId(vehiculo._id);
+    setError("");
+    try {
+      const res = await fetch(`/api/vehiculos?id=${vehiculo._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (editingId === vehiculo._id) resetForm();
+        fetchVehiculos();
+      } else {
+        setError(data.error || "Error al eliminar vehículo");
+      }
+    } catch {
+      setError("Error en el servidor");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -319,26 +344,38 @@ export default function TablaVehiculos({
                     </td>
                     {usuario.rol === "informatico" && (
                       <td className="px-5 py-4 text-center">
-                        <button
-                          onClick={() => startEdit(item)}
-                          className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() =>
-                            enableVehiculo(item, !item.ajuste?.habilitado)
-                          }
-                          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                            item.ajuste?.habilitado
-                              ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                          }`}
-                        >
-                          {item.ajuste?.habilitado
-                            ? "Deshabilitar"
-                            : "Habilitar"}
-                        </button>
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => startEdit(item)}
+                            className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() =>
+                              enableVehiculo(item, !item.ajuste?.habilitado)
+                            }
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                              item.ajuste?.habilitado
+                                ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            }`}
+                          >
+                            {item.ajuste?.habilitado
+                              ? "Deshabilitar"
+                              : "Habilitar"}
+                          </button>
+                          <ConfirmDeleteButton
+                            entityName={`el ${item.categoria} ${item.chapa}`}
+                            disabled={deletingId === item._id}
+                            buttonLabel={
+                              deletingId === item._id
+                                ? "Eliminando..."
+                                : undefined
+                            }
+                            onConfirm={() => handleDelete(item)}
+                          />
+                        </div>
                       </td>
                     )}
                   </tr>

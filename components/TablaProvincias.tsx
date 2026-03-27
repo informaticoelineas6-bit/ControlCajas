@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CentroDistribucion, Provincia, Usuario } from "@/lib/constants";
+import ConfirmDeleteButton from "./ConfirmDeleteButton";
 
 export default function TablaProvincias({
   usuario,
@@ -11,11 +12,12 @@ export default function TablaProvincias({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState<Provincia>({
-    nombre: "La Habana",
+    nombre: "",
     centro_distribucion: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProvincias();
@@ -58,7 +60,7 @@ export default function TablaProvincias({
 
   const resetForm = () => {
     setForm({
-      nombre: "La Habana",
+      nombre: "",
       centro_distribucion: "",
     });
     setEditingId(null);
@@ -118,6 +120,29 @@ export default function TablaProvincias({
     setEditingId(provincia._id ?? null);
   };
 
+  const handleDelete = async (provincia: Provincia) => {
+    if (!provincia._id) return;
+
+    setDeletingId(provincia._id);
+    setError("");
+    try {
+      const res = await fetch(`/api/provincias?id=${provincia._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (editingId === provincia._id) resetForm();
+        fetchProvincias();
+      } else {
+        setError(data.error || "Error al eliminar provincia");
+      }
+    } catch {
+      setError("Error en el servidor");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_-36px_rgba(15,23,42,0.4)]">
       <div className="border-b border-slate-200 bg-[linear-gradient(135deg,_rgba(99,102,241,0.12),_rgba(255,255,255,0.96))] px-6 py-5">
@@ -160,6 +185,7 @@ export default function TablaProvincias({
                   id="nombre"
                   name="nombre"
                   required
+                  disabled={!!editingId}
                   value={form.nombre || ""}
                   onChange={handleInputChange}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
@@ -177,7 +203,6 @@ export default function TablaProvincias({
                   name="centro_distribucion"
                   required
                   value={form.centro_distribucion}
-                  disabled={!editingId}
                   onChange={handleInputChange}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                 >
@@ -193,10 +218,10 @@ export default function TablaProvincias({
             <div className="flex flex-wrap gap-3">
               <button
                 type="submit"
-                disabled={submitting || !editingId}
+                disabled={submitting}
                 className="rounded-full bg-gradient-to-r from-indigo-600 to-violet-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(79,70,229,0.9)] transition hover:from-indigo-500 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {"Guardar"}
+                {editingId ? "Guardar cambios" : "Agregar provincia"}
               </button>
               {editingId && (
                 <button
@@ -263,12 +288,22 @@ export default function TablaProvincias({
                     </td>
                     {usuario.rol === "informatico" && (
                       <td className="px-5 py-4 text-center">
+                        <div className="flex justify-center gap-2">
                         <button
                           onClick={() => startEdit(item)}
                           className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                         >
                           Editar
                         </button>
+                        <ConfirmDeleteButton
+                          entityName={`la provincia ${item.nombre}`}
+                          disabled={deletingId === item._id}
+                          buttonLabel={
+                            deletingId === item._id ? "Eliminando..." : undefined
+                          }
+                          onConfirm={() => handleDelete(item)}
+                        />
+                        </div>
                       </td>
                     )}
                   </tr>

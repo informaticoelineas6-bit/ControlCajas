@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase, logDelete } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { COLECCIONES, Usuario } from "@/lib/constants";
 import { usuarioCookie } from "../../../lib/utils";
@@ -46,6 +46,14 @@ export async function PUT(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    if (body.nombre === usuario.nombre) {
+      return NextResponse.json(
+        { error: "No está permitido modificar el propio usuario" },
+        { status: 403 },
+      );
+    }
+
     const { db } = await connectToDatabase();
     const usuarios = db.collection(COLECCIONES.USUARIO);
     await usuarios.updateOne(
@@ -57,6 +65,41 @@ export async function PUT(request: NextRequest) {
     console.error("Error updating usuario:", error);
     return NextResponse.json(
       { error: "Error al actualizar usuario" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (usuario.rol !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID de usuario requerido" },
+        { status: 400 },
+      );
+    }
+
+    const { db } = await connectToDatabase();
+    const usuarios = db.collection(COLECCIONES.USUARIO);
+
+    return await logDelete(
+      db,
+      usuarios,
+      ObjectId.createFromHexString(id),
+      usuario.nombre,
+    );
+  } catch (error) {
+    console.error("Error deleting usuario:", error);
+    return NextResponse.json(
+      { error: "Error al eliminar usuario" },
       { status: 500 },
     );
   }

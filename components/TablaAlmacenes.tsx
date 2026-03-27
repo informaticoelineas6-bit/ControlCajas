@@ -8,6 +8,7 @@ import {
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
+import ConfirmDeleteButton from "./ConfirmDeleteButton";
 
 export default function TablaAlmacenes({
   usuario,
@@ -34,6 +35,7 @@ export default function TablaAlmacenes({
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAlmacenes();
@@ -259,6 +261,29 @@ export default function TablaAlmacenes({
     }
   };
 
+  const handleDelete = async (almacen: Almacen) => {
+    if (!almacen._id) return;
+
+    setDeletingId(almacen._id);
+    setError("");
+    try {
+      const res = await fetch(`/api/almacenes?id=${almacen._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (editingId === almacen._id) resetForm();
+        fetchAlmacenes();
+      } else {
+        setError(data.error || "Error al eliminar almacén");
+      }
+    } catch {
+      setError("Error en el servidor");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_-36px_rgba(15,23,42,0.4)]">
       <div className="border-b border-slate-200 bg-[linear-gradient(135deg,_rgba(16,185,129,0.08),_rgba(255,255,255,0.96))] px-6 py-5">
@@ -470,6 +495,7 @@ export default function TablaAlmacenes({
                     </td>
                     {usuario.rol === "informatico" && (
                       <td className="px-5 py-4 text-center">
+                        <div className="flex justify-center gap-2">
                         <button
                           onClick={() => startEdit(item)}
                           className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
@@ -490,6 +516,15 @@ export default function TablaAlmacenes({
                             ? "Deshabilitar"
                             : "Habilitar"}
                         </button>
+                        <ConfirmDeleteButton
+                          entityName={`el almacén ${item.nombre}`}
+                          disabled={deletingId === item._id}
+                          buttonLabel={
+                            deletingId === item._id ? "Eliminando..." : undefined
+                          }
+                          onConfirm={() => handleDelete(item)}
+                        />
+                        </div>
                       </td>
                     )}
                   </tr>

@@ -74,6 +74,9 @@ export default function AuditUsuario() {
     return "";
   };
 
+  const eventos = datos?.eventos ?? [];
+  const deletes = datos?.deletes ?? [];
+
   return (
     <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_-36px_rgba(15,23,42,0.4)]">
       <div className="border-b border-slate-200 bg-[linear-gradient(135deg,_rgba(59,130,246,0.14),_rgba(255,255,255,0.96))] px-6 py-5">
@@ -188,102 +191,163 @@ export default function AuditUsuario() {
               </table>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th className="px-5 py-4 text-left font-semibold">Fecha</th>
-                    <th className="px-5 py-4 text-left font-semibold">
-                      Centro
-                    </th>
-                    <th className="px-5 py-4 text-left font-semibold">
-                      Evento
-                    </th>
-                    {CAJAS_ARRAY.map((color) => (
-                      <th
-                        key={`cajas-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
-                      >
-                        Cajas {color}
+            {datos.usuario.rol === "informatico" ? (
+              <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-slate-50 text-slate-600">
+                    <tr>
+                      <th className="px-5 py-4 text-left font-semibold">
+                        Fecha
                       </th>
-                    ))}
-                    {CAJAS_ARRAY.map((color) => (
-                      <th
-                        key={`rotas-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
-                      >
-                        Cajas rotas {color}
+                      <th className="px-5 py-4 text-left font-semibold">
+                        Colección
                       </th>
-                    ))}
-                    {TAPAS_ARRAY.map((color) => (
-                      <th
-                        key={`tapas-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
-                      >
-                        Tapas rotas {color}
+                      <th className="px-5 py-4 text-left font-semibold">
+                        Acción
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {datos.eventos.map((item, index) => (
-                    <tr
-                      key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
-                      className="border-t border-slate-100 transition hover:bg-slate-50"
-                    >
-                      <td className="px-5 py-4 font-medium text-slate-700">
-                        {formatDate(item.fecha)}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {item.centro_distribucion}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
-                          {item.tipo_evento}
-                        </span>
-                      </td>
-                      {CAJAS_ARRAY.map((color) => (
-                        <td
-                          key={`cajas-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getCajasClass(item.cajas[color])}`}
-                        >
-                          {item.cajas[color]}
+                      <th className="px-5 py-4 text-left font-semibold">
+                        Objeto eliminado
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deletes.map((item, index) => (
+                      <tr
+                        key={`${item.deletedAt}-${item.collection}-${index}`}
+                        className="border-t border-slate-100 transition hover:bg-slate-50"
+                      >
+                        <td className="px-5 py-4 font-medium text-slate-700">
+                          {formatDate(item.deletedAt)}
                         </td>
+                        <td className="px-5 py-4 text-slate-600">
+                          {item.collection}
+                        </td>
+                        <td className="px-5 py-4 text-slate-600">
+                          <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-200">
+                            {item.action}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-slate-600">
+                          <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                            {JSON.stringify(item.objectSnapshot, null, 2)}
+                          </pre>
+                        </td>
+                      </tr>
+                    ))}
+
+                    {deletes.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="px-5 py-10 text-center text-slate-500"
+                        >
+                          Este usuario no tiene ediciones registradas.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-slate-50 text-slate-600">
+                    <tr>
+                      <th className="px-5 py-4 text-left font-semibold">
+                        Fecha
+                      </th>
+                      <th className="px-5 py-4 text-left font-semibold">
+                        Centro
+                      </th>
+                      <th className="px-5 py-4 text-left font-semibold">
+                        Evento
+                      </th>
+                      {CAJAS_ARRAY.map((color) => (
+                        <th
+                          key={`cajas-${color}`}
+                          className="px-5 py-4 text-left font-semibold"
+                        >
+                          Cajas {color}
+                        </th>
                       ))}
                       {CAJAS_ARRAY.map((color) => (
-                        <td
-                          key={`cajas-rotas-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.cajas_rotas[color])}`}
+                        <th
+                          key={`rotas-${color}`}
+                          className="px-5 py-4 text-left font-semibold"
                         >
-                          {item.cajas_rotas[color]}
-                        </td>
+                          Cajas rotas {color}
+                        </th>
                       ))}
                       {TAPAS_ARRAY.map((color) => (
-                        <td
-                          key={`tapas-rotas-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.tapas_rotas[color])}`}
+                        <th
+                          key={`tapas-${color}`}
+                          className="px-5 py-4 text-left font-semibold"
                         >
-                          {item.tapas_rotas[color]}
-                        </td>
+                          Tapas rotas {color}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-
-                  {datos.eventos.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={
-                          3 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
-                        }
-                        className="px-5 py-10 text-center text-slate-500"
+                  </thead>
+                  <tbody>
+                    {eventos.map((item, index) => (
+                      <tr
+                        key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
+                        className="border-t border-slate-100 transition hover:bg-slate-50"
                       >
-                        Este usuario no tiene eventos ajustados.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        <td className="px-5 py-4 font-medium text-slate-700">
+                          {formatDate(item.fecha)}
+                        </td>
+                        <td className="px-5 py-4 text-slate-600">
+                          {item.centro_distribucion}
+                        </td>
+                        <td className="px-5 py-4 text-slate-600">
+                          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
+                            {item.tipo_evento}
+                          </span>
+                        </td>
+                        {CAJAS_ARRAY.map((color) => (
+                          <td
+                            key={`cajas-${item.fecha}-${color}`}
+                            className={`px-5 py-4 text-slate-600 ${getCajasClass(item.cajas[color])}`}
+                          >
+                            {item.cajas[color]}
+                          </td>
+                        ))}
+                        {CAJAS_ARRAY.map((color) => (
+                          <td
+                            key={`cajas-rotas-${item.fecha}-${color}`}
+                            className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.cajas_rotas[color])}`}
+                          >
+                            {item.cajas_rotas[color]}
+                          </td>
+                        ))}
+                        {TAPAS_ARRAY.map((color) => (
+                          <td
+                            key={`tapas-rotas-${item.fecha}-${color}`}
+                            className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.tapas_rotas[color])}`}
+                          >
+                            {item.tapas_rotas[color]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+
+                    {eventos.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={
+                            3 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
+                          }
+                          className="px-5 py-10 text-center text-slate-500"
+                        >
+                          Este usuario no tiene eventos registrados.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </>
         ) : (
           <p className="text-sm text-slate-500">

@@ -85,7 +85,7 @@ export default function Registro() {
               htmlFor="nombre"
               className="block text-gray-700 font-semibold mb-2"
             >
-              Usuario *
+              Nombre *
             </label>
             <input
               id="nombre"
@@ -94,7 +94,7 @@ export default function Registro() {
               value={formData.nombre}
               onChange={handleInputChange}
               required
-              placeholder="Ingresa un usuario"
+              placeholder="Ingresa un nombre de usuario"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>

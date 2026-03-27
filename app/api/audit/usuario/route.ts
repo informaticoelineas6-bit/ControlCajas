@@ -10,7 +10,7 @@ import {
   Traspaso,
   Usuario,
 } from "@/lib/constants";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase, DeleteAudit } from "@/lib/mongodb";
 import { applyAjuste, hasCajas, usuarioCookie } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -140,45 +140,56 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const eventos = [
-      ...expedicionesRaw
-        .map(applyAjuste)
-        .filter(hasCajas)
-        .map((evento) => ({ ...evento, tipo_evento: "Expedicion" as const })),
-      ...traspasosRaw
-        .map(applyAjuste)
-        .filter(hasCajas)
-        .map((evento) => ({ ...evento, tipo_evento: "Traspaso" as const })),
-      ...entregasRaw
-        .map(applyAjuste)
-        .filter(hasCajas)
-        .map((evento) => ({ ...evento, tipo_evento: "Entrega" as const })),
-      ...recogidasRaw
-        .map(applyAjuste)
-        .filter(hasCajas)
-        .map((evento) => ({ ...evento, tipo_evento: "Recogida" as const })),
-      ...devolucionesRaw
-        .map(applyAjuste)
-        .filter(hasCajas)
-        .map((evento) => ({ ...evento, tipo_evento: "Devolucion" as const })),
-    ]
-      .sort((a, b) => b.fecha.localeCompare(a.fecha))
-      .map((evento) => ({
-        fecha: evento.fecha,
-        centro_distribucion: evento.centro_distribucion,
-        tipo_evento: evento.tipo_evento,
-        cajas: evento.cajas,
-        cajas_rotas: ("cajas_rotas" in evento
-          ? evento.cajas_rotas
-          : { blancas: 0, negras: 0, verdes: 0 }) as Cajas,
-        tapas_rotas: ("tapas_rotas" in evento
-          ? evento.tapas_rotas
-          : { blancas: 0, negras: 0 }) as Tapas,
-      }));
+    let eventos;
+    let deletes;
+
+    if (usuario.rol === "informatico") {
+      deletes = await db
+        .collection<DeleteAudit>(COLECCIONES.AUDITORIA)
+        .find({ deletedBy: usuario.nombre })
+        .toArray();
+    } else {
+      eventos = [
+        ...expedicionesRaw
+          .map(applyAjuste)
+          .filter(hasCajas)
+          .map((evento) => ({ ...evento, tipo_evento: "Expedicion" as const })),
+        ...traspasosRaw
+          .map(applyAjuste)
+          .filter(hasCajas)
+          .map((evento) => ({ ...evento, tipo_evento: "Traspaso" as const })),
+        ...entregasRaw
+          .map(applyAjuste)
+          .filter(hasCajas)
+          .map((evento) => ({ ...evento, tipo_evento: "Entrega" as const })),
+        ...recogidasRaw
+          .map(applyAjuste)
+          .filter(hasCajas)
+          .map((evento) => ({ ...evento, tipo_evento: "Recogida" as const })),
+        ...devolucionesRaw
+          .map(applyAjuste)
+          .filter(hasCajas)
+          .map((evento) => ({ ...evento, tipo_evento: "Devolucion" as const })),
+      ]
+        .sort((a, b) => b.fecha.localeCompare(a.fecha))
+        .map((evento) => ({
+          fecha: evento.fecha,
+          centro_distribucion: evento.centro_distribucion,
+          tipo_evento: evento.tipo_evento,
+          cajas: evento.cajas,
+          cajas_rotas: ("cajas_rotas" in evento
+            ? evento.cajas_rotas
+            : { blancas: 0, negras: 0, verdes: 0 }) as Cajas,
+          tapas_rotas: ("tapas_rotas" in evento
+            ? evento.tapas_rotas
+            : { blancas: 0, negras: 0 }) as Tapas,
+        }));
+    }
 
     const audit: UsuarioAudit = {
       usuario,
       eventos,
+      deletes,
     };
 
     return NextResponse.json(audit);
@@ -193,12 +204,15 @@ export async function GET(request: NextRequest) {
 
 export interface UsuarioAudit {
   usuario: Usuario;
-  eventos: {
-    fecha: string;
-    centro_distribucion: string;
-    tipo_evento: TIPOS_EVENTO;
-    cajas: Cajas;
-    cajas_rotas: Cajas;
-    tapas_rotas: Tapas;
-  }[];
+  eventos?: EventoAudit[];
+  deletes?: DeleteAudit[];
+}
+
+export interface EventoAudit {
+  fecha: string;
+  centro_distribucion: string;
+  tipo_evento: TIPOS_EVENTO;
+  cajas: Cajas;
+  cajas_rotas: Cajas;
+  tapas_rotas: Tapas;
 }

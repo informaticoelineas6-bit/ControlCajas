@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase, logDelete } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import {
   CentroDistribucion,
@@ -101,6 +101,40 @@ export async function PUT(request: NextRequest) {
     console.error("Error updating provincia:", error);
     return NextResponse.json(
       { error: "Error al actualizar provincia" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const usuario = usuarioCookie(request);
+    if (usuario === null)
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (usuario.rol !== "informatico")
+      return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID de provincia requerido" },
+        { status: 400 },
+      );
+    }
+    const { db } = await connectToDatabase();
+    const provincias = db.collection(COLECCIONES.PROVINCIA);
+
+    return await logDelete(
+      db,
+      provincias,
+      ObjectId.createFromHexString(id),
+      usuario.nombre,
+    );
+  } catch (error) {
+    console.error("Error deleting provincia:", error);
+    return NextResponse.json(
+      { error: "Error al eliminar provincia" },
       { status: 500 },
     );
   }

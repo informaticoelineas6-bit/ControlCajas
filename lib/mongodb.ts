@@ -1,4 +1,11 @@
-import { MongoClient, Db, MongoClientOptions } from "mongodb";
+import {
+  MongoClient,
+  Db,
+  MongoClientOptions,
+  Collection,
+  ObjectId,
+} from "mongodb";
+import { NextResponse } from "next/server";
 
 if (!process.env.MONGODB_URI) {
   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
@@ -46,4 +53,56 @@ export async function closeDatabase() {
     cachedClient = null;
     cachedDb = null;
   }
+}
+
+export async function logDelete(
+  db: Db,
+  collection: Collection,
+  id: ObjectId,
+  nombre: string,
+): Promise<NextResponse> {
+  try {
+    const document = await collection.findOne({ _id: id });
+
+    if (document) {
+      document.id = undefined;
+
+      const auditable = db.collection("AuditLog");
+
+      const log: DeleteAudit = {
+        action: "DELETE",
+        collection: collection.namespace.split(".")[1],
+        objectSnapshot: document,
+        deletedBy: nombre,
+        deletedAt: new Date().toISOString(),
+      };
+
+      await auditable.insertOne(log);
+
+      const response = await collection.deleteOne({ _id: id });
+      if (response.acknowledged)
+        return NextResponse.json({
+          success: true,
+          count: response.deletedCount,
+        });
+    }
+    return NextResponse.json(
+      { error: "Error al eliminar objeto" },
+      { status: 500 },
+    );
+  } catch (error) {
+    console.error("Error deleting: ", error);
+    return NextResponse.json(
+      { error: "Error al eliminar objeto" },
+      { status: 500 },
+    );
+  }
+}
+
+export interface DeleteAudit {
+  action: string;
+  collection: string;
+  objectSnapshot: object;
+  deletedBy: string;
+  deletedAt: string;
 }

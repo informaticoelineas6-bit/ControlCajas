@@ -37,6 +37,7 @@ export enum COLECCIONES {
   RECOGIDA = "Recogida",
   CIERRE = "Cierre",
   PROVINCIA = "Provincia",
+  AUDITORIA = "AuditLog",
 }
 
 export interface Cajas {
