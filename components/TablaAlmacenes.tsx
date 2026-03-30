@@ -496,34 +496,36 @@ export default function TablaAlmacenes({
                     {usuario.rol === "informatico" && (
                       <td className="px-5 py-4 text-center">
                         <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => startEdit(item)}
-                          className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() =>
-                            enableAlmacen(item, !item.ajuste?.habilitado)
-                          }
-                          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                            item.ajuste?.habilitado
-                              ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                          }`}
-                        >
-                          {item.ajuste?.habilitado
-                            ? "Deshabilitar"
-                            : "Habilitar"}
-                        </button>
-                        <ConfirmDeleteButton
-                          entityName={`el almacén ${item.nombre}`}
-                          disabled={deletingId === item._id}
-                          buttonLabel={
-                            deletingId === item._id ? "Eliminando..." : undefined
-                          }
-                          onConfirm={() => handleDelete(item)}
-                        />
+                          <button
+                            onClick={() => startEdit(item)}
+                            className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() =>
+                              enableAlmacen(item, !item.ajuste?.habilitado)
+                            }
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                              item.ajuste?.habilitado
+                                ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            }`}
+                          >
+                            {item.ajuste?.habilitado
+                              ? "Deshabilitar"
+                              : "Habilitar"}
+                          </button>
+                          <ConfirmDeleteButton
+                            entityName={`el almacén ${item.nombre}`}
+                            disabled={deletingId === item._id}
+                            buttonLabel={
+                              deletingId === item._id
+                                ? "Eliminando..."
+                                : undefined
+                            }
+                            onConfirm={() => handleDelete(item)}
+                          />
                         </div>
                       </td>
                     )}

@@ -24,6 +24,11 @@ export async function connectToDatabase() {
   try {
     // build options for MongoClient; allow invalid certificates if env var set
     const options: MongoClientOptions = {
+      serverSelectionTimeoutMS: 30000, // Increase from default 30s
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      retryWrites: true,
+      retryReads: true,
       tls: true,
     };
 

@@ -368,7 +368,7 @@ export default function Dashboard() {
             </aside>
 
             <main className="space-y-6">
-              {pageAccess[usuario.rol].includes("administracion") ? (
+              {pageAccess[usuario.rol].includes(activeTab) ? (
                 pageRender[activeTab]
               ) : (
                 <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">

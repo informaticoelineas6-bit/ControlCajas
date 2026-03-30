@@ -289,20 +289,22 @@ export default function TablaProvincias({
                     {usuario.rol === "informatico" && (
                       <td className="px-5 py-4 text-center">
                         <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => startEdit(item)}
-                          className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                        >
-                          Editar
-                        </button>
-                        <ConfirmDeleteButton
-                          entityName={`la provincia ${item.nombre}`}
-                          disabled={deletingId === item._id}
-                          buttonLabel={
-                            deletingId === item._id ? "Eliminando..." : undefined
-                          }
-                          onConfirm={() => handleDelete(item)}
-                        />
+                          <button
+                            onClick={() => startEdit(item)}
+                            className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                          >
+                            Editar
+                          </button>
+                          <ConfirmDeleteButton
+                            entityName={`la provincia ${item.nombre}`}
+                            disabled={deletingId === item._id}
+                            buttonLabel={
+                              deletingId === item._id
+                                ? "Eliminando..."
+                                : undefined
+                            }
+                            onConfirm={() => handleDelete(item)}
+                          />
                         </div>
                       </td>
                     )}

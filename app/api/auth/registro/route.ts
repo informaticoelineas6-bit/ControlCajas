@@ -9,8 +9,6 @@ export async function POST(request: NextRequest) {
 
     const nombre = nombreRaw.trim();
 
-    console.log(nombreRaw);
-
     if (!nombre || !contrasena || !rol) {
       return NextResponse.json(
         { error: "Nombre, contraseña y rol son requeridos" },
