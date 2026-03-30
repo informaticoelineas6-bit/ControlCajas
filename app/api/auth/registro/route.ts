@@ -5,9 +5,11 @@ import { COLECCIONES, Nuevo, ROLES_ARRAY, Usuario } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   try {
-    const { nombreRaw, contrasena, rol } = await request.json();
+    const { nombre: nombreRaw, contrasena, rol } = await request.json();
 
     const nombre = nombreRaw.trim();
+
+    console.log(nombreRaw);
 
     if (!nombre || !contrasena || !rol) {
       return NextResponse.json(
