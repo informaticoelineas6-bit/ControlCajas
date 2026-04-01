@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
           ) {
             resultado.almacenes.push(
               almacenesRaw.find(
-                (item) => (item.nombre = element.almacen),
+                (item) => item.nombre === element.almacen,
               ) as Almacen,
             );
           }

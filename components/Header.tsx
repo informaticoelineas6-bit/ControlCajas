@@ -37,7 +37,7 @@ export default function Header({ usuario }: Readonly<HeaderProps>) {
               Plataforma operativa
             </p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-              ControlCajas
+              Control de cajas
             </h1>
           </div>
         </div>

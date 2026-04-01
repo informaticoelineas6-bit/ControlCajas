@@ -40,6 +40,12 @@ export type AjusteProp<Orig> = Orig & {
   tipo_evento: TIPOS_EVENTO;
 };
 
+export type Destino = {
+  _id: string;
+  nombre: string;
+  deuda_activa?: Cajas;
+};
+
 export type EventoForm = EventoCreateForm & EventoAjusteForm;
 
 interface FormularioEventoProps {
@@ -62,6 +68,7 @@ export default function FormularioEvento({
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [centros, setCentros] = useState<DeudaAct<CentroDistribucion>[]>([]);
   const [provincias, setProvincias] = useState<Provincia[]>([]);
+  const [destinos, setDestinos] = useState<Destino[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
@@ -117,15 +124,42 @@ export default function FormularioEvento({
   }, [initialData]);
 
   useEffect(() => {
-    setHabilitado(
-      centros.find((c) => c.nombre === formData.centro_distribucion)
-        ?.habilitado ?? {
-        blancas: false,
-        negras: false,
-        verdes: false,
-      },
-    );
-  }, [formData.centro_distribucion, centros]);
+    let centro = centros.find((c) => {
+      return c.nombre === formData.centro_distribucion;
+    });
+    if (!centro) {
+      const provincia = provincias.find((p) => {
+        return p.nombre === formData.centro_distribucion;
+      });
+      if (!provincia) {
+        setHabilitado({ blancas: false, negras: false, verdes: false });
+        return;
+      }
+      centro = centros.find((c) => {
+        return c.nombre === provincia.centro_distribucion;
+      });
+    }
+    if (!centro) {
+      setHabilitado({ blancas: false, negras: false, verdes: false });
+      return;
+    }
+    setHabilitado(centro?.habilitado);
+  }, [formData.centro_distribucion, centros, provincias]);
+
+  useEffect(() => {
+    const output: Destino[] = [];
+    for (const centro of centros) {
+      output.push({
+        _id: centro._id!,
+        nombre: centro.nombre,
+        deuda_activa: centro.deuda_activa,
+      });
+    }
+    for (const provincia of provincias) {
+      output.push({ _id: provincia._id!, nombre: provincia.nombre });
+    }
+    setDestinos(output);
+  }, [centros, provincias]);
 
   const fetchDatos = useCallback(async () => {
     if (!tipoEvento) {
@@ -530,12 +564,14 @@ export default function FormularioEvento({
                     <option
                       value={undefined}
                     >{`Selecciona un centro${mostrarRoturas ? " o provincia" : ""}`}</option>
-                    {centros.map((centro) => (
-                      <option key={centro._id} value={centro.nombre}>
-                        {centro.nombre +
+                    {destinos.map((destino: Destino) => (
+                      <option key={destino._id} value={destino.nombre}>
+                        {destino.nombre +
                           (tipoEvento === "Recogida"
                             ? " (deuda: " +
-                              totalCajas(centro.deuda_activa) +
+                              (destino.deuda_activa
+                                ? totalCajas(destino.deuda_activa)
+                                : 0) +
                               ")"
                             : "")}
                       </option>
