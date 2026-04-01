@@ -7,7 +7,7 @@ import {
 } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { sameCajas, usuarioCookie } from "../../../lib/utils";
+import { sameCajas, usuarioCookie } from "@/lib/utils";
 import { getComparacionEntrega, getComparacionRecogida } from "@/lib/compares";
 
 function formatCajas(cajas?: Cajas): string {

@@ -20,7 +20,7 @@ import {
   sumCajas,
   totalCajas,
   usuarioCookie,
-} from "../../../lib/utils";
+} from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {

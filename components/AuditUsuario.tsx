@@ -48,7 +48,7 @@ export default function AuditUsuario() {
     setError("");
 
     try {
-      const res = await fetch("/api/usuarios");
+      const res = await fetch("/api/form/usuarios");
       const data = await res.json();
 
       if (res.ok) {

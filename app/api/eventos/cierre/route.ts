@@ -1,7 +1,7 @@
 import { Cierre, COLECCIONES } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { usuarioCookie } from "../../../lib/utils";
+import { usuarioCookie } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {

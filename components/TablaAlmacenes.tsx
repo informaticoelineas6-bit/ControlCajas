@@ -9,6 +9,7 @@ import {
   Usuario,
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
+import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
 
 export default function TablaAlmacenes({
   usuario,
@@ -44,7 +45,7 @@ export default function TablaAlmacenes({
   const fetchAlmacenes = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/almacenes");
+      const res = await fetch("/api/admin/almacenes");
       const data = await res.json();
       if (res.ok) {
         setAlmacenes(data);
@@ -207,7 +208,7 @@ export default function TablaAlmacenes({
             }
           : undefined,
       };
-      const res = await fetch("/api/almacenes", {
+      const res = await fetch("/api/admin/almacenes", {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -238,17 +239,17 @@ export default function TablaAlmacenes({
 
   const enableAlmacen = async (target: Almacen, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/almacenes?id=${target._id}`, {
+      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: target._id,
+          tipo_objeto: "Almacen",
           ajuste: {
             nombre: usuario.nombre,
             fechaHora: new Date().toISOString(),
             habilitado: habilitado,
           },
-        } as Partial<Almacen>),
+        } as ObjetoAjusteForm),
       });
       if (res.ok) {
         fetchAlmacenes();
@@ -267,7 +268,7 @@ export default function TablaAlmacenes({
     setDeletingId(almacen._id);
     setError("");
     try {
-      const res = await fetch(`/api/almacenes?id=${almacen._id}`, {
+      const res = await fetch(`/api/admin/almacenes?id=${almacen._id}`, {
         method: "DELETE",
       });
       const data = await res.json();

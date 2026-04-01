@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Usuario, Vehiculo } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
+import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
 
 export default function TablaVehiculos({
   usuario,
@@ -27,7 +28,7 @@ export default function TablaVehiculos({
   const fetchVehiculos = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/vehiculos");
+      const res = await fetch("/api/admin/vehiculos");
       const data = await res.json();
       if (res.ok) {
         setVehiculos(data);
@@ -79,7 +80,7 @@ export default function TablaVehiculos({
             }
           : undefined,
       };
-      const res = await fetch("/api/vehiculos", {
+      const res = await fetch("/api/admin/vehiculos", {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -105,17 +106,17 @@ export default function TablaVehiculos({
 
   const enableVehiculo = async (target: Vehiculo, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/vehiculos?id=${target._id}`, {
+      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: target._id,
+          tipo_objeto: "Vehiculo",
           ajuste: {
             nombre: usuario.nombre,
             fechaHora: new Date().toISOString(),
             habilitado: habilitado,
           },
-        } as Partial<Vehiculo>),
+        } as ObjetoAjusteForm),
       });
       if (res.ok) {
         fetchVehiculos();
@@ -134,7 +135,7 @@ export default function TablaVehiculos({
     setDeletingId(vehiculo._id);
     setError("");
     try {
-      const res = await fetch(`/api/vehiculos?id=${vehiculo._id}`, {
+      const res = await fetch(`/api/admin/vehiculos?id=${vehiculo._id}`, {
         method: "DELETE",
       });
       const data = await res.json();

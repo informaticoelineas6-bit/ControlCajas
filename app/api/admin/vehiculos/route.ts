@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, logDelete } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import {
-  CentroDistribucion,
-  COLECCIONES,
-  Nuevo,
-  Provincia,
-} from "@/lib/constants";
-import { usuarioCookie } from "../../../lib/utils";
+import { COLECCIONES, Nuevo, Vehiculo } from "@/lib/constants";
+import { usuarioCookie } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,13 +13,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { db } = await connectToDatabase();
-    const centros = db.collection(COLECCIONES.CENTRO_DISTRIBUCION);
-    const listaCentros = await centros.find({}).toArray();
-    return NextResponse.json(listaCentros);
+    const vehiculos = db.collection(COLECCIONES.VEHICULO);
+    const listaVehiculos = await vehiculos.find({}).toArray();
+    return NextResponse.json(listaVehiculos);
   } catch (error) {
-    console.error("Error fetching centros:", error);
+    console.error("Error fetching vehiculos:", error);
     return NextResponse.json(
-      { error: "Error al obtener centros" },
+      { error: "Error al obtener vehículos" },
       { status: 500 },
     );
   }
@@ -38,40 +33,26 @@ export async function POST(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body: Nuevo<CentroDistribucion> = await request.json();
+    const body: Nuevo<Vehiculo> = await request.json();
     const { db } = await connectToDatabase();
 
-    body.nombre = body.nombre.trim();
-    const centros = db.collection<CentroDistribucion>(
-      COLECCIONES.CENTRO_DISTRIBUCION,
-    );
+    body.chapa = body.chapa.trim();
+    const vehiculos = db.collection<Vehiculo>(COLECCIONES.VEHICULO);
 
-    const existente = await centros.findOne({ nombre: body.nombre });
+    const existente = await vehiculos.findOne({ chapa: body.chapa });
     if (existente) {
       return NextResponse.json(
-        { error: "Ya se encuentra registrado un centro con ese nombre" },
+        { error: "Ya se encuentra registrado un vehículo con esa matrícula" },
         { status: 409 },
       );
     }
 
-    const provincias = db.collection<Provincia>(COLECCIONES.PROVINCIA);
-    const provincia = await provincias.findOne({ nombre: body.nombre });
-    if (provincia) {
-      return NextResponse.json(
-        {
-          error:
-            "Ya se encuentra registrada una provincia asociada a un centro con ese nombre",
-        },
-        { status: 409 },
-      );
-    }
-
-    const result = await centros.insertOne(body);
+    const result = await vehiculos.insertOne(body);
     return NextResponse.json({ _id: result.insertedId, ...body });
   } catch (error) {
-    console.error("Error creating centro:", error);
+    console.error("Error creating vehiculo:", error);
     return NextResponse.json(
-      { error: "Error al crear centro" },
+      { error: "Error al crear vehículo" },
       { status: 500 },
     );
   }
@@ -89,21 +70,21 @@ export async function PUT(request: NextRequest) {
     const { _id, ...data } = body;
     if (!_id) {
       return NextResponse.json(
-        { error: "ID de centro requerido" },
+        { error: "ID de vehículo requerido" },
         { status: 400 },
       );
     }
     const { db } = await connectToDatabase();
-    const centros = db.collection(COLECCIONES.CENTRO_DISTRIBUCION);
-    await centros.updateOne(
+    const vehiculos = db.collection(COLECCIONES.VEHICULO);
+    await vehiculos.updateOne(
       { _id: ObjectId.createFromHexString(_id) },
       { $set: data },
     );
     return NextResponse.json({ _id, ...data });
   } catch (error) {
-    console.error("Error updating centro:", error);
+    console.error("Error updating vehiculo:", error);
     return NextResponse.json(
-      { error: "Error al actualizar centro" },
+      { error: "Error al actualizar vehículo" },
       { status: 500 },
     );
   }
@@ -121,23 +102,23 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
     if (!id) {
       return NextResponse.json(
-        { error: "ID de centro requerido" },
+        { error: "ID de vehículo requerido" },
         { status: 400 },
       );
     }
     const { db } = await connectToDatabase();
-    const centros = db.collection(COLECCIONES.CENTRO_DISTRIBUCION);
+    const vehiculos = db.collection(COLECCIONES.VEHICULO);
 
     return await logDelete(
       db,
-      centros,
+      vehiculos,
       ObjectId.createFromHexString(id),
       usuario.nombre,
     );
   } catch (error) {
-    console.error("Error deleting centro:", error);
+    console.error("Error deleting vehiculo:", error);
     return NextResponse.json(
-      { error: "Error al eliminar centro" },
+      { error: "Error al eliminar vehículo" },
       { status: 500 },
     );
   }

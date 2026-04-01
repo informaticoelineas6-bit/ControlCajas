@@ -9,6 +9,7 @@ import {
   Usuario,
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
+import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
 
 export default function TablaCentros({
   usuario,
@@ -43,7 +44,7 @@ export default function TablaCentros({
   const fetchCentros = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/centros");
+      const res = await fetch("/api/admin/centros");
       const data = await res.json();
       if (res.ok) {
         setCentros(data);
@@ -205,7 +206,7 @@ export default function TablaCentros({
             }
           : undefined,
       };
-      const res = await fetch("/api/centros", {
+      const res = await fetch("/api/admin/centros", {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -240,17 +241,17 @@ export default function TablaCentros({
     habilitado: boolean,
   ) => {
     try {
-      const res = await fetch(`/api/centros?id=${target._id}`, {
+      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: target._id,
+          tipo_objeto: "CentroDistribucion",
           ajuste: {
             nombre: usuario.nombre,
             fechaHora: new Date().toISOString(),
             habilitado: habilitado,
           },
-        } as Partial<CentroDistribucion>),
+        } as ObjetoAjusteForm),
       });
       if (res.ok) {
         fetchCentros();
@@ -269,7 +270,7 @@ export default function TablaCentros({
     setDeletingId(centro._id);
     setError("");
     try {
-      const res = await fetch(`/api/centros?id=${centro._id}`, {
+      const res = await fetch(`/api/admin/centros?id=${centro._id}`, {
         method: "DELETE",
       });
       const data = await res.json();

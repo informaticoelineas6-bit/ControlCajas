@@ -4,7 +4,7 @@ import {
   ItemComparacionEntrega,
   ItemComparacionRecogida,
 } from "@/lib/constants";
-import { sameCajas, usuarioCookie } from "../../../lib/utils";
+import { sameCajas, usuarioCookie } from "@/lib/utils";
 import { getComparacionEntrega, getComparacionRecogida } from "@/lib/compares";
 
 export async function GET(request: NextRequest) {

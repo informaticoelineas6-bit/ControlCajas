@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, logDelete } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { COLECCIONES, Usuario } from "@/lib/constants";
-import { usuarioCookie } from "../../../lib/utils";
+import { usuarioCookie } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {

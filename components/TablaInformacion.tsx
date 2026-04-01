@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardData } from "@/app/api/dashboard/route";
+import { DashboardData } from "@/app/api/audit/dashboard/route";
 import { totalCajas } from "@/lib/utils";
 
 interface MetricCardProps {
@@ -79,7 +79,7 @@ export default function TablaInformacion() {
     setError("");
 
     try {
-      const resDashboard = await fetch("/api/dashboard");
+      const resDashboard = await fetch("/api/audit/dashboard");
       const dataDashboard = await resDashboard.json();
 
       if (!resDashboard.ok) {

@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { usuarioCookie } from "@/lib/utils";
-import { EventoAjusteForm } from "@/components/FormularioEvento";
-import { EVENTOS_ARRAY } from "@/lib/constants";
+import { AjusteObjetos, OBJETOS_ARRAY, TIPOS_OBJETOS } from "@/lib/constants";
 
-export async function POST(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const usuario = usuarioCookie(request);
     if (usuario === null)
@@ -14,16 +13,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const data = await request.json();
-    const { tipo_evento, ajuste }: EventoAjusteForm = data;
+    const { tipo_objeto, ajuste }: ObjetoAjusteForm = data;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
-    if (!tipo_evento || !id || !ajuste || !usuario.nombre) {
+    if (!tipo_objeto || !id || !ajuste || !usuario.nombre) {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
     }
 
-    if (!EVENTOS_ARRAY.includes(tipo_evento)) {
+    if (!OBJETOS_ARRAY.includes(tipo_objeto)) {
       return NextResponse.json(
         { error: "Tipo de evento inválido" },
         { status: 400 },
@@ -31,25 +30,18 @@ export async function POST(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
-    const collection = db.collection(tipo_evento);
+    const collection = db.collection(tipo_objeto);
 
     const filter = { _id: ObjectId.createFromHexString(id) };
-    const update = ["Devolucion", "Recogida"].includes(tipo_evento)
-      ? {
-          $set: {
-            ajuste: {
-              cajas: ajuste.cajas,
-              cajas_rotas: ajuste.cajas_rotas,
-              tapas_rotas: ajuste.tapas_rotas,
-              nombre: usuario.nombre,
-            },
-          },
-        }
-      : {
-          $set: {
-            ajuste: { cajas: ajuste.cajas, nombre: usuario.nombre },
-          },
-        };
+    const update = {
+      $set: {
+        ajuste: {
+          fechaHora: new Date().toISOString(),
+          habilitado: ajuste.habilitado,
+          nombre: usuario.nombre,
+        } as AjusteObjetos,
+      },
+    };
 
     const result = await collection.updateOne(filter, update);
     if (result.matchedCount === 0) {
@@ -67,4 +59,9 @@ export async function POST(request: NextRequest) {
     console.error("Error adjusting event:", err);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
+}
+
+export interface ObjetoAjusteForm {
+  tipo_objeto?: TIPOS_OBJETOS;
+  ajuste: AjusteObjetos;
 }

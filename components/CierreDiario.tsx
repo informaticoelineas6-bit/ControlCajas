@@ -205,7 +205,7 @@ export default function CierreDiario({
     setExistente(false);
     setError("");
     try {
-      const respCierre = await fetch(`/api/cierre?fecha=${fecha}`);
+      const respCierre = await fetch(`/api/eventos/cierre?fecha=${fecha}`);
       const dataCierre = await respCierre.json();
 
       if (respCierre.ok && dataCierre) {
@@ -237,7 +237,7 @@ export default function CierreDiario({
 
     setLoading(true);
     try {
-      const response = await fetch("/api/cierre", {
+      const response = await fetch("/api/eventos/cierre", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cierre),

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CentroDistribucion, Provincia, Usuario } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
+import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
 
 export default function TablaProvincias({
   usuario,
@@ -27,7 +28,7 @@ export default function TablaProvincias({
   const fetchProvincias = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/provincias");
+      const res = await fetch("/api/admin/provincias");
       const data = await res.json();
       if (res.ok) {
         setProvincias(data);
@@ -44,7 +45,7 @@ export default function TablaProvincias({
   const fetchCentros = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/centros");
+      const res = await fetch("/api/admin/centros");
       const data = await res.json();
       if (res.ok) {
         setCentros(data);
@@ -93,10 +94,11 @@ export default function TablaProvincias({
           ? {
               nombre: usuario.nombre,
               fechaHora: new Date().toISOString(),
+              habilitado: true,
             }
           : undefined,
       };
-      const res = await fetch("/api/provincias", {
+      const res = await fetch("/api/admin/provincias", {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -120,13 +122,38 @@ export default function TablaProvincias({
     setEditingId(provincia._id ?? null);
   };
 
+  const enableProvincia = async (target: Provincia, habilitado: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo_objeto: "Provincia",
+          ajuste: {
+            nombre: usuario.nombre,
+            fechaHora: new Date().toISOString(),
+            habilitado: habilitado,
+          },
+        } as ObjetoAjusteForm),
+      });
+      if (res.ok) {
+        fetchProvincias();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Error habilitando almacén");
+      }
+    } catch {
+      setError("Error en el servidor");
+    }
+  };
+
   const handleDelete = async (provincia: Provincia) => {
     if (!provincia._id) return;
 
     setDeletingId(provincia._id);
     setError("");
     try {
-      const res = await fetch(`/api/provincias?id=${provincia._id}`, {
+      const res = await fetch(`/api/admin/provincias?id=${provincia._id}`, {
         method: "DELETE",
       });
       const data = await res.json();
@@ -294,6 +321,20 @@ export default function TablaProvincias({
                             className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                           >
                             Editar
+                          </button>
+                          <button
+                            onClick={() =>
+                              enableProvincia(item, !item.ajuste?.habilitado)
+                            }
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                              item.ajuste?.habilitado
+                                ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            }`}
+                          >
+                            {item.ajuste?.habilitado
+                              ? "Deshabilitar"
+                              : "Habilitar"}
                           </button>
                           <ConfirmDeleteButton
                             entityName={`la provincia ${item.nombre}`}

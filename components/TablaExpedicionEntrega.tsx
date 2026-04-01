@@ -21,7 +21,7 @@ export default function TablaExpedicionEntrega({
     setError("");
     try {
       const response = await fetch(
-        `/api/comparar?fecha=${fecha}&tipo=expedicion_entrega`,
+        `/api/eventos/comparar?fecha=${fecha}&tipo=expedicion_entrega`,
       );
       const data = await response.json();
       if (response.ok) {

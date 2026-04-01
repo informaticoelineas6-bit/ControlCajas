@@ -21,7 +21,7 @@ export default function TablaRecogidaDevolucion({
     setError("");
     try {
       const response = await fetch(
-        `/api/comparar?fecha=${fecha}&tipo=devolucion_recogida`,
+        `/api/eventos/comparar?fecha=${fecha}&tipo=devolucion_recogida`,
       );
       const data = await response.json();
       if (response.ok) {

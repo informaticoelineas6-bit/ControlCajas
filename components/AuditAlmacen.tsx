@@ -48,7 +48,7 @@ export default function AuditAlmacen() {
     setError("");
 
     try {
-      const res = await fetch("/api/almacenes");
+      const res = await fetch("/api/form/almacenes");
       const data = await res.json();
 
       if (res.ok) {

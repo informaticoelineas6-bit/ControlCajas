@@ -2,6 +2,7 @@
 export type ROLES = (typeof ROLES_ARRAY)[number];
 
 export type TIPOS_EVENTO = (typeof EVENTOS_ARRAY)[number];
+export type TIPOS_OBJETOS = (typeof OBJETOS_ARRAY)[number];
 
 export type COLORES_CAJAS = (typeof CAJAS_ARRAY)[number];
 export type COLORES_TAPAS = (typeof TAPAS_ARRAY)[number];
@@ -20,6 +21,14 @@ export const EVENTOS_ARRAY = [
   "Entrega",
   "Devolucion",
   "Recogida",
+] as const;
+
+export const OBJETOS_ARRAY = [
+  "CentroDistribucion",
+  "Almacen",
+  "Usuario",
+  "Vehiculo",
+  "Provincia",
 ] as const;
 
 export const CAJAS_ARRAY = ["blancas", "negras", "verdes"] as const;
@@ -100,7 +109,7 @@ export interface Provincia {
   _id?: string;
   nombre: string;
   centro_distribucion: string;
-  ajuste?: Ajuste;
+  ajuste?: AjusteObjetos;
 }
 
 export interface Vehiculo {

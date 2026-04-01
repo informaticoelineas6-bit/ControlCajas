@@ -48,7 +48,7 @@ export default function AuditCentro() {
     setError("");
 
     try {
-      const res = await fetch("/api/centros");
+      const res = await fetch("/api/form/centros");
       const data = await res.json();
 
       if (res.ok) {

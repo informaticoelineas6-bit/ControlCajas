@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertaResponse } from "@/app/api/alerts/route";
+import { AlertaResponse } from "@/app/api/admin/alerts/route";
 import { Usuario } from "@/lib/constants";
 import { useCallback, useEffect, useState } from "react";
 
@@ -23,7 +23,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/alerts`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/alerts`, { cache: "no-store" });
       const body = await res.json();
       if (!res.ok) {
         setError(body.error || "Error al cargar alertas");

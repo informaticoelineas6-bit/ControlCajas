@@ -21,7 +21,7 @@ import {
   hasCajas,
   isEnabled,
   usuarioCookie,
-} from "../../../lib/utils";
+} from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -74,9 +74,11 @@ export async function GET(request: NextRequest) {
             .toArray() as Promise<Provincia[]>,
         ]);
         resultado.centros = centrosRaw
-          .filter(isEnabled)
+          .filter((element) => isEnabled(element))
           .map((centro) => deudaActiva(centro, listaEntregas));
-        resultado.almacenes = almacenesRaw.filter(isEnabled);
+        resultado.almacenes = almacenesRaw.filter((element) =>
+          isEnabled(element),
+        );
         resultado.provincias = provinciasRaw;
         return NextResponse.json(resultado);
       }
@@ -160,7 +162,9 @@ export async function GET(request: NextRequest) {
             );
           }
         }
-        resultado.vehiculos = vehiculosRaw.filter(isEnabled);
+        resultado.vehiculos = vehiculosRaw.filter((element) =>
+          isEnabled(element),
+        );
         return NextResponse.json(resultado);
       }
       case "Entrega": {
@@ -248,9 +252,11 @@ export async function GET(request: NextRequest) {
             .toArray() as Promise<Vehiculo[]>,
         ]);
         resultado.centros = centrosRaw
-          .filter(isEnabled)
+          .filter((element) => isEnabled(element))
           .map((centro) => deudaActiva(centro, listaEntregas));
-        resultado.vehiculos = vehiculosRaw.filter(isEnabled);
+        resultado.vehiculos = vehiculosRaw.filter((element) =>
+          isEnabled(element),
+        );
         return NextResponse.json(resultado);
       }
       case "Devolucion": {
@@ -294,7 +300,9 @@ export async function GET(request: NextRequest) {
             );
           }
         }
-        resultado.almacenes = almacenesRaw.filter(isEnabled);
+        resultado.almacenes = almacenesRaw.filter((element) =>
+          isEnabled(element),
+        );
         return NextResponse.json(resultado);
       }
       default:

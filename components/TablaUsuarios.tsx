@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ROLES_ARRAY, Usuario } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
+import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
 
 export default function TablaUsuarios({
   usuario,
@@ -25,7 +26,7 @@ export default function TablaUsuarios({
   const fetchUsuarios = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/usuarios");
+      const res = await fetch("/api/admin/usuarios");
       const data = await res.json();
       if (res.ok) {
         setUsuarios(data);
@@ -77,7 +78,7 @@ export default function TablaUsuarios({
           habilitado: form.ajuste?.habilitado ?? false,
         },
       };
-      const res = await fetch("/api/usuarios", {
+      const res = await fetch("/api/admin/usuarios", {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -103,17 +104,17 @@ export default function TablaUsuarios({
 
   const enableUsuario = async (target: Usuario, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/usuarios?id=${target._id}`, {
+      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _id: target._id,
+          tipo_objeto: "Usuario",
           ajuste: {
             nombre: usuario.nombre,
             fechaHora: new Date().toISOString(),
             habilitado: habilitado,
           },
-        } as Partial<Usuario>),
+        } as ObjetoAjusteForm),
       });
       if (res.ok) {
         fetchUsuarios();
@@ -132,7 +133,7 @@ export default function TablaUsuarios({
     setDeletingId(target._id);
     setError("");
     try {
-      const res = await fetch(`/api/usuarios?id=${target._id}`, {
+      const res = await fetch(`/api/admin/usuarios?id=${target._id}`, {
         method: "DELETE",
       });
       const data = await res.json();

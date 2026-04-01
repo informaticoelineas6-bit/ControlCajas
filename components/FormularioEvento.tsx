@@ -137,7 +137,7 @@ export default function FormularioEvento({
     setVehiculos([]);
     setProvincias([]);
     try {
-      const response = await fetch(`/api/formdata?tipo=${tipoEvento}`);
+      const response = await fetch(`/api/form/eventos?tipo=${tipoEvento}`);
       const data = await response.json();
       if (data.error) setMensaje(data.error);
       if (data.almacenes) setAlmacenes(data.almacenes);

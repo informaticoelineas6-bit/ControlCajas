@@ -7,7 +7,7 @@ import {
   Nuevo,
   Provincia,
 } from "@/lib/constants";
-import { usuarioCookie } from "../../../lib/utils";
+import { usuarioCookie } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,13 +18,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { db } = await connectToDatabase();
-    const provincias = db.collection(COLECCIONES.PROVINCIA);
-    const listaProvincias = await provincias.find({}).toArray();
-    return NextResponse.json(listaProvincias);
+    const centros = db.collection(COLECCIONES.CENTRO_DISTRIBUCION);
+    const listaCentros = await centros.find({}).toArray();
+    return NextResponse.json(listaCentros);
   } catch (error) {
-    console.error("Error fetching almacenes:", error);
+    console.error("Error fetching centros:", error);
     return NextResponse.json(
-      { error: "Error al obtener almacenes" },
+      { error: "Error al obtener centros" },
       { status: 500 },
     );
   }
@@ -38,37 +38,40 @@ export async function POST(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body: Nuevo<Provincia> = await request.json();
+    const body: Nuevo<CentroDistribucion> = await request.json();
     const { db } = await connectToDatabase();
 
     body.nombre = body.nombre.trim();
-    const provincias = db.collection<Provincia>(COLECCIONES.PROVINCIA);
-
-    const existente = await provincias.findOne({ nombre: body.nombre });
-    if (existente) {
-      return NextResponse.json(
-        { error: "Ya se encuentra registrada una provincia con ese nombre" },
-        { status: 409 },
-      );
-    }
-
     const centros = db.collection<CentroDistribucion>(
       COLECCIONES.CENTRO_DISTRIBUCION,
     );
-    const centro = await centros.findOne({ nombre: body.nombre });
-    if (centro) {
+
+    const existente = await centros.findOne({ nombre: body.nombre });
+    if (existente) {
       return NextResponse.json(
         { error: "Ya se encuentra registrado un centro con ese nombre" },
         { status: 409 },
       );
     }
 
-    const result = await provincias.insertOne(body);
+    const provincias = db.collection<Provincia>(COLECCIONES.PROVINCIA);
+    const provincia = await provincias.findOne({ nombre: body.nombre });
+    if (provincia) {
+      return NextResponse.json(
+        {
+          error:
+            "Ya se encuentra registrada una provincia asociada a un centro con ese nombre",
+        },
+        { status: 409 },
+      );
+    }
+
+    const result = await centros.insertOne(body);
     return NextResponse.json({ _id: result.insertedId, ...body });
   } catch (error) {
-    console.error("Error creating provincia:", error);
+    console.error("Error creating centro:", error);
     return NextResponse.json(
-      { error: "Error al crear provincia" },
+      { error: "Error al crear centro" },
       { status: 500 },
     );
   }
@@ -86,21 +89,21 @@ export async function PUT(request: NextRequest) {
     const { _id, ...data } = body;
     if (!_id) {
       return NextResponse.json(
-        { error: "ID de provincia requerido" },
+        { error: "ID de centro requerido" },
         { status: 400 },
       );
     }
     const { db } = await connectToDatabase();
-    const provincias = db.collection(COLECCIONES.PROVINCIA);
-    await provincias.updateOne(
+    const centros = db.collection(COLECCIONES.CENTRO_DISTRIBUCION);
+    await centros.updateOne(
       { _id: ObjectId.createFromHexString(_id) },
       { $set: data },
     );
     return NextResponse.json({ _id, ...data });
   } catch (error) {
-    console.error("Error updating provincia:", error);
+    console.error("Error updating centro:", error);
     return NextResponse.json(
-      { error: "Error al actualizar provincia" },
+      { error: "Error al actualizar centro" },
       { status: 500 },
     );
   }
@@ -118,23 +121,23 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
     if (!id) {
       return NextResponse.json(
-        { error: "ID de provincia requerido" },
+        { error: "ID de centro requerido" },
         { status: 400 },
       );
     }
     const { db } = await connectToDatabase();
-    const provincias = db.collection(COLECCIONES.PROVINCIA);
+    const centros = db.collection(COLECCIONES.CENTRO_DISTRIBUCION);
 
     return await logDelete(
       db,
-      provincias,
+      centros,
       ObjectId.createFromHexString(id),
       usuario.nombre,
     );
   } catch (error) {
-    console.error("Error deleting provincia:", error);
+    console.error("Error deleting centro:", error);
     return NextResponse.json(
-      { error: "Error al eliminar provincia" },
+      { error: "Error al eliminar centro" },
       { status: 500 },
     );
   }

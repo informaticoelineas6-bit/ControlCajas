@@ -5,6 +5,7 @@ import {
   Entrega,
   Evento,
   EventoRotura,
+  Provincia,
   Tapas,
   Usuario,
   Vehiculo,
@@ -108,7 +109,7 @@ export function hasCajas(item: { cajas: Cajas }): boolean {
 }
 
 export function isEnabled(
-  item: Almacen | CentroDistribucion | Vehiculo | Usuario,
+  item: Almacen | CentroDistribucion | Vehiculo | Usuario | Provincia,
 ): boolean {
   return item.ajuste?.habilitado ?? true;
 }

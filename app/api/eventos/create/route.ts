@@ -21,7 +21,7 @@ import {
   sameCajas,
   sumCajas,
   usuarioCookie,
-} from "../../../../lib/utils";
+} from "@/lib/utils";
 import { EventoCreateForm } from "@/components/FormularioEvento";
 import { Db } from "mongodb";
 

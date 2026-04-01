@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { usuarioCookie } from "../../../../lib/utils";
+import { usuarioCookie } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
