@@ -1,18 +1,15 @@
 "use client";
 
+import { EventoResponse } from "@/app/api/form/eventos/route";
 import {
-  CentroDistribucion,
   CajasHabilitadas,
   Usuario,
-  Vehiculo,
-  Almacen,
   TIPOS_EVENTO,
   Cajas,
   Tapas,
   COLORES_CAJAS,
-  Provincia,
 } from "@/lib/constants";
-import { DeudaAct, totalCajas } from "@/lib/utils";
+import { totalCajas } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 
 // Verificar la tardanza de el warning/message.
@@ -65,11 +62,7 @@ export default function FormularioEvento({
     undefined,
   );
   const [originalId, setOriginalId] = useState<string | null>(null);
-  const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
-  const [centros, setCentros] = useState<DeudaAct<CentroDistribucion>[]>([]);
-  const [provincias, setProvincias] = useState<Provincia[]>([]);
-  const [destinos, setDestinos] = useState<Destino[]>([]);
-  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [response, setResponse] = useState<EventoResponse>({});
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -123,61 +116,17 @@ export default function FormularioEvento({
     }
   }, [initialData]);
 
-  useEffect(() => {
-    let centro = centros.find((c) => {
-      return c.nombre === formData.centro_distribucion;
-    });
-    if (!centro) {
-      const provincia = provincias.find((p) => {
-        return p.nombre === formData.centro_distribucion;
-      });
-      if (!provincia) {
-        setHabilitado({ blancas: false, negras: false, verdes: false });
-        return;
-      }
-      centro = centros.find((c) => {
-        return c.nombre === provincia.centro_distribucion;
-      });
-    }
-    if (!centro) {
-      setHabilitado({ blancas: false, negras: false, verdes: false });
-      return;
-    }
-    setHabilitado(centro?.habilitado);
-  }, [formData.centro_distribucion, centros, provincias]);
-
-  useEffect(() => {
-    const output: Destino[] = [];
-    for (const centro of centros) {
-      output.push({
-        _id: centro._id!,
-        nombre: centro.nombre,
-        deuda_activa: centro.deuda_activa,
-      });
-    }
-    for (const provincia of provincias) {
-      output.push({ _id: provincia._id!, nombre: provincia.nombre });
-    }
-    setDestinos(output);
-  }, [centros, provincias]);
-
   const fetchDatos = useCallback(async () => {
     if (!tipoEvento) {
       return;
     }
     setLoading(true);
-    setAlmacenes([]);
-    setCentros([]);
-    setVehiculos([]);
-    setProvincias([]);
+    setResponse({});
     try {
       const response = await fetch(`/api/form/eventos?tipo=${tipoEvento}`);
       const data = await response.json();
       if (data.error) setMensaje(data.error);
-      if (data.almacenes) setAlmacenes(data.almacenes);
-      if (data.centros) setCentros(data.centros);
-      if (data.vehiculos) setVehiculos(data.vehiculos);
-      if (data.provincias) setProvincias(data.provincias);
+      else setResponse(data as EventoResponse);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -189,12 +138,29 @@ export default function FormularioEvento({
     fetchDatos();
   }, [tipoEvento, fetchDatos]);
 
+  useEffect(() => {
+    if (formData.centro_distribucion)
+      setHabilitado(
+        response[formData.centro_distribucion].habilitado ?? {
+          blancas: false,
+          negras: false,
+          verdes: false,
+        },
+      );
+  }, [formData.centro_distribucion, response]);
+
   const resetForm = () => {
     setTipoEvento(undefined);
+    setResponse({});
     setMensaje("");
     setSubmitted(false);
     setIsSuccess(false);
     setIsWarning(false);
+    setHabilitado({
+      blancas: false,
+      negras: false,
+      verdes: false,
+    });
     setFormData({
       almacen: undefined,
       centro_distribucion: undefined,
@@ -529,7 +495,7 @@ export default function FormularioEvento({
                 {!isAdjustment && (
                   <button
                     type="button"
-                    onClick={() => setTipoEvento(undefined)}
+                    onClick={() => resetForm()}
                     className="rounded-full bg-blue-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-blue-400 hover:text-slate-800"
                   >
                     Cambiar tipo de evento
@@ -539,7 +505,7 @@ export default function FormularioEvento({
 
               <div
                 className={
-                  "grid gap-5 grid-cols-1 lg:grid-cols-" +
+                  "grid gap-5 grid-cols-1 md:grid-cols-" +
                   (1 + (mostrarAlmacen ? 1 : 0) + (mostrarChapa ? 1 : 0))
                 }
               >
@@ -564,27 +530,22 @@ export default function FormularioEvento({
                     <option
                       value={undefined}
                     >{`Selecciona un centro${mostrarRoturas ? " o provincia" : ""}`}</option>
-                    {destinos.map((destino: Destino) => (
-                      <option key={destino._id} value={destino.nombre}>
-                        {destino.nombre +
-                          (tipoEvento === "Recogida"
-                            ? " (deuda: " +
-                              (destino.deuda_activa
-                                ? totalCajas(destino.deuda_activa)
-                                : 0) +
-                              ")"
-                            : "")}
-                      </option>
-                    ))}
-                    {mostrarRoturas &&
-                      provincias.map((provincia) => (
-                        <option key={provincia._id} value={provincia.nombre}>
-                          {provincia.nombre}
+                    {Object.keys(response).length > 0 &&
+                      Object.keys(response).map((key: string, index) => (
+                        <option key={key + index} value={key}>
+                          {key +
+                            (mostrarRoturas
+                              ? " (deuda: " +
+                                (response[key].deuda_activa
+                                  ? totalCajas(response[key].deuda_activa)
+                                  : 0) +
+                                ")"
+                              : "")}
                         </option>
                       ))}
                   </select>
                 </div>
-                {mostrarAlmacen && (
+                {mostrarAlmacen && formData.centro_distribucion && (
                   <div>
                     <label
                       htmlFor="almacen"
@@ -604,16 +565,19 @@ export default function FormularioEvento({
                       className={fieldClass}
                     >
                       <option value={undefined}>Selecciona un almacén</option>
-                      {almacenes.map((almacen) => (
-                        <option key={almacen._id} value={almacen.nombre}>
-                          {almacen.nombre}
-                        </option>
-                      ))}
+                      {response[formData.centro_distribucion].almacenes &&
+                        response[formData.centro_distribucion].almacenes.map(
+                          (almacen, index) => (
+                            <option key={almacen + index} value={almacen}>
+                              {almacen}
+                            </option>
+                          ),
+                        )}
                     </select>
                   </div>
                 )}
 
-                {mostrarChapa && (
+                {mostrarChapa && formData.centro_distribucion && (
                   <div>
                     <label
                       htmlFor="chapa"
@@ -633,14 +597,18 @@ export default function FormularioEvento({
                       className={fieldClass}
                     >
                       <option value={undefined}>Selecciona una chapa</option>
-                      {vehiculos.map((vehiculo) => (
-                        <option key={vehiculo._id} value={vehiculo.chapa}>
-                          {vehiculo.categoria}{" "}
-                          {vehiculo.marca ? vehiculo.marca + " " : ""}
-                          {vehiculo.modelo ? vehiculo.modelo + " " : ""}-{" "}
-                          {vehiculo.chapa}
-                        </option>
-                      ))}
+                      {response[formData.centro_distribucion].vehiculos &&
+                        response[formData.centro_distribucion].vehiculos.map(
+                          (vehiculo) => (
+                            <option key={vehiculo.chapa} value={vehiculo.chapa}>
+                              {vehiculo.categoria}{" "}
+                              {vehiculo.marca ? vehiculo.marca + " " : ""}
+                              {vehiculo.modelo
+                                ? vehiculo.modelo + " "
+                                : ""}- {vehiculo.chapa}
+                            </option>
+                          ),
+                        )}
                     </select>
                   </div>
                 )}
