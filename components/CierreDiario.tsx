@@ -227,6 +227,8 @@ export default function CierreDiario({
 
   useEffect(() => {
     fetchDatos();
+    const id = setInterval(fetchDatos, 30000);
+    return () => clearInterval(id);
   }, [fetchDatos]);
 
   const handleCrearCierre = async () => {

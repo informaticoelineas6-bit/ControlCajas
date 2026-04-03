@@ -38,6 +38,8 @@ export default function TablaExpedicionEntrega({
 
   useEffect(() => {
     fetchDatos();
+    const id = setInterval(fetchDatos, 30000);
+    return () => clearInterval(id);
   }, [fetchDatos]);
 
   return (

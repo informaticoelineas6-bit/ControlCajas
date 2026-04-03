@@ -39,6 +39,8 @@ export default function TablaEntrega({
 
   useEffect(() => {
     fetchDatos();
+    const id = setInterval(fetchDatos, 30000);
+    return () => clearInterval(id);
   }, [fetchDatos]);
 
   return (
