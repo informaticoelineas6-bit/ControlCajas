@@ -16,6 +16,21 @@ const uri = process.env.MONGODB_URI;
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 
+// Helper function to add timeout to any promise
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  errorMessage: string = "Operation timed out",
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() =>
+    clearTimeout(timeoutId),
+  );
+}
+
 export async function connectToDatabase() {
   if (cachedClient && cachedDb) {
     return { client: cachedClient, db: cachedDb };
@@ -38,8 +53,20 @@ export async function connectToDatabase() {
       // the driver will throw an error; keeping only the latter.
     }
 
+    // Ensure URI is defined
+    if (!uri) {
+      throw new Error("MONGODB_URI environment variable is not defined");
+    }
+
     const client = new MongoClient(uri, options);
-    await client.connect();
+
+    // Apply timeout to the connection process (15 seconds should be enough)
+    await withTimeout(
+      client.connect(),
+      15000,
+      "MongoDB connection timeout after 15 seconds",
+    );
+
     const db = client.db("ControlCajas");
 
     cachedClient = client;
@@ -48,6 +75,9 @@ export async function connectToDatabase() {
     return { client, db };
   } catch (error) {
     console.error("Error connecting to database:", error);
+    // Clean up cached references on error
+    cachedClient = null;
+    cachedDb = null;
     throw error;
   }
 }
