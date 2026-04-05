@@ -61,10 +61,7 @@ export async function getComparacionEntrega(
         cajas: item.expedicion?.cajas
           ? (sumCajas(item.expedicion?.cajas, current.cajas) as Cajas)
           : current.cajas,
-        ajuste: appendNombre(
-          item.expedicion?.ajuste,
-          current.ajuste as unknown as string | undefined,
-        ),
+        ajuste: appendNombre(item.expedicion?.ajuste, current.ajuste?.nombre),
       };
     } else {
       centrosExp.set(centro, {
@@ -74,7 +71,7 @@ export async function getComparacionEntrega(
         expedicion: {
           nombre: current.nombre,
           cajas: current.cajas,
-          ajuste: current.ajuste as unknown as string | undefined,
+          ajuste: current.ajuste?.nombre,
         },
         traspaso: null,
         entrega: null,
@@ -94,10 +91,7 @@ export async function getComparacionEntrega(
         cajas: item.traspaso?.cajas
           ? (sumCajas(item.traspaso?.cajas, current.cajas) as Cajas)
           : current.cajas,
-        ajuste: appendNombre(
-          item.traspaso?.ajuste,
-          current.ajuste as unknown as string | undefined,
-        ),
+        ajuste: appendNombre(item.traspaso?.ajuste, current.ajuste?.nombre),
       };
     } else {
       centrosExp.set(centro, {
@@ -108,7 +102,7 @@ export async function getComparacionEntrega(
         traspaso: {
           nombre: current.nombre,
           cajas: current.cajas,
-          ajuste: current.ajuste as unknown as string | undefined,
+          ajuste: current.ajuste?.nombre,
         },
         entrega: null,
         alerta: false,
@@ -126,10 +120,7 @@ export async function getComparacionEntrega(
         cajas: item.entrega?.cajas
           ? (sumCajas(item.entrega?.cajas, current.cajas) as Cajas)
           : current.cajas,
-        ajuste: appendNombre(
-          item.entrega?.ajuste,
-          current.ajuste as unknown as string | undefined,
-        ),
+        ajuste: appendNombre(item.entrega?.ajuste, current.ajuste?.nombre),
       };
     } else {
       centrosExp.set(centro, {
@@ -141,7 +132,7 @@ export async function getComparacionEntrega(
         entrega: {
           nombre: current.nombre,
           cajas: current.cajas,
-          ajuste: current.ajuste as unknown as string | undefined,
+          ajuste: current.ajuste?.nombre,
         },
         alerta: true,
       });
@@ -193,10 +184,7 @@ export async function getComparacionRecogida(
         tapas_rotas: item.recogida?.tapas_rotas
           ? sumCajas(item.recogida?.tapas_rotas, current.tapas_rotas)
           : current.tapas_rotas,
-        ajuste: appendNombre(
-          item.recogida?.ajuste,
-          current.ajuste as unknown as string | undefined,
-        ),
+        ajuste: appendNombre(item.recogida?.ajuste, current.ajuste?.nombre),
       };
     } else {
       centrosRec.set(centro, {
@@ -208,7 +196,7 @@ export async function getComparacionRecogida(
           cajas: current.cajas,
           cajas_rotas: current.cajas_rotas,
           tapas_rotas: current.tapas_rotas,
-          ajuste: current.ajuste as unknown as string | undefined,
+          ajuste: current.ajuste?.nombre,
         },
         devolucion: null,
         alerta: false,
@@ -236,10 +224,7 @@ export async function getComparacionRecogida(
         tapas_rotas: item.devolucion?.tapas_rotas
           ? sumCajas(item.devolucion?.tapas_rotas, current.tapas_rotas)
           : current.tapas_rotas,
-        ajuste: appendNombre(
-          item.devolucion?.ajuste,
-          current.ajuste as unknown as string | undefined,
-        ),
+        ajuste: appendNombre(item.devolucion?.ajuste, current.ajuste?.nombre),
       };
     } else {
       centrosRec.set(centro, {
@@ -252,7 +237,7 @@ export async function getComparacionRecogida(
           cajas: current.cajas,
           cajas_rotas: current.cajas_rotas,
           tapas_rotas: current.tapas_rotas,
-          ajuste: current.ajuste as unknown as string | undefined,
+          ajuste: current.ajuste?.nombre,
         },
         alerta: false,
         rotura: false,
