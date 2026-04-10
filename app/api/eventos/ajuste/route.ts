@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
-import { usuarioCookie } from "@/lib/utils";
+import { connectToDatabase } from "@/lib/server";
+import { usuarioCookie } from "@/lib/auth";
 import { EventoAjusteForm } from "@/components/FormularioEvento";
-import { EVENTOS_ARRAY } from "@/lib/constants";
+import { EVENTOS_ARRAY, getEventTable } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,8 +12,7 @@ export async function POST(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const data = await request.json();
-    const { tipo_evento, ajuste }: EventoAjusteForm = data;
+    const { tipo_evento, ajuste }: EventoAjusteForm = await request.json();
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -30,34 +28,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { db } = await connectToDatabase();
-    const collection = db.collection(tipo_evento);
+    const db = (await connectToDatabase()).from(getEventTable[tipo_evento]);
 
-    const filter = { _id: ObjectId.createFromHexString(id) };
-    const update = ["Devolucion", "Recogida"].includes(tipo_evento)
-      ? {
-          $set: {
-            ajuste: {
-              cajas: ajuste.cajas,
-              cajas_rotas: ajuste.cajas_rotas,
-              tapas_rotas: ajuste.tapas_rotas,
-              nombre: usuario.nombre,
-            },
-          },
-        }
-      : {
-          $set: {
-            ajuste: { cajas: ajuste.cajas, nombre: usuario.nombre },
-          },
-        };
+    const { error } = await db
+      .update({
+        ajuste: {
+          fechaHora: new Date().toISOString(),
+          nombre: usuario.nombre,
+          cajas: ajuste.cajas,
+          roturas:
+            "roturas" in ajuste
+              ? {
+                  cajas: ajuste.roturas.cajas,
+                  tapas: ajuste.roturas.tapas,
+                }
+              : undefined,
+        },
+      })
+      .eq("id", id);
 
-    const result = await collection.updateOne(filter, update);
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { error: "Evento no encontrado" },
-        { status: 404 },
-      );
-    }
+    if (error) throw new Error(error.message);
 
     return NextResponse.json({
       success: true,

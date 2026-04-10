@@ -12,6 +12,11 @@ import {
   ItemComparacionRecogida,
   COLECCIONES,
   Usuario,
+  CajasRoturas,
+  CAJAS_ARRAY,
+  TAPAS_ARRAY,
+  COLORES_CAJAS,
+  COLORES_TAPAS,
 } from "@/lib/constants";
 import { AjusteStr, totalCajas } from "@/lib/utils";
 
@@ -53,10 +58,7 @@ export default function CierreDiario({
   }, [expedicionEntregaData, recogidaDevolucionData]);
 
   const calcularAjustesStock = useCallback(async () => {
-    const ajustesMap: Record<
-      string,
-      { cajas: Cajas; cajas_rotas: Cajas; tapas_rotas: Cajas }
-    > = {};
+    const ajustesMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
 
     const [devolucionData, expedicionData] = await Promise.all([
       (
@@ -75,32 +77,36 @@ export default function CierreDiario({
       if (!ajustesMap[item.almacen]) {
         ajustesMap[item.almacen] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
-          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          roturas: {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas: { blancas: 0, negras: 0 },
+          },
         };
       }
       ajustesMap[item.almacen].cajas.blancas += item.cajas.blancas ?? 0;
       ajustesMap[item.almacen].cajas.negras += item.cajas.negras ?? 0;
       ajustesMap[item.almacen].cajas.verdes += item.cajas.verdes ?? 0;
 
-      ajustesMap[item.almacen].cajas_rotas.blancas +=
-        item.cajas_rotas.blancas ?? 0;
-      ajustesMap[item.almacen].cajas_rotas.negras +=
-        item.cajas_rotas.negras ?? 0;
-      ajustesMap[item.almacen].cajas_rotas.verdes +=
-        item.cajas_rotas.verdes ?? 0;
-      ajustesMap[item.almacen].tapas_rotas.blancas +=
-        item.tapas_rotas.blancas ?? 0;
-      ajustesMap[item.almacen].tapas_rotas.negras +=
-        item.tapas_rotas.negras ?? 0;
+      ajustesMap[item.almacen].roturas.cajas.blancas +=
+        item.roturas.cajas.blancas ?? 0;
+      ajustesMap[item.almacen].roturas.cajas.negras +=
+        item.roturas.cajas.negras ?? 0;
+      ajustesMap[item.almacen].roturas.cajas.verdes +=
+        item.roturas.cajas.verdes ?? 0;
+      ajustesMap[item.almacen].roturas.tapas.blancas +=
+        item.roturas.tapas.blancas ?? 0;
+      ajustesMap[item.almacen].roturas.tapas.negras +=
+        item.roturas.tapas.negras ?? 0;
     });
 
     expedicionData.forEach((item: AjusteStr<Expedicion>) => {
       if (!ajustesMap[item.almacen]) {
         ajustesMap[item.almacen] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
-          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          roturas: {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas: { blancas: 0, negras: 0 },
+          },
         };
       }
       ajustesMap[item.almacen].cajas.blancas -= item.cajas.blancas ?? 0;
@@ -112,10 +118,7 @@ export default function CierreDiario({
   }, [fecha]);
 
   const calcularAjustesDeuda = useCallback(async () => {
-    const ajustesMap: Record<
-      string,
-      { cajas: Cajas; cajas_rotas: Cajas; tapas_rotas: Cajas }
-    > = {};
+    const ajustesMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
 
     const [entregaData, recogidaData] = await Promise.all([
       (
@@ -134,8 +137,10 @@ export default function CierreDiario({
       if (!ajustesMap[item.centro_distribucion]) {
         ajustesMap[item.centro_distribucion] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
-          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          roturas: {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas: { blancas: 0, negras: 0 },
+          },
         };
       }
       ajustesMap[item.centro_distribucion].cajas.blancas +=
@@ -150,8 +155,10 @@ export default function CierreDiario({
       if (!ajustesMap[item.centro_distribucion]) {
         ajustesMap[item.centro_distribucion] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
-          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          tapas_rotas: { blancas: 0, negras: 0, verdes: 0 },
+          roturas: {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas: { blancas: 0, negras: 0 },
+          },
         };
       }
 
@@ -162,16 +169,16 @@ export default function CierreDiario({
       ajustesMap[item.centro_distribucion].cajas.verdes -=
         item.cajas.verdes ?? 0;
 
-      ajustesMap[item.centro_distribucion].cajas_rotas.blancas +=
-        item.cajas_rotas.blancas ?? 0;
-      ajustesMap[item.centro_distribucion].cajas_rotas.negras +=
-        item.cajas_rotas.negras ?? 0;
-      ajustesMap[item.centro_distribucion].cajas_rotas.verdes +=
-        item.cajas_rotas.verdes ?? 0;
-      ajustesMap[item.centro_distribucion].tapas_rotas.blancas +=
-        item.tapas_rotas.blancas ?? 0;
-      ajustesMap[item.centro_distribucion].tapas_rotas.negras +=
-        item.tapas_rotas.negras ?? 0;
+      ajustesMap[item.centro_distribucion].roturas.cajas.blancas +=
+        item.roturas.cajas.blancas ?? 0;
+      ajustesMap[item.centro_distribucion].roturas.cajas.negras +=
+        item.roturas.cajas.negras ?? 0;
+      ajustesMap[item.centro_distribucion].roturas.cajas.verdes +=
+        item.roturas.cajas.verdes ?? 0;
+      ajustesMap[item.centro_distribucion].roturas.tapas.blancas +=
+        item.roturas.tapas.blancas ?? 0;
+      ajustesMap[item.centro_distribucion].roturas.tapas.negras +=
+        item.roturas.tapas.negras ?? 0;
     });
 
     return ajustesMap;
@@ -188,14 +195,12 @@ export default function CierreDiario({
       cierre_cd: Object.entries(ajustesDeuda).map(([cd, data]) => ({
         centro_distribucion: cd,
         ajuste_deuda: data.cajas,
-        cajas_rotas: data.cajas_rotas,
-        tapas_rotas: data.tapas_rotas,
+        roturas: { cajas: data.roturas.cajas, tapas: data.roturas.tapas },
       })),
       cierre_almacen: Object.entries(ajustesStock).map(([almacen, data]) => ({
         almacen,
         ajuste_stock: data.cajas,
-        cajas_rotas: data.cajas_rotas,
-        tapas_rotas: data.tapas_rotas,
+        roturas: { cajas: data.roturas.cajas, tapas: data.roturas.tapas },
       })),
     };
   }, [calcularAjustesDeuda, calcularAjustesStock, fecha]);
@@ -246,10 +251,7 @@ export default function CierreDiario({
       });
 
       if (response.ok) {
-        const nuevo = await response.json();
-        setCierre(nuevo);
-        setExistente(true);
-        setError("");
+        fetchDatos();
       } else {
         const errData = await response.json();
         setError(errData.error || "Error al crear cierre");
@@ -328,15 +330,14 @@ export default function CierreDiario({
                     <th className="px-5 py-4 text-left font-semibold">
                       Almacén
                     </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Blancas
-                    </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Negras
-                    </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Verdes
-                    </th>
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <th
+                        key={color}
+                        className="px-5 py-4 text-center font-semibold capitalize"
+                      >
+                        {color}
+                      </th>
+                    ))}
                     <th className="px-5 py-4 text-center font-semibold">
                       Total
                     </th>
@@ -367,29 +368,36 @@ export default function CierreDiario({
                         <td className="px-5 py-4 font-semibold text-slate-800">
                           {item.almacen}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.ajuste_stock.blancas}
-                        </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.ajuste_stock.negras}
-                        </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.ajuste_stock.verdes}
-                        </td>
+                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                          <td
+                            key={color}
+                            className="px-5 py-4 text-center text-slate-700"
+                          >
+                            {item.ajuste_stock[color]}
+                          </td>
+                        ))}
                         <td className="px-5 py-4 text-center font-semibold text-slate-800">
                           {totalCajas(item.ajuste_stock)}
                         </td>
                         <td
-                          title={`Blancas: ${item.cajas_rotas.blancas}, Negras: ${item.cajas_rotas.negras}, Verdes: ${item.cajas_rotas.verdes}`}
+                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.roturas.cajas[color]}`;
+                          }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.cajas_rotas)}
+                          {totalCajas(item.roturas.cajas)}
                         </td>
                         <td
-                          title={`Blancas: ${item.tapas_rotas.blancas}, Negras: ${item.tapas_rotas.negras}`}
+                          title={TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.roturas.tapas[color]}`;
+                          }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.tapas_rotas)}
+                          {totalCajas(item.roturas.tapas)}
                         </td>
                       </tr>
                     ))
@@ -412,15 +420,14 @@ export default function CierreDiario({
                     <th className="px-5 py-4 text-left font-semibold">
                       Centro
                     </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Blancas
-                    </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Negras
-                    </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Verdes
-                    </th>
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <th
+                        key={color}
+                        className="px-5 py-4 text-center font-semibold"
+                      >
+                        {color}
+                      </th>
+                    ))}
                     <th className="px-5 py-4 text-center font-semibold">
                       Total
                     </th>
@@ -451,29 +458,36 @@ export default function CierreDiario({
                         <td className="px-5 py-4 font-semibold text-slate-800">
                           {item.centro_distribucion}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.ajuste_deuda.blancas}
-                        </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.ajuste_deuda.negras}
-                        </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.ajuste_deuda.verdes}
-                        </td>
+                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                          <td
+                            key={color}
+                            className="px-5 py-4 text-center text-slate-700"
+                          >
+                            {item.ajuste_deuda[color]}
+                          </td>
+                        ))}
                         <td className="px-5 py-4 text-center font-semibold text-slate-800">
                           {totalCajas(item.ajuste_deuda)}
                         </td>
                         <td
-                          title={`Blancas: ${item.cajas_rotas.blancas}, Negras: ${item.cajas_rotas.negras}, Verdes: ${item.cajas_rotas.verdes}`}
+                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.roturas.cajas[color]}`;
+                          }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.cajas_rotas)}
+                          {totalCajas(item.roturas.cajas)}
                         </td>
                         <td
-                          title={`Blancas: ${item.tapas_rotas.blancas}, Negras: ${item.tapas_rotas.negras}`}
+                          title={TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.roturas.tapas[color]}`;
+                          }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.tapas_rotas)}
+                          {totalCajas(item.roturas.tapas)}
                         </td>
                       </tr>
                     ))

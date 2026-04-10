@@ -67,7 +67,6 @@ export default function TablaVehiculos({
     try {
       const method = editingId ? "PUT" : "POST";
       const body: Vehiculo = {
-        _id: editingId || undefined,
         categoria: form.categoria,
         chapa: form.chapa,
         marca: form.marca!,
@@ -101,12 +100,12 @@ export default function TablaVehiculos({
 
   const startEdit = (vehiculo: Vehiculo) => {
     setForm(vehiculo);
-    setEditingId(vehiculo._id ?? null);
+    setEditingId(vehiculo.chapa ?? null);
   };
 
   const enableVehiculo = async (target: Vehiculo, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
+      const res = await fetch(`/api/admin/ajuste?id=${target.chapa}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -130,17 +129,17 @@ export default function TablaVehiculos({
   };
 
   const handleDelete = async (vehiculo: Vehiculo) => {
-    if (!vehiculo._id) return;
+    if (!vehiculo.chapa) return;
 
-    setDeletingId(vehiculo._id);
+    setDeletingId(vehiculo.chapa);
     setError("");
     try {
-      const res = await fetch(`/api/admin/vehiculos?id=${vehiculo._id}`, {
+      const res = await fetch(`/api/admin/vehiculos?id=${vehiculo.chapa}`, {
         method: "DELETE",
       });
       const data = await res.json();
       if (res.ok) {
-        if (editingId === vehiculo._id) resetForm();
+        if (editingId === vehiculo.chapa) resetForm();
         fetchVehiculos();
       } else {
         setError(data.error || "Error al eliminar vehículo");
@@ -296,7 +295,7 @@ export default function TablaVehiculos({
               <tbody>
                 {vehiculos.map((item) => (
                   <tr
-                    key={item._id}
+                    key={item.chapa}
                     className="border-t border-slate-100 transition hover:bg-slate-50"
                   >
                     <td className="px-5 py-4">
@@ -368,9 +367,9 @@ export default function TablaVehiculos({
                           </button>
                           <ConfirmDeleteButton
                             entityName={`el ${item.categoria} ${item.chapa}`}
-                            disabled={deletingId === item._id}
+                            disabled={deletingId === item.chapa}
                             buttonLabel={
-                              deletingId === item._id
+                              deletingId === item.chapa
                                 ? "Eliminando..."
                                 : undefined
                             }

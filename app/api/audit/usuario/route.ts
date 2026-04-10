@@ -1,18 +1,23 @@
 import {
   Cajas,
-  COLECCIONES,
+  Created,
   Devolucion,
   Entrega,
+  Evento,
+  EventoRotura,
   Expedicion,
   Recogida,
+  TABLAS,
   Tapas,
   TIPOS_EVENTO,
   Traspaso,
   Usuario,
 } from "@/lib/constants";
-import { connectToDatabase, DeleteAudit } from "@/lib/mongodb";
-import { applyAjuste, hasCajas, usuarioCookie } from "@/lib/utils";
+import { connectToDatabase } from "@/lib/server";
+import { AjusteStr, applyAjuste, hasCajas } from "@/lib/utils";
+import { usuarioCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
+import { DeleteAudit } from "@/lib/mongodb";
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,109 +34,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
     }
 
-    const { db } = await connectToDatabase();
-    const usuarios = db.collection<Usuario>(COLECCIONES.USUARIO);
-    const expediciones = db.collection<Expedicion>(COLECCIONES.EXPEDICION);
-    const traspasos = db.collection<Traspaso>(COLECCIONES.TRASPASO);
-    const entregas = db.collection<Entrega>(COLECCIONES.ENTREGA);
-    const recogidas = db.collection<Recogida>(COLECCIONES.RECOGIDA);
-    const devoluciones = db.collection<Devolucion>(COLECCIONES.DEVOLUCION);
+    const db = await connectToDatabase();
 
-    const [
-      usuario,
-      expedicionesRaw,
-      traspasosRaw,
-      entregasRaw,
-      recogidasRaw,
-      devolucionesRaw,
-    ] = await Promise.all([
-      usuarios.findOne(
-        { nombre },
-        {
-          projection: {
-            _id: 0,
-            nombre: 1,
-            rol: 1,
-            fechaCreacion: 1,
-            ajuste: 1,
-          },
-        },
-      ),
-      expediciones
-        .find(
-          { nombre },
-          {
-            projection: {
-              _id: 0,
-              fecha: 1,
-              centro_distribucion: 1,
-              cajas: 1,
-              ajuste: 1,
-            },
-          },
-        )
-        .toArray(),
-      traspasos
-        .find(
-          { nombre },
-          {
-            projection: {
-              _id: 0,
-              fecha: 1,
-              centro_distribucion: 1,
-              cajas: 1,
-              ajuste: 1,
-            },
-          },
-        )
-        .toArray(),
-      entregas
-        .find(
-          { nombre },
-          {
-            projection: {
-              _id: 0,
-              fecha: 1,
-              centro_distribucion: 1,
-              cajas: 1,
-              ajuste: 1,
-            },
-          },
-        )
-        .toArray(),
-      recogidas
-        .find(
-          { nombre },
-          {
-            projection: {
-              _id: 0,
-              fecha: 1,
-              centro_distribucion: 1,
-              cajas: 1,
-              cajas_rotas: 1,
-              tapas_rotas: 1,
-              ajuste: 1,
-            },
-          },
-        )
-        .toArray(),
-      devoluciones
-        .find(
-          { nombre },
-          {
-            projection: {
-              _id: 0,
-              fecha: 1,
-              centro_distribucion: 1,
-              cajas: 1,
-              cajas_rotas: 1,
-              tapas_rotas: 1,
-              ajuste: 1,
-            },
-          },
-        )
-        .toArray(),
-    ]);
+    const usuariosRes = await db
+      .from(TABLAS.USUARIO)
+      .select<string, Created<Usuario>>("nombre, rol, created_at, ajuste")
+      .eq("nombre", nombre);
+
+    if (usuariosRes.error) throw new Error(usuariosRes.error.message);
+
+    const usuario = usuariosRes.data[0];
 
     if (!usuario) {
       return NextResponse.json(
@@ -141,55 +53,106 @@ export async function GET(request: NextRequest) {
     }
 
     let eventos;
-    let deletes;
+    // let deletes;
 
     if (usuario.rol === "informatico") {
-      deletes = await db
-        .collection<DeleteAudit>(COLECCIONES.AUDITORIA)
-        .find({ deletedBy: usuario.nombre })
-        .toArray();
+      //TODO: Implementar el DELETEAUDIT
     } else {
+      const [
+        expedicionesRaw,
+        traspasosRaw,
+        entregasRaw,
+        recogidasRaw,
+        devolucionesRaw,
+      ] = await Promise.all([
+        db
+          .from(TABLAS.EXPEDICION)
+          .select<
+            string,
+            Expedicion
+          >("centro_distribucion, fecha, nombre, cajas")
+          .eq("nombre", nombre),
+        db
+          .from(TABLAS.TRASPASO)
+          .select<string, Traspaso>("centro_distribucion, fecha, nombre, cajas")
+          .eq("nombre", nombre),
+        db
+          .from(TABLAS.ENTREGA)
+          .select<string, Entrega>("centro_distribucion, fecha, nombre, cajas")
+          .eq("nombre", nombre),
+        db
+          .from(TABLAS.RECOGIDA)
+          .select<
+            string,
+            Recogida
+          >("centro_distribucion, fecha, nombre, cajas, roturas")
+          .eq("nombre", nombre),
+        db
+          .from(TABLAS.DEVOLUCION)
+          .select<
+            string,
+            Devolucion
+          >("centro_distribucion, fecha, nombre, cajas, roturas")
+          .eq("nombre", nombre),
+      ]);
+
+      const error =
+        expedicionesRaw.error ||
+        traspasosRaw.error ||
+        entregasRaw.error ||
+        recogidasRaw.error ||
+        devolucionesRaw.error;
+
+      if (error) throw new Error(error.message);
+
       eventos = [
-        ...expedicionesRaw
-          .map(applyAjuste)
+        ...(expedicionesRaw.data.map(applyAjuste) as AjusteStr<Evento>[])
           .filter(hasCajas)
-          .map((evento) => ({ ...evento, tipo_evento: "Expedicion" as const })),
-        ...traspasosRaw
-          .map(applyAjuste)
+          .map((evento) => ({
+            ...evento,
+            id: undefined,
+            ajuste: undefined,
+            tipo_evento: "Expedicion" as const,
+          })),
+        ...(traspasosRaw.data.map(applyAjuste) as AjusteStr<Evento>[])
           .filter(hasCajas)
-          .map((evento) => ({ ...evento, tipo_evento: "Traspaso" as const })),
-        ...entregasRaw
-          .map(applyAjuste)
+          .map((evento) => ({
+            ...evento,
+            id: undefined,
+            ajuste: undefined,
+            tipo_evento: "Traspaso" as const,
+          })),
+        ...(entregasRaw.data.map(applyAjuste) as AjusteStr<Evento>[])
           .filter(hasCajas)
-          .map((evento) => ({ ...evento, tipo_evento: "Entrega" as const })),
-        ...recogidasRaw
-          .map(applyAjuste)
+          .map((evento) => ({
+            ...evento,
+            id: undefined,
+            ajuste: undefined,
+            tipo_evento: "Entrega" as const,
+          })),
+        ...(recogidasRaw.data.map(applyAjuste) as AjusteStr<EventoRotura>[])
           .filter(hasCajas)
-          .map((evento) => ({ ...evento, tipo_evento: "Recogida" as const })),
-        ...devolucionesRaw
-          .map(applyAjuste)
+          .map((evento) => ({
+            ...evento,
+            id: undefined,
+            ajuste: undefined,
+            tipo_evento: "Recogida" as const,
+          })),
+        ...(devolucionesRaw.data.map(applyAjuste) as AjusteStr<EventoRotura>[])
           .filter(hasCajas)
-          .map((evento) => ({ ...evento, tipo_evento: "Devolucion" as const })),
-      ]
-        .sort((a, b) => b.fecha.localeCompare(a.fecha))
-        .map((evento) => ({
-          fecha: evento.fecha,
-          centro_distribucion: evento.centro_distribucion,
-          tipo_evento: evento.tipo_evento,
-          cajas: evento.cajas,
-          cajas_rotas: ("cajas_rotas" in evento
-            ? evento.cajas_rotas
-            : { blancas: 0, negras: 0, verdes: 0 }) as Cajas,
-          tapas_rotas: ("tapas_rotas" in evento
-            ? evento.tapas_rotas
-            : { blancas: 0, negras: 0 }) as Tapas,
-        }));
+          .map((evento) => ({
+            ...evento,
+            id: undefined,
+            ajuste: undefined,
+            tipo_evento: "Devolucion" as const,
+          })),
+      ].sort((a, b) => b.fecha.localeCompare(a.fecha));
     }
 
     const audit: UsuarioAudit = {
       usuario,
       eventos,
-      deletes,
+      // deletes,
     };
 
     return NextResponse.json(audit);
@@ -203,7 +166,7 @@ export async function GET(request: NextRequest) {
 }
 
 export interface UsuarioAudit {
-  usuario: Usuario;
+  usuario: Created<Usuario>;
   eventos?: EventoAudit[];
   deletes?: DeleteAudit[];
 }
@@ -213,6 +176,8 @@ export interface EventoAudit {
   centro_distribucion: string;
   tipo_evento: TIPOS_EVENTO;
   cajas: Cajas;
-  cajas_rotas: Cajas;
-  tapas_rotas: Tapas;
+  roturas?: {
+    cajas: Cajas;
+    tapas: Tapas;
+  };
 }

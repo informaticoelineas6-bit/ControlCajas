@@ -1,6 +1,13 @@
 "use client";
 
-import { COLECCIONES, Entrega, TIPOS_EVENTO, Usuario } from "@/lib/constants";
+import {
+  CAJAS_ARRAY,
+  COLECCIONES,
+  COLORES_CAJAS,
+  Entrega,
+  TIPOS_EVENTO,
+  Usuario,
+} from "@/lib/constants";
 import { AjusteStr, applyAjuste } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
@@ -11,7 +18,7 @@ export default function TablaEntrega({
 }: Readonly<{
   usuario: Usuario;
   fecha: string;
-  onAjustar?: (tipo: TIPOS_EVENTO, id: string) => void;
+  onAjustar?: (tipo: TIPOS_EVENTO, id: number) => void;
 }>) {
   const [datos, setDatos] = useState<AjusteStr<Entrega>[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,7 +87,7 @@ export default function TablaEntrega({
               ) : (
                 datos.map((item) => (
                   <article
-                    key={item._id}
+                    key={item.id}
                     className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -97,7 +104,7 @@ export default function TablaEntrega({
                       {usuario.rol === "informatico" && (
                         <button
                           className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                          onClick={() => onAjustar?.("Entrega", item._id!)}
+                          onClick={() => onAjustar?.("Entrega", item.id)}
                         >
                           Ajustar
                         </button>
@@ -116,24 +123,14 @@ export default function TablaEntrega({
                           {item.chapa ?? "-"}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-slate-500">Blancas</p>
-                        <p className="font-medium text-slate-700">
-                          {item.cajas?.blancas ?? "-"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Negras</p>
-                        <p className="font-medium text-slate-700">
-                          {item.cajas?.negras ?? "-"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Verdes</p>
-                        <p className="font-medium text-slate-700">
-                          {item.cajas?.verdes ?? "-"}
-                        </p>
-                      </div>
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="text-slate-500 capitalize">{color}</p>
+                          <p className="font-medium text-slate-700">
+                            {item.cajas?.[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
                       <div>
                         <p className="text-slate-500">Ajustado por</p>
                         <p className="font-medium text-slate-700">
@@ -157,15 +154,14 @@ export default function TablaEntrega({
                       Chofer
                     </th>
                     <th className="px-5 py-4 text-left font-semibold">Chapa</th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Blancas
-                    </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Negras
-                    </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Verdes
-                    </th>
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <th
+                        key={color}
+                        className="px-5 py-4 text-center font-semibold capitalize"
+                      >
+                        {color}
+                      </th>
+                    ))}
                     <th className="px-5 py-4 text-center font-semibold">
                       Ajustado por
                     </th>
@@ -189,7 +185,7 @@ export default function TablaEntrega({
                   ) : (
                     datos.map((item) => (
                       <tr
-                        key={item._id}
+                        key={item.id}
                         className="border-t border-slate-100 transition hover:bg-sky-50/40"
                       >
                         <td className="px-5 py-4 font-semibold text-slate-800">
@@ -203,15 +199,14 @@ export default function TablaEntrega({
                         <td className="px-5 py-4 text-slate-600">
                           {item.chapa ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.cajas?.blancas ?? "-"}
-                        </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.cajas?.negras ?? "-"}
-                        </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.cajas?.verdes ?? "-"}
-                        </td>
+                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                          <td
+                            key={color}
+                            className="px-5 py-4 text-center text-slate-700"
+                          >
+                            {item.cajas[color] ?? "-"}
+                          </td>
+                        ))}
                         <td className="px-5 py-4 text-center text-slate-500">
                           {item.ajuste ?? "-"}
                         </td>
@@ -219,7 +214,7 @@ export default function TablaEntrega({
                           <td className="px-5 py-4 text-center">
                             <button
                               className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                              onClick={() => onAjustar?.("Entrega", item._id!)}
+                              onClick={() => onAjustar?.("Entrega", item.id)}
                             >
                               Ajustar
                             </button>

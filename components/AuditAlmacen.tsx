@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Almacen, CAJAS_ARRAY, TAPAS_ARRAY } from "@/lib/constants";
+import {
+  Almacen,
+  CAJAS_ARRAY,
+  COLORES_CAJAS,
+  COLORES_TAPAS,
+  TAPAS_ARRAY,
+} from "@/lib/constants";
 import type { AlmacenAudit } from "@/app/api/audit/almacen/route";
 import { formatDate } from "@/lib/utils";
 
@@ -135,7 +141,7 @@ export default function AuditAlmacen() {
                     <th className="px-5 py-4 text-left font-semibold">
                       Nombre
                     </th>
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={color}
                         className="px-5 py-4 text-left font-semibold"
@@ -143,7 +149,7 @@ export default function AuditAlmacen() {
                         Stock {color}
                       </th>
                     ))}
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`cajas-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -151,7 +157,7 @@ export default function AuditAlmacen() {
                         Cajas rotas {color}
                       </th>
                     ))}
-                    {TAPAS_ARRAY.map((color) => (
+                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`tapas-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -166,17 +172,17 @@ export default function AuditAlmacen() {
                     <td className="px-5 py-4 font-semibold text-slate-900">
                       {datos.almacen.nombre}
                     </td>
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td key={`stock-${color}`} className="px-5 py-4">
                         {datos.almacen.stock[color]}
                       </td>
                     ))}
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td key={`rotura-caja-${color}`} className="px-5 py-4">
                         {datos.almacen.roturas.cajas[color]}
                       </td>
                     ))}
-                    {TAPAS_ARRAY.map((color) => (
+                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <td key={`rotura-tapa-${color}`} className="px-5 py-4">
                         {datos.almacen.roturas.tapas[color]}
                       </td>
@@ -191,7 +197,7 @@ export default function AuditAlmacen() {
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold">Fecha</th>
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`ajuste-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -199,7 +205,7 @@ export default function AuditAlmacen() {
                         Ajuste stock {color}
                       </th>
                     ))}
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`cierre-caja-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -207,7 +213,7 @@ export default function AuditAlmacen() {
                         Cajas rotas {color}
                       </th>
                     ))}
-                    {TAPAS_ARRAY.map((color) => (
+                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`cierre-tapa-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -226,7 +232,7 @@ export default function AuditAlmacen() {
                       <td className="px-5 py-4 font-medium text-slate-700">
                         {formatDate(item.fecha)}
                       </td>
-                      {CAJAS_ARRAY.map((color) => (
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={`cierre-ajuste-${item.fecha}-${color}`}
                           className={`px-5 py-4 text-slate-600 ${getAjusteStockClass(item.ajuste_stock[color])}`}
@@ -234,20 +240,20 @@ export default function AuditAlmacen() {
                           {item.ajuste_stock[color]}
                         </td>
                       ))}
-                      {CAJAS_ARRAY.map((color) => (
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={`cierre-cajas-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.cajas_rotas[color])}`}
+                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas.cajas[color])}`}
                         >
-                          {item.cajas_rotas[color]}
+                          {item.roturas.cajas[color]}
                         </td>
                       ))}
-                      {TAPAS_ARRAY.map((color) => (
+                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <td
                           key={`cierre-tapas-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.tapas_rotas[color])}`}
+                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas.tapas[color])}`}
                         >
-                          {item.tapas_rotas[color]}
+                          {item.roturas.tapas[color]}
                         </td>
                       ))}
                     </tr>

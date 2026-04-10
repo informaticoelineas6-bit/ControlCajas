@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
-import { usuarioCookie } from "@/lib/utils";
-import { AjusteObjetos, OBJETOS_ARRAY, TIPOS_OBJETOS } from "@/lib/constants";
+import { connectToDatabase } from "@/lib/server";
+import { usuarioCookie } from "@/lib/auth";
+import {
+  AjusteObjetos,
+  getObjectTable,
+  OBJETOS_ARRAY,
+  TIPOS_OBJETOS,
+} from "@/lib/constants";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -12,8 +16,7 @@ export async function PUT(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const data = await request.json();
-    const { tipo_objeto, ajuste }: ObjetoAjusteForm = data;
+    const { tipo_objeto, ajuste }: ObjetoAjusteForm = await request.json();
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -29,34 +32,26 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { db } = await connectToDatabase();
-    const collection = db.collection(tipo_objeto);
+    const db = (await connectToDatabase()).from(getObjectTable[tipo_objeto]);
 
-    const filter = { _id: ObjectId.createFromHexString(id) };
-    const update = {
-      $set: {
+    const { error } = await db
+      .update({
         ajuste: {
           fechaHora: new Date().toISOString(),
           habilitado: ajuste.habilitado,
           nombre: usuario.nombre,
-        } as AjusteObjetos,
-      },
-    };
+        },
+      })
+      .eq(tipo_objeto === "Vehiculo" ? "chapa" : "nombre", id);
 
-    const result = await collection.updateOne(filter, update);
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { error: "Evento no encontrado" },
-        { status: 404 },
-      );
-    }
+    if (error) throw new Error(error.message);
 
     return NextResponse.json({
       success: true,
-      message: "Evento actualizado exitosamente.",
+      message: "Objeto actualizado exitosamente.",
     });
-  } catch (err) {
-    console.error("Error adjusting event:", err);
+  } catch (error) {
+    console.error("Error ajustando objeto:", error);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }

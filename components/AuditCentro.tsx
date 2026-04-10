@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CAJAS_ARRAY, CentroDistribucion, TAPAS_ARRAY } from "@/lib/constants";
+import {
+  CAJAS_ARRAY,
+  CentroDistribucion,
+  COLORES_CAJAS,
+  COLORES_TAPAS,
+  TAPAS_ARRAY,
+} from "@/lib/constants";
 import type { CentroAudit } from "@/app/api/audit/centro/route";
 import { formatDate } from "@/lib/utils";
 
@@ -135,7 +141,7 @@ export default function AuditCentro() {
                     <th className="px-5 py-4 text-left font-semibold">
                       Nombre
                     </th>
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={color}
                         className="px-5 py-4 text-left font-semibold"
@@ -146,7 +152,7 @@ export default function AuditCentro() {
                     <th className="px-5 py-4 text-left font-semibold">
                       Rotación
                     </th>
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`cajas-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -154,7 +160,7 @@ export default function AuditCentro() {
                         Cajas rotas {color}
                       </th>
                     ))}
-                    {TAPAS_ARRAY.map((color) => (
+                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`tapas-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -169,18 +175,18 @@ export default function AuditCentro() {
                     <td className="px-5 py-4 font-semibold text-slate-900">
                       {datos.centro.nombre}
                     </td>
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td key={`deuda-${color}`} className="px-5 py-4">
                         {datos.centro.deuda[color]}
                       </td>
                     ))}
                     <td className="px-5 py-4">{datos.centro.rotacion}</td>
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td key={`rotura-caja-${color}`} className="px-5 py-4">
                         {datos.centro.roturas.cajas[color]}
                       </td>
                     ))}
-                    {TAPAS_ARRAY.map((color) => (
+                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <td key={`rotura-tapa-${color}`} className="px-5 py-4">
                         {datos.centro.roturas.tapas[color]}
                       </td>
@@ -195,7 +201,7 @@ export default function AuditCentro() {
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold">Fecha</th>
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`ajuste-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -203,7 +209,7 @@ export default function AuditCentro() {
                         Ajuste deuda {color}
                       </th>
                     ))}
-                    {CAJAS_ARRAY.map((color) => (
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`cierre-caja-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -211,7 +217,7 @@ export default function AuditCentro() {
                         Cajas rotas {color}
                       </th>
                     ))}
-                    {TAPAS_ARRAY.map((color) => (
+                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`cierre-tapa-${color}`}
                         className="px-5 py-4 text-left font-semibold"
@@ -230,7 +236,7 @@ export default function AuditCentro() {
                       <td className="px-5 py-4 font-medium text-slate-700">
                         {formatDate(item.fecha)}
                       </td>
-                      {CAJAS_ARRAY.map((color) => (
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={`cierre-ajuste-${item.fecha}-${color}`}
                           className={`px-5 py-4 text-slate-600 ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
@@ -238,20 +244,20 @@ export default function AuditCentro() {
                           {item.ajuste_deuda[color]}
                         </td>
                       ))}
-                      {CAJAS_ARRAY.map((color) => (
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={`cierre-cajas-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.cajas_rotas[color])}`}
+                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas.cajas[color])}`}
                         >
-                          {item.cajas_rotas[color]}
+                          {item.roturas.cajas[color]}
                         </td>
                       ))}
-                      {TAPAS_ARRAY.map((color) => (
+                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <td
                           key={`cierre-tapas-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.tapas_rotas[color])}`}
+                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas.tapas[color])}`}
                         >
-                          {item.tapas_rotas[color]}
+                          {item.roturas.tapas[color]}
                         </td>
                       ))}
                     </tr>

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase, logDelete } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
-import { Almacen, COLECCIONES, Nuevo } from "@/lib/constants";
-import { usuarioCookie } from "@/lib/utils";
+import { connectToDatabase } from "@/lib/server";
+import { Almacen, TABLAS } from "@/lib/constants";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,10 +11,12 @@ export async function GET(request: NextRequest) {
     if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const { db } = await connectToDatabase();
-    const almacenes = db.collection(COLECCIONES.ALMACEN);
-    const listaAlmacenes = await almacenes.find({}).toArray();
-    return NextResponse.json(listaAlmacenes);
+    const db = (await connectToDatabase()).from(TABLAS.ALMACEN);
+    const { data, error } = await db.select("*");
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching almacenes:", error);
     return NextResponse.json(
@@ -33,24 +34,20 @@ export async function POST(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body: Nuevo<Almacen> = await request.json();
-    const { db } = await connectToDatabase();
-
+    const body: Almacen = await request.json();
     body.nombre = body.nombre.trim();
-    const almacenes = db.collection<Almacen>(COLECCIONES.ALMACEN);
 
-    const existente = await almacenes.findOne({ nombre: body.nombre });
-    if (existente) {
-      return NextResponse.json(
-        { error: "Ya se encuentra registrado un almacén con ese nombre" },
-        { status: 409 },
-      );
-    }
+    const db = (await connectToDatabase()).from(TABLAS.ALMACEN);
+    const { error } = await db.insert(body);
 
-    const result = await almacenes.insertOne(body);
-    return NextResponse.json({ _id: result.insertedId, ...body });
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(
+      { message: "Almacén insertado correctamente" },
+      { status: 201 },
+    );
   } catch (error) {
-    console.error("Error creating almacen:", error);
+    console.error("Error creando almacen:", error);
     return NextResponse.json(
       { error: "Error al crear almacen" },
       { status: 500 },
@@ -66,23 +63,25 @@ export async function PUT(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body = await request.json();
-    const { _id, ...data } = body;
-    if (!_id) {
+    const { nombre, ...updates }: Almacen = await request.json();
+    if (!nombre) {
       return NextResponse.json(
-        { error: "ID de almacen requerido" },
+        { error: "Nombre de almacén requerido" },
         { status: 400 },
       );
     }
-    const { db } = await connectToDatabase();
-    const almacenes = db.collection(COLECCIONES.ALMACEN);
-    await almacenes.updateOne(
-      { _id: ObjectId.createFromHexString(_id) },
-      { $set: data },
+
+    const db = (await connectToDatabase()).from(TABLAS.ALMACEN);
+    const { error } = await db.update(updates).eq("nombre", nombre);
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(
+      { message: "Almacén actualizado correctamente" },
+      { status: 201 },
     );
-    return NextResponse.json({ _id, ...data });
   } catch (error) {
-    console.error("Error updating almacen:", error);
+    console.error("Error actualizando almacen:", error);
     return NextResponse.json(
       { error: "Error al actualizar almacen" },
       { status: 500 },
@@ -99,24 +98,25 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
+    const nombre = searchParams.get("id");
+    if (!nombre) {
       return NextResponse.json(
-        { error: "ID de almacen requerido" },
+        { error: "Nombre de almacen requerido" },
         { status: 400 },
       );
     }
-    const { db } = await connectToDatabase();
-    const almacenes = db.collection(COLECCIONES.ALMACEN);
 
-    return await logDelete(
-      db,
-      almacenes,
-      ObjectId.createFromHexString(id),
-      usuario.nombre,
+    const db = (await connectToDatabase()).from(TABLAS.ALMACEN);
+    const { error } = await db.delete().eq("nombre", nombre);
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(
+      { message: "Almacén eliminado correctamente" },
+      { status: 200 },
     );
   } catch (error) {
-    console.error("Error deleting almacen:", error);
+    console.error("Error eliminando almacen:", error);
     return NextResponse.json(
       { error: "Error al eliminar almacen" },
       { status: 500 },

@@ -2,34 +2,36 @@
 
 import { EventoResponse } from "@/app/api/form/eventos/route";
 import {
+  CAJAS_ARRAY,
   CajasHabilitadas,
   Usuario,
   TIPOS_EVENTO,
   Cajas,
   Tapas,
   COLORES_CAJAS,
+  CajasRoturas,
 } from "@/lib/constants";
 import { totalCajas } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 
 // Verificar la tardanza de el warning/message.
 
-export interface EventoCreateForm {
+export interface EventoCreateForm extends CajasRoturas {
   almacen?: string;
   centro_distribucion?: string;
   chapa?: string;
   cajas: Cajas;
-  cajas_rotas: Cajas;
-  tapas_rotas: Tapas;
 }
 
 export interface EventoAjusteForm {
   tipo_evento?: TIPOS_EVENTO;
-  ajuste: {
-    cajas: Cajas;
-    cajas_rotas?: Cajas;
-    tapas_rotas?: Tapas;
-  };
+  ajuste:
+    | {
+        cajas: Cajas;
+      }
+    | ({
+        cajas: Cajas;
+      } & CajasRoturas);
 }
 
 export type AjusteProp<Orig> = Orig & {
@@ -80,12 +82,16 @@ export default function FormularioEvento({
     centro_distribucion: undefined,
     chapa: undefined,
     cajas: { blancas: 0, negras: 0, verdes: 0 },
-    cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-    tapas_rotas: { blancas: 0, negras: 0 },
+    roturas: {
+      cajas: { blancas: 0, negras: 0, verdes: 0 },
+      tapas: { blancas: 0, negras: 0 },
+    },
     ajuste: {
       cajas: { blancas: 0, negras: 0, verdes: 0 },
-      cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-      tapas_rotas: { blancas: 0, negras: 0 },
+      roturas: {
+        cajas: { blancas: 0, negras: 0, verdes: 0 },
+        tapas: { blancas: 0, negras: 0 },
+      },
     },
   });
 
@@ -101,16 +107,20 @@ export default function FormularioEvento({
         almacen: initialData.almacen,
         chapa: initialData.chapa,
         cajas: initialData.cajas ?? { blancas: 0, negras: 0, verdes: 0 },
-        cajas_rotas: initialData.cajas_rotas ?? {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
+        roturas: initialData.roturas ?? {
+          cajas: {
+            blancas: 0,
+            negras: 0,
+            verdes: 0,
+          },
+          tapas: { blancas: 0, negras: 0 },
         },
-        tapas_rotas: initialData.tapas_rotas ?? { blancas: 0, negras: 0 },
         ajuste: initialData.ajuste ?? {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
-          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          tapas_rotas: { blancas: 0, negras: 0 },
+          roturas: {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas: { blancas: 0, negras: 0 },
+          },
         },
       });
     }
@@ -166,12 +176,16 @@ export default function FormularioEvento({
       centro_distribucion: undefined,
       chapa: undefined,
       cajas: { blancas: 0, negras: 0, verdes: 0 },
-      cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-      tapas_rotas: { blancas: 0, negras: 0 },
+      roturas: {
+        cajas: { blancas: 0, negras: 0, verdes: 0 },
+        tapas: { blancas: 0, negras: 0 },
+      },
       ajuste: {
         cajas: { blancas: 0, negras: 0, verdes: 0 },
-        cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-        tapas_rotas: { blancas: 0, negras: 0 },
+        roturas: {
+          cajas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas: { blancas: 0, negras: 0 },
+        },
       },
     });
   };
@@ -208,29 +222,46 @@ export default function FormularioEvento({
     }
 
     // Ajuste fields have a prefix that includes "ajuste_" followed by the
-    // category (cajas / cajas_rotas / tapas_rotas) and finally the color.
+    // category (cajas / roturas.cajas / roturas.tapas) and finally the color.
     if (name.startsWith("ajuste_")) {
       const parts = name.split("_");
       // last part is color, the rest after "ajuste" defines the category
       const color = parts.at(-1) as COLORES_CAJAS;
       const category = parts.slice(1, -1).join("_") as
         | "cajas"
-        | "cajas_rotas"
-        | "tapas_rotas";
+        | "roturas.cajas"
+        | "roturas.tapas";
 
       setFormData((prev) => {
         const baseAjuste = prev.ajuste ?? {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
-          cajas_rotas: { blancas: 0, negras: 0, verdes: 0 },
-          tapas_rotas: { blancas: 0, negras: 0 },
+          roturas: {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas: { blancas: 0, negras: 0 },
+          },
+        };
+        if (category === "cajas") {
+          return {
+            ...prev,
+            ajuste: {
+              ...baseAjuste,
+              cajas: { ...baseAjuste.cajas, [color]: numValue || 0 },
+            },
+          };
+        }
+        const subKey = category.split(".")[1] as "cajas" | "tapas";
+        const roturasBase = (baseAjuste as { cajas: Cajas } & CajasRoturas)
+          .roturas ?? {
+          cajas: { blancas: 0, negras: 0, verdes: 0 },
+          tapas: { blancas: 0, negras: 0 },
         };
         return {
           ...prev,
           ajuste: {
             ...baseAjuste,
-            [category]: {
-              ...baseAjuste[category],
-              [color]: numValue || 0,
+            roturas: {
+              ...roturasBase,
+              [subKey]: { ...roturasBase[subKey], [color]: numValue || 0 },
             },
           },
         };
@@ -244,7 +275,7 @@ export default function FormularioEvento({
       return;
     }
 
-    if (name.startsWith("tapas_rotas_")) {
+    if (name.startsWith("roturas.tapas_")) {
       const [, , color] = name.split("_");
       if (numValue > formData.cajas[color as COLORES_CAJAS]) {
         setMensaje(
@@ -254,10 +285,13 @@ export default function FormularioEvento({
       }
       setFormData((prev) => ({
         ...prev,
-        tapas_rotas: { ...prev.tapas_rotas, [color]: numValue || 0 },
+        roturas: {
+          ...prev.roturas,
+          tapas: { ...prev.roturas.tapas, [color]: numValue || 0 },
+        },
       }));
       setMensaje("");
-    } else if (name.startsWith("cajas_rotas_")) {
+    } else if (name.startsWith("roturas.cajas_")) {
       const [, , color] = name.split("_");
       if (numValue > formData.cajas[color as COLORES_CAJAS]) {
         setMensaje(
@@ -267,7 +301,10 @@ export default function FormularioEvento({
       }
       setFormData((prev) => ({
         ...prev,
-        cajas_rotas: { ...prev.cajas_rotas, [color]: numValue || 0 },
+        roturas: {
+          ...prev.roturas,
+          cajas: { ...prev.roturas.cajas, [color]: numValue || 0 },
+        },
       }));
       setMensaje("");
     } else if (name.startsWith("cajas_")) {
@@ -310,8 +347,13 @@ export default function FormularioEvento({
           tipo_evento: tipoEvento,
           ajuste: {
             cajas: formData.ajuste.cajas,
-            cajas_rotas: formData.ajuste.cajas_rotas,
-            tapas_rotas: formData.ajuste.tapas_rotas,
+            roturas:
+              "roturas" in formData.ajuste
+                ? {
+                    cajas: formData.ajuste.roturas.cajas,
+                    tapas: formData.ajuste.roturas.tapas,
+                  }
+                : undefined,
           },
         };
         response = await fetch(`/api/eventos/ajuste?id=${originalId}`, {
@@ -323,10 +365,12 @@ export default function FormularioEvento({
         const body: EventoCreateForm = {
           cajas: formData.cajas,
           almacen: formData.almacen,
-          cajas_rotas: formData.cajas_rotas,
           centro_distribucion: formData.centro_distribucion,
           chapa: formData.chapa,
-          tapas_rotas: formData.tapas_rotas,
+          roturas: {
+            cajas: formData.roturas.cajas,
+            tapas: formData.roturas.tapas,
+          },
         };
         response = await fetch(`/api/eventos/create?tipo=${tipoEvento}`, {
           method: "POST",
@@ -565,14 +609,13 @@ export default function FormularioEvento({
                       className={fieldClass}
                     >
                       <option value={undefined}>Selecciona un almacén</option>
-                      {response[formData.centro_distribucion].almacenes &&
-                        response[formData.centro_distribucion].almacenes.map(
-                          (almacen, index) => (
-                            <option key={almacen + index} value={almacen}>
-                              {almacen}
-                            </option>
-                          ),
-                        )}
+                      {response[formData.centro_distribucion].almacenes?.map(
+                        (almacen, index) => (
+                          <option key={almacen + index} value={almacen}>
+                            {almacen}
+                          </option>
+                        ),
+                      )}
                     </select>
                   </div>
                 )}
@@ -597,18 +640,16 @@ export default function FormularioEvento({
                       className={fieldClass}
                     >
                       <option value={undefined}>Selecciona una chapa</option>
-                      {response[formData.centro_distribucion].vehiculos &&
-                        response[formData.centro_distribucion].vehiculos.map(
-                          (vehiculo) => (
-                            <option key={vehiculo.chapa} value={vehiculo.chapa}>
-                              {vehiculo.categoria}{" "}
-                              {vehiculo.marca ? vehiculo.marca + " " : ""}
-                              {vehiculo.modelo
-                                ? vehiculo.modelo + " "
-                                : ""}- {vehiculo.chapa}
-                            </option>
-                          ),
-                        )}
+                      {response[formData.centro_distribucion].vehiculos?.map(
+                        (vehiculo) => (
+                          <option key={vehiculo.chapa} value={vehiculo.chapa}>
+                            {vehiculo.categoria}{" "}
+                            {vehiculo.marca ? vehiculo.marca + " " : ""}
+                            {vehiculo.modelo ? vehiculo.modelo + " " : ""}-{" "}
+                            {vehiculo.chapa}
+                          </option>
+                        ),
+                      )}
                     </select>
                   </div>
                 )}
@@ -629,9 +670,9 @@ export default function FormularioEvento({
 
               {mostrarRoturas &&
                 formCajas(
-                  formData.cajas_rotas,
+                  formData.roturas.cajas,
                   "Cajas Rotas",
-                  "cajas_rotas",
+                  "roturas.cajas",
                   !!(
                     isAdjustment ||
                     loading ||
@@ -643,9 +684,9 @@ export default function FormularioEvento({
 
               {mostrarRoturas &&
                 formCajas(
-                  formData.tapas_rotas,
+                  formData.roturas.tapas,
                   "Tapas Rotas",
-                  "tapas_rotas",
+                  "roturas.tapas",
                   !!(
                     isAdjustment ||
                     loading ||
@@ -669,27 +710,27 @@ export default function FormularioEvento({
                   )}
 
                   {mostrarRoturas &&
-                    "cajas_rotas" in formData.ajuste &&
+                    "roturas" in formData.ajuste &&
                     formCajas(
-                      formData.ajuste?.cajas_rotas || {
+                      formData.ajuste?.roturas.cajas || {
                         blancas: 0,
                         negras: 0,
                         verdes: 0,
                       },
                       "Ajuste Cajas Rotas",
-                      "ajuste_cajas_rotas",
+                      "ajuste_roturas.cajas",
                       !!(loading || isSuccess || isWarning),
                     )}
 
                   {mostrarRoturas &&
-                    "tapas_rotas" in formData.ajuste &&
+                    "roturas" in formData.ajuste &&
                     formCajas(
-                      formData.ajuste?.tapas_rotas || {
+                      formData.ajuste?.roturas.tapas || {
                         blancas: 0,
                         negras: 0,
                       },
                       "Ajuste Tapas Rotas",
-                      "ajuste_tapas_rotas",
+                      "ajuste_roturas.tapas",
                       !!(loading || isSuccess || isWarning),
                     )}
                 </div>
@@ -737,80 +778,47 @@ export default function FormularioEvento({
     prefix: string,
     disabled = false,
   ) {
-    if (!habilitado.blancas && !habilitado.negras && !habilitado.verdes) return;
+    const COLOR_LABEL_STYLES: Record<COLORES_CAJAS, string> = {
+      blancas: "border-slate-200 bg-white text-slate-800",
+      negras: "border-slate-800 bg-slate-900 text-white",
+      verdes: "border-emerald-200 bg-emerald-100 text-emerald-900",
+    };
+
+    if (Object.values(habilitado).every((val: boolean) => !val)) return;
     return (
       <div className="rounded-[26px] border border-slate-200 bg-[linear-gradient(180deg,_rgba(248,250,252,0.96),_rgba(241,245,249,0.82))] p-5">
         <h3 className="mb-4 text-lg font-semibold text-slate-900">{title}</h3>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {habilitado.blancas && (
-            <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
-              <label
-                htmlFor={`${prefix}_blancas`}
-                className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-3 text-center font-semibold text-slate-800"
+          {CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+            if (!habilitado[color] || !(color in object)) return null;
+            const value = (object as Cajas)[color];
+            return (
+              <div
+                key={color}
+                className="grid grid-cols-[minmax(0,1fr)_110px] gap-3"
               >
-                Blancas
-              </label>
-              <input
-                type="number"
-                id={`${prefix}_blancas`}
-                name={`${prefix}_blancas`}
-                value={object.blancas}
-                onChange={handleInputChange}
-                disabled={disabled || submitted}
-                className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
-                  object.blancas === 0
-                    ? "border-slate-200 bg-slate-50"
-                    : "border-slate-400 bg-white"
-                }`}
-              />
-            </div>
-          )}
-          {habilitado.negras && (
-            <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
-              <label
-                htmlFor={`${prefix}_negras`}
-                className="flex items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 px-3 py-3 text-center font-semibold text-white"
-              >
-                Negras
-              </label>
-              <input
-                type="number"
-                id={`${prefix}_negras`}
-                name={`${prefix}_negras`}
-                value={object.negras}
-                onChange={handleInputChange}
-                disabled={disabled || submitted}
-                className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
-                  object.negras === 0
-                    ? "border-slate-200 bg-slate-50"
-                    : "border-slate-400 bg-white"
-                }`}
-              />
-            </div>
-          )}
-          {habilitado.verdes && "verdes" in object && (
-            <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
-              <label
-                htmlFor={`${prefix}_verdes`}
-                className="flex items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-100 px-3 py-3 text-center font-semibold text-emerald-900"
-              >
-                Verdes
-              </label>
-              <input
-                type="number"
-                id={`${prefix}_verdes`}
-                name={`${prefix}_verdes`}
-                value={object.verdes}
-                onChange={handleInputChange}
-                disabled={disabled || submitted}
-                className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
-                  object.verdes === 0
-                    ? "border-slate-200 bg-slate-50"
-                    : "border-slate-400 bg-white"
-                }`}
-              />
-            </div>
-          )}
+                <label
+                  htmlFor={`${prefix}_${color}`}
+                  className={`flex items-center justify-center rounded-2xl border px-3 py-3 text-center font-semibold ${COLOR_LABEL_STYLES[color]}`}
+                >
+                  {color.charAt(0).toUpperCase() + color.slice(1)}
+                </label>
+                <input
+                  type="number"
+                  id={`${prefix}_${color}`}
+                  name={`${prefix}_${color}`}
+                  value={value}
+                  onChange={handleInputChange}
+                  disabled={disabled || submitted}
+                  className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
+                    value === 0
+                      ? "border-slate-200 bg-slate-50"
+                      : "border-slate-400 bg-white"
+                  }`}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     );

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { Almacen, COLECCIONES } from "@/lib/constants";
-import { isEnabled, usuarioCookie } from "@/lib/utils";
+import { connectToDatabase } from "@/lib/server";
+import { Almacen, TABLAS } from "@/lib/constants";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,21 +9,15 @@ export async function GET(request: NextRequest) {
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-    const { db } = await connectToDatabase();
-    const almacenes = db.collection<Almacen>(COLECCIONES.ALMACEN);
-    const listaAlmacenes = (await almacenes.find({}).toArray()).filter(
-      isEnabled,
-    );
-    return NextResponse.json(
-      listaAlmacenes.map((alm): Almacen => {
-        return {
-          nombre: alm.nombre,
-          habilitado: alm.habilitado,
-          stock: alm.stock,
-          roturas: alm.roturas,
-        };
-      }),
-    );
+    const db = (await connectToDatabase()).from(TABLAS.ALMACEN);
+
+    const { data, error } = await db
+      .select<string, Almacen>("nombre, habilitado, stock, roturas")
+      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null");
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching almacenes:", error);
     return NextResponse.json(

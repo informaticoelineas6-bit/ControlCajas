@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from "@/lib/server";
 import {
   Almacen,
   Cajas,
   CentroDistribucion,
-  COLECCIONES,
+  TABLAS,
   Devolucion,
   Entrega,
   Expedicion,
@@ -19,8 +19,8 @@ import {
   isEnabled,
   sumCajas,
   totalCajas,
-  usuarioCookie,
 } from "@/lib/utils";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const { db } = await connectToDatabase();
+    const db = await connectToDatabase();
     const today = new Date().toISOString().split("T")[0];
     const parseDate = (value: string) => {
       const [year, month, day] = value.split("-").map(Number);
@@ -47,51 +47,65 @@ export async function GET(request: NextRequest) {
       recogidasRaw,
       devolucionesRaw,
     ] = await Promise.all([
+      db.from(TABLAS.CENTRO_DISTRIBUCION).select<string, CentroDistribucion>(),
+      db.from(TABLAS.ALMACEN).select<string, Almacen>(),
       db
-        .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-        .find()
-        .toArray() as Promise<CentroDistribucion[]>,
-      db.collection<Almacen>(COLECCIONES.ALMACEN).find().toArray() as Promise<
-        Almacen[]
-      >,
+        .from(TABLAS.EXPEDICION)
+        .select<string, Expedicion>()
+        .eq("fecha", today),
+      db.from(TABLAS.TRASPASO).select<string, Traspaso>().eq("fecha", today),
       db
-        .collection<Expedicion>(COLECCIONES.EXPEDICION)
-        .find({ fecha: today })
-        .toArray() as Promise<Expedicion[]>,
-      db.collection<Traspaso>(COLECCIONES.TRASPASO).find().toArray() as Promise<
-        Traspaso[]
-      >,
-      db.collection<Entrega>(COLECCIONES.ENTREGA).find().toArray() as Promise<
-        Entrega[]
-      >,
+        .from(TABLAS.ENTREGA)
+        .select<string, Entrega>()
+        .order("fecha", { ascending: false }),
+      db.from(TABLAS.RECOGIDA).select<string, Recogida>().eq("fecha", today),
       db
-        .collection<Recogida>(COLECCIONES.RECOGIDA)
-        .find({ fecha: today })
-        .toArray() as Promise<Recogida[]>,
-      db
-        .collection<Devolucion>(COLECCIONES.DEVOLUCION)
-        .find({ fecha: today })
-        .toArray() as Promise<Devolucion[]>,
+        .from(TABLAS.DEVOLUCION)
+        .select<string, Devolucion>()
+        .eq("fecha", today),
     ]);
 
+    const error =
+      centrosRaw.error ||
+      almacenesRaw.error ||
+      expedicionesRaw.error ||
+      traspasosRaw.error ||
+      entregasRaw.error ||
+      recogidasRaw.error ||
+      devolucionesRaw.error;
+
+    if (error) throw new Error(error.message);
+
     // Apply post-processing (map, filter, sort) to the raw results
-    const centros = centrosRaw.filter(isEnabled);
-    const almacenes = almacenesRaw.filter(isEnabled);
-    const expediciones = expedicionesRaw
-      .map(applyAjuste)
-      .filter(hasCajas) as AjusteStr<Expedicion>[];
-    const traspasos = traspasosRaw
-      .map(applyAjuste)
-      .filter(hasCajas) as AjusteStr<Traspaso>[];
-    const entregas = (entregasRaw.map(applyAjuste) as AjusteStr<Entrega>[])
-      .filter(hasCajas)
-      .sort((a, b) => b.fecha.localeCompare(a.fecha));
-    const recogidas = recogidasRaw
-      .map(applyAjuste)
-      .filter(hasCajas) as AjusteStr<Recogida>[];
-    const devoluciones = devolucionesRaw
-      .map(applyAjuste)
-      .filter(hasCajas) as AjusteStr<Devolucion>[];
+    const centros = centrosRaw.data ? centrosRaw.data.filter(isEnabled) : [];
+    const almacenes = almacenesRaw.data
+      ? almacenesRaw.data.filter(isEnabled)
+      : [];
+    const expediciones = expedicionesRaw.data
+      ? (expedicionesRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Expedicion>[])
+      : [];
+    const traspasos = traspasosRaw.data
+      ? (traspasosRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Traspaso>[])
+      : [];
+    const entregas = entregasRaw.data
+      ? (entregasRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Entrega>[])
+      : [];
+    const recogidas = recogidasRaw.data
+      ? (recogidasRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Recogida>[])
+      : [];
+    const devoluciones = devolucionesRaw.data
+      ? (devolucionesRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Devolucion>[])
+      : [];
 
     const dashboardData: DashboardRow[] = [];
     const movementToday: number =
@@ -217,8 +231,8 @@ export async function GET(request: NextRequest) {
       (acc: number, devolucion: AjusteStr<Devolucion>) => {
         return (
           acc +
-          totalCajas(devolucion.cajas_rotas) +
-          totalCajas(devolucion.tapas_rotas)
+          totalCajas(devolucion.roturas.cajas) +
+          totalCajas(devolucion.roturas.tapas)
         );
       },
       0,

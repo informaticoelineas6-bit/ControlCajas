@@ -25,8 +25,8 @@ export default function ConfirmDeleteButton({
         setIsOpen(false);
       }
     };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    globalThis.addEventListener("keydown", onKeyDown);
+    return () => globalThis.removeEventListener("keydown", onKeyDown);
   }, [isDeleting, isOpen]);
 
   const handleDelete = async () => {

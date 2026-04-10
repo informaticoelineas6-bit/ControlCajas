@@ -112,7 +112,7 @@ export default function Dashboard() {
 
   const handleAjustarClick = async (
     tipoEvento: TIPOS_EVENTO,
-    eventoId: string,
+    eventoId: number,
   ) => {
     try {
       const res = await fetch(

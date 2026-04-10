@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase, logDelete } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
-import { COLECCIONES, Usuario } from "@/lib/constants";
-import { usuarioCookie } from "@/lib/utils";
+import { connectToDatabase } from "@/lib/server";
+import { TABLAS, Usuario } from "@/lib/constants";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,15 +11,13 @@ export async function GET(request: NextRequest) {
     if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const { db } = await connectToDatabase();
-    const usuarios = db.collection<Usuario>(COLECCIONES.USUARIO);
-    const listaUsuarios = (await usuarios.find({}).toArray()).map((u) => ({
-      _id: u._id?.toString(),
-      nombre: u.nombre,
-      rol: u.rol,
-      ajuste: u.ajuste,
-    }));
-    return NextResponse.json(listaUsuarios);
+    const db = (await connectToDatabase()).from(TABLAS.USUARIO);
+
+    const { data, error } = await db.select("nombre, rol, ajuste");
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching usuarios:", error);
     return NextResponse.json(
@@ -38,31 +35,39 @@ export async function PUT(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body = await request.json();
-    const { _id, ...data } = body;
-    if (!_id) {
+    const { nombre, ...body }: Partial<Usuario> = await request.json();
+
+    if (!nombre) {
       return NextResponse.json(
-        { error: "ID de usuario requerido" },
+        { error: "Nombre de centro requerido" },
         { status: 400 },
       );
     }
 
-    if (body.nombre === usuario.nombre) {
+    if (nombre === usuario.nombre) {
       return NextResponse.json(
         { error: "No está permitido modificar el propio usuario" },
         { status: 403 },
       );
     }
 
-    const { db } = await connectToDatabase();
-    const usuarios = db.collection(COLECCIONES.USUARIO);
-    await usuarios.updateOne(
-      { _id: ObjectId.createFromHexString(_id) },
-      { $set: data },
+    const db = (await connectToDatabase()).from(TABLAS.USUARIO);
+
+    const { error } = await db
+      .update({
+        rol: body.rol,
+        ajuste: body.ajuste,
+      })
+      .eq("nombre", nombre);
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(
+      { message: "Usuario actualizado correctamente" },
+      { status: 201 },
     );
-    return NextResponse.json({ _id, ...data });
   } catch (error) {
-    console.error("Error updating usuario:", error);
+    console.error("Error actualizando usuario:", error);
     return NextResponse.json(
       { error: "Error al actualizar usuario" },
       { status: 500 },
@@ -79,25 +84,25 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
+    const nombre = searchParams.get("id");
+    if (!nombre) {
       return NextResponse.json(
-        { error: "ID de usuario requerido" },
+        { error: "Nombre de usuario requerido" },
         { status: 400 },
       );
     }
 
-    const { db } = await connectToDatabase();
-    const usuarios = db.collection(COLECCIONES.USUARIO);
+    const db = (await connectToDatabase()).from(TABLAS.USUARIO);
+    const { error } = await db.delete().eq("nombre", nombre);
 
-    return await logDelete(
-      db,
-      usuarios,
-      ObjectId.createFromHexString(id),
-      usuario.nombre,
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(
+      { message: "Usuario eliminado correctamente" },
+      { status: 200 },
     );
   } catch (error) {
-    console.error("Error deleting usuario:", error);
+    console.error("Error eliminando usuario:", error);
     return NextResponse.json(
       { error: "Error al eliminar usuario" },
       { status: 500 },

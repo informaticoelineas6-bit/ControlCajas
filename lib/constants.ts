@@ -49,6 +49,36 @@ export enum COLECCIONES {
   AUDITORIA = "AuditLog",
 }
 
+export enum TABLAS {
+  ALMACEN = "almacen",
+  CENTRO_DISTRIBUCION = "centro_distribucion",
+  USUARIO = "usuario",
+  VEHICULO = "vehiculo",
+  EXPEDICION = "expedicion",
+  ENTREGA = "entrega",
+  TRASPASO = "traspaso",
+  DEVOLUCION = "devolucion",
+  RECOGIDA = "recogida",
+  CIERRE = "cierre",
+  PROVINCIA = "provincia",
+}
+
+export const getEventTable: Record<TIPOS_EVENTO, string> = {
+  Devolucion: TABLAS.DEVOLUCION,
+  Entrega: TABLAS.ENTREGA,
+  Expedicion: TABLAS.EXPEDICION,
+  Recogida: TABLAS.RECOGIDA,
+  Traspaso: TABLAS.TRASPASO,
+};
+
+export const getObjectTable: Record<TIPOS_OBJETOS, string> = {
+  Almacen: TABLAS.ALMACEN,
+  CentroDistribucion: TABLAS.CENTRO_DISTRIBUCION,
+  Provincia: TABLAS.PROVINCIA,
+  Usuario: TABLAS.USUARIO,
+  Vehiculo: TABLAS.VEHICULO,
+};
+
 export interface Cajas {
   blancas: number;
   negras: number;
@@ -67,53 +97,43 @@ export interface CajasHabilitadas {
 }
 
 export interface CajasRoturas {
-  cajas_rotas: Cajas;
-  tapas_rotas: Tapas;
+  roturas: {
+    cajas: Cajas;
+    tapas: Tapas;
+  };
 }
 
+export type Created<Evento> = Evento & { created_at: string };
+
 export interface Usuario {
-  _id?: string;
   nombre: string;
   rol: ROLES;
-  fechaCreacion?: string;
   contrasena?: string;
   ajuste?: AjusteObjetos;
 }
 
-export interface Almacen {
-  _id?: string;
+export interface Almacen extends CajasRoturas {
   nombre: string;
   habilitado: CajasHabilitadas;
   stock: Cajas;
-  roturas: {
-    cajas: Cajas;
-    tapas: Tapas;
-  };
   ajuste?: AjusteObjetos;
 }
 
-export interface CentroDistribucion {
-  _id?: string;
+export interface CentroDistribucion extends CajasRoturas {
   nombre: string;
   habilitado: CajasHabilitadas;
   deuda: Cajas;
   rotacion: number;
-  roturas: {
-    cajas: Cajas;
-    tapas: Tapas;
-  };
   ajuste?: AjusteObjetos;
 }
 
 export interface Provincia {
-  _id?: string;
   nombre: string;
   centro_distribucion: string;
   ajuste?: AjusteObjetos;
 }
 
 export interface Vehiculo {
-  _id?: string;
   categoria: string;
   chapa: string;
   marca: string;
@@ -136,16 +156,16 @@ export interface AjusteObjetos extends Ajuste {
   habilitado: boolean;
 }
 
-export type Nuevo<Even> = Omit<Even, "_id">;
-
 export interface Evento {
-  _id?: string;
+  id: number;
   centro_distribucion: string;
   fecha: string;
   nombre: string;
   cajas: Cajas;
   ajuste?: AjusteCajas;
 }
+
+export type Nuevo<Evento> = Omit<Evento, "id">;
 
 export interface EventoRotura extends Evento, CajasRoturas {
   ajuste?: AjusteRoturas;
@@ -201,16 +221,12 @@ export interface ItemComparacionRecogida {
 
 export interface Cierre {
   fecha: string;
-  cierre_cd: {
+  cierre_cd: ({
     centro_distribucion: string;
     ajuste_deuda: Cajas;
-    cajas_rotas: Cajas;
-    tapas_rotas: Tapas;
-  }[];
-  cierre_almacen: {
+  } & CajasRoturas)[];
+  cierre_almacen: ({
     almacen: string;
     ajuste_stock: Cajas;
-    cajas_rotas: Cajas;
-    tapas_rotas: Tapas;
-  }[];
+  } & CajasRoturas)[];
 }

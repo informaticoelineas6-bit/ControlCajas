@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase, logDelete } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
-import { COLECCIONES, Nuevo, Vehiculo } from "@/lib/constants";
-import { usuarioCookie } from "@/lib/utils";
+import { connectToDatabase } from "@/lib/server";
+import { TABLAS, Vehiculo } from "@/lib/constants";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,10 +11,12 @@ export async function GET(request: NextRequest) {
     if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const { db } = await connectToDatabase();
-    const vehiculos = db.collection(COLECCIONES.VEHICULO);
-    const listaVehiculos = await vehiculos.find({}).toArray();
-    return NextResponse.json(listaVehiculos);
+    const db = (await connectToDatabase()).from(TABLAS.VEHICULO);
+    const { data, error } = await db.select("*");
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching vehiculos:", error);
     return NextResponse.json(
@@ -33,24 +34,20 @@ export async function POST(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body: Nuevo<Vehiculo> = await request.json();
-    const { db } = await connectToDatabase();
-
+    const body: Vehiculo = await request.json();
     body.chapa = body.chapa.trim();
-    const vehiculos = db.collection<Vehiculo>(COLECCIONES.VEHICULO);
 
-    const existente = await vehiculos.findOne({ chapa: body.chapa });
-    if (existente) {
-      return NextResponse.json(
-        { error: "Ya se encuentra registrado un vehículo con esa matrícula" },
-        { status: 409 },
-      );
-    }
+    const db = (await connectToDatabase()).from(TABLAS.VEHICULO);
+    const { error } = await db.insert(body);
 
-    const result = await vehiculos.insertOne(body);
-    return NextResponse.json({ _id: result.insertedId, ...body });
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(
+      { message: "Almacén insertado correctamente" },
+      { status: 201 },
+    );
   } catch (error) {
-    console.error("Error creating vehiculo:", error);
+    console.error("Error insertando vehiculo:", error);
     return NextResponse.json(
       { error: "Error al crear vehículo" },
       { status: 500 },
@@ -66,23 +63,25 @@ export async function PUT(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const body = await request.json();
-    const { _id, ...data } = body;
-    if (!_id) {
+    const { chapa, ...updates }: Vehiculo = await request.json();
+    if (!chapa) {
       return NextResponse.json(
-        { error: "ID de vehículo requerido" },
+        { error: "Nombre de almacén requerido" },
         { status: 400 },
       );
     }
-    const { db } = await connectToDatabase();
-    const vehiculos = db.collection(COLECCIONES.VEHICULO);
-    await vehiculos.updateOne(
-      { _id: ObjectId.createFromHexString(_id) },
-      { $set: data },
+
+    const db = (await connectToDatabase()).from(TABLAS.VEHICULO);
+    const { error } = await db.update(updates).eq("chapa", chapa);
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(
+      { message: "Vehículo actualizado correctamente" },
+      { status: 201 },
     );
-    return NextResponse.json({ _id, ...data });
   } catch (error) {
-    console.error("Error updating vehiculo:", error);
+    console.error("Error actualizando vehiculo:", error);
     return NextResponse.json(
       { error: "Error al actualizar vehículo" },
       { status: 500 },
@@ -99,24 +98,25 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
+    const chapa = searchParams.get("id");
+    if (!chapa) {
       return NextResponse.json(
-        { error: "ID de vehículo requerido" },
+        { error: "Chapa de vehículo requerida" },
         { status: 400 },
       );
     }
-    const { db } = await connectToDatabase();
-    const vehiculos = db.collection(COLECCIONES.VEHICULO);
 
-    return await logDelete(
-      db,
-      vehiculos,
-      ObjectId.createFromHexString(id),
-      usuario.nombre,
+    const db = (await connectToDatabase()).from(TABLAS.VEHICULO);
+    const { error } = await db.delete().eq("chapa", chapa);
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(
+      { message: "Vehículo eliminado correctamente" },
+      { status: 200 },
     );
   } catch (error) {
-    console.error("Error deleting vehiculo:", error);
+    console.error("Error eliminando vehiculo:", error);
     return NextResponse.json(
       { error: "Error al eliminar vehículo" },
       { status: 500 },

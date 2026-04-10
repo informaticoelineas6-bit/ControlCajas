@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CAJAS_ARRAY, TAPAS_ARRAY, Usuario } from "@/lib/constants";
+import {
+  CAJAS_ARRAY,
+  COLORES_CAJAS,
+  COLORES_TAPAS,
+  TAPAS_ARRAY,
+  Usuario,
+} from "@/lib/constants";
 import type { UsuarioAudit } from "@/app/api/audit/usuario/route";
 import { formatDate } from "@/lib/utils";
 
@@ -68,7 +74,8 @@ export default function AuditUsuario() {
     return "";
   };
 
-  const getRoturaClass = (value: number) => {
+  const getRoturaClass = (value?: number) => {
+    if (!value) return "";
     if (value < 0) return "bg-emerald-50";
     if (value > 0) return "bg-rose-50";
     return "";
@@ -160,9 +167,9 @@ export default function AuditUsuario() {
                     <td className="px-5 py-4 capitalize">
                       {datos.usuario.rol}
                     </td>
-                    <td className="px-5 py-4 capitalize">
-                      {datos.usuario.fechaCreacion
-                        ? formatDate(datos.usuario.fechaCreacion)
+                    <td className="px-5 py-4">
+                      {datos.usuario.created_at
+                        ? formatDate(datos.usuario.created_at)
                         : "-"}
                     </td>
                     <td className="px-5 py-4">
@@ -262,7 +269,7 @@ export default function AuditUsuario() {
                       <th className="px-5 py-4 text-left font-semibold">
                         Evento
                       </th>
-                      {CAJAS_ARRAY.map((color) => (
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <th
                           key={`cajas-${color}`}
                           className="px-5 py-4 text-left font-semibold"
@@ -270,7 +277,7 @@ export default function AuditUsuario() {
                           Cajas {color}
                         </th>
                       ))}
-                      {CAJAS_ARRAY.map((color) => (
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <th
                           key={`rotas-${color}`}
                           className="px-5 py-4 text-left font-semibold"
@@ -278,7 +285,7 @@ export default function AuditUsuario() {
                           Cajas rotas {color}
                         </th>
                       ))}
-                      {TAPAS_ARRAY.map((color) => (
+                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <th
                           key={`tapas-${color}`}
                           className="px-5 py-4 text-left font-semibold"
@@ -305,7 +312,7 @@ export default function AuditUsuario() {
                             {item.tipo_evento}
                           </span>
                         </td>
-                        {CAJAS_ARRAY.map((color) => (
+                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={`cajas-${item.fecha}-${color}`}
                             className={`px-5 py-4 text-slate-600 ${getCajasClass(item.cajas[color])}`}
@@ -313,20 +320,20 @@ export default function AuditUsuario() {
                             {item.cajas[color]}
                           </td>
                         ))}
-                        {CAJAS_ARRAY.map((color) => (
+                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={`cajas-rotas-${item.fecha}-${color}`}
-                            className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.cajas_rotas[color])}`}
+                            className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas?.cajas[color])}`}
                           >
-                            {item.cajas_rotas[color]}
+                            {item.roturas?.cajas[color]}
                           </td>
                         ))}
-                        {TAPAS_ARRAY.map((color) => (
+                        {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                           <td
                             key={`tapas-rotas-${item.fecha}-${color}`}
-                            className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.tapas_rotas[color])}`}
+                            className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas?.tapas[color])}`}
                           >
-                            {item.tapas_rotas[color]}
+                            {item.roturas?.tapas[color]}
                           </td>
                         ))}
                       </tr>

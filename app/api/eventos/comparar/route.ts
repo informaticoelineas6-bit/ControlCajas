@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from "@/lib/server";
 import {
   ItemComparacionEntrega,
   ItemComparacionRecogida,
 } from "@/lib/constants";
-import { sameCajas, usuarioCookie } from "@/lib/utils";
+import { sameCajas } from "@/lib/utils";
+import { usuarioCookie } from "@/lib/auth";
 import { getComparacionEntrega, getComparacionRecogida } from "@/lib/compares";
 
 export async function GET(request: NextRequest) {
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { db } = await connectToDatabase();
+    const db = await connectToDatabase();
 
     if (tipo === "expedicion_entrega") {
       const resultados: ItemComparacionEntrega[] = (
@@ -50,8 +51,14 @@ export async function GET(request: NextRequest) {
           !item.recogida ||
           !item.devolucion ||
           !sameCajas(item.recogida.cajas, item.devolucion.cajas) ||
-          !sameCajas(item.recogida.cajas_rotas, item.devolucion.cajas_rotas) ||
-          !sameCajas(item.recogida.tapas_rotas, item.devolucion.cajas_rotas);
+          !sameCajas(
+            item.recogida.roturas.cajas,
+            item.devolucion.roturas.cajas,
+          ) ||
+          !sameCajas(
+            item.recogida.roturas.tapas,
+            item.devolucion.roturas.tapas,
+          );
         return item;
       });
 

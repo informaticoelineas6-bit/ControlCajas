@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from "@/lib/server";
 import {
   Cajas,
-  COLECCIONES,
   Devolucion,
   Entrega,
   Evento,
   EVENTOS_ARRAY,
   Expedicion,
+  getEventTable,
   Nuevo,
   Provincia,
   Recogida,
+  TABLAS,
   TIPOS_EVENTO,
   Traspaso,
 } from "@/lib/constants";
@@ -20,13 +21,13 @@ import {
   hasCajas,
   sameCajas,
   sumCajas,
-  usuarioCookie,
 } from "@/lib/utils";
+import { usuarioCookie } from "@/lib/auth";
 import { EventoCreateForm } from "@/components/FormularioEvento";
-import { Db } from "mongodb";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 async function buildMessage(
-  db: Db,
+  db: SupabaseClient,
   tipoEvento: TIPOS_EVENTO,
   fecha: string,
   centro_distribucion: string,
@@ -34,9 +35,9 @@ async function buildMessage(
 ): Promise<string | null> {
   const referenceByTipo: Record<string, { collection: string; label: string }> =
     {
-      Traspaso: { collection: COLECCIONES.EXPEDICION, label: "la Expedicion" },
-      Entrega: { collection: COLECCIONES.TRASPASO, label: "el Traspaso" },
-      Devolucion: { collection: COLECCIONES.RECOGIDA, label: "la Recogida" },
+      Traspaso: { collection: TABLAS.EXPEDICION, label: "la expedicion" },
+      Entrega: { collection: TABLAS.TRASPASO, label: "el traspaso" },
+      Devolucion: { collection: TABLAS.RECOGIDA, label: "la recogida" },
     };
 
   const ref = referenceByTipo[tipoEvento];
@@ -44,16 +45,20 @@ async function buildMessage(
     return null;
   }
 
-  const referenciaEventos = (
-    (await db
-      .collection(ref.collection)
-      .find({ fecha, centro_distribucion })
-      .toArray()) as unknown as Evento[]
-  )
+  const referenciaEventos = await db
+    .from(ref.collection)
+    .select("*")
+    .eq("fecha", fecha)
+    .eq("centro_distribucion", centro_distribucion);
+
+  if (referenciaEventos.error)
+    return `Evento creado exitosamente.\nNo se pudo comprobar la cantidad de cajas (${referenciaEventos.error.message}).`;
+
+  const eventos = referenciaEventos.data
     .map(applyAjuste)
     .filter(hasCajas) as AjusteStr<Evento>[];
 
-  const referenciaTotal: Cajas = referenciaEventos.reduce(
+  const referenciaTotal: Cajas = eventos.reduce(
     (acc: Cajas, item: AjusteStr<Evento>) => sumCajas(acc, item.cajas) as Cajas,
     { blancas: 0, negras: 0, verdes: 0 },
   );
@@ -73,15 +78,13 @@ export async function POST(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const tipo_evento = searchParams.get("tipo");
 
-    const data: EventoCreateForm = await request.json();
     const {
       centro_distribucion,
       almacen,
       cajas,
       chapa,
-      cajas_rotas,
-      tapas_rotas,
-    } = data;
+      roturas,
+    }: EventoCreateForm = await request.json();
 
     if (!tipo_evento || !centro_distribucion || !usuario.nombre) {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
@@ -108,10 +111,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { db } = await connectToDatabase();
-    const coleccion = db.collection(tipo_evento);
+    const db = await connectToDatabase();
 
-    if (!coleccion) {
+    const tablaEvento = db.from(getEventTable[tipo_evento]);
+
+    if (!tablaEvento) {
       return NextResponse.json(
         { error: "Tipo de evento inválido" },
         { status: 400 },
@@ -119,15 +123,18 @@ export async function POST(request: NextRequest) {
     }
 
     let centro_real = centro_distribucion;
-    let provincia = undefined;
-    const provinciaMap = await db
-      .collection<Provincia>(COLECCIONES.PROVINCIA)
-      .findOne({
-        nombre: centro_distribucion,
-      });
-    if (provinciaMap) {
-      centro_real = provinciaMap.centro_distribucion;
-      provincia = provinciaMap.nombre;
+    let provincia: string | undefined = undefined;
+
+    const provinciaRaw = await db
+      .from(TABLAS.PROVINCIA)
+      .select<string, Provincia>("*")
+      .eq("nombre", centro_distribucion);
+
+    if (provinciaRaw.error) throw new Error(provinciaRaw.error.message);
+
+    if (provinciaRaw.data.length > 0) {
+      centro_real = provinciaRaw.data[0].centro_distribucion;
+      provincia = provinciaRaw.data[0].nombre;
     }
 
     const documentoBase = {
@@ -147,8 +154,7 @@ export async function POST(request: NextRequest) {
         documento = {
           ...documentoBase,
           chapa,
-          cajas_rotas,
-          tapas_rotas,
+          roturas,
         } as Nuevo<Recogida>;
         break;
       case "Traspaso":
@@ -164,15 +170,18 @@ export async function POST(request: NextRequest) {
         documento = {
           ...documentoBase,
           almacen,
-          cajas_rotas,
-          tapas_rotas,
+          roturas,
         } as Nuevo<Devolucion>;
         break;
     }
 
-    const resultado = await coleccion.insertOne(documento);
+    const { error } = await tablaEvento.insert(documento);
+
+    if (error) throw new Error(error.message);
+
     const message =
       (await buildMessage(
+        // TODO: Optimizar mediante una función SQL.
         db,
         tipo_evento,
         documentoBase.fecha,
@@ -180,11 +189,13 @@ export async function POST(request: NextRequest) {
         cajas,
       )) ?? "Evento creado exitosamente.";
 
-    return NextResponse.json({
-      success: true,
-      id: resultado.insertedId,
-      message: message,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: message,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error creating event:", error);
     return NextResponse.json(

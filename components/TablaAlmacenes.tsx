@@ -165,7 +165,6 @@ export default function TablaAlmacenes({
     try {
       const method = editingId ? "PUT" : "POST";
       const body: Almacen = {
-        _id: editingId || undefined,
         nombre: form.nombre,
         stock: {
           blancas: form.habilitado.blancas
@@ -234,12 +233,12 @@ export default function TablaAlmacenes({
       habilitado: almacen.habilitado,
       roturas: almacen.roturas,
     });
-    setEditingId(almacen._id ?? null);
+    setEditingId(almacen.nombre ?? null);
   };
 
   const enableAlmacen = async (target: Almacen, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
+      const res = await fetch(`/api/admin/ajuste?id=${target.nombre}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -263,17 +262,17 @@ export default function TablaAlmacenes({
   };
 
   const handleDelete = async (almacen: Almacen) => {
-    if (!almacen._id) return;
+    if (!almacen.nombre) return;
 
-    setDeletingId(almacen._id);
+    setDeletingId(almacen.nombre);
     setError("");
     try {
-      const res = await fetch(`/api/admin/almacenes?id=${almacen._id}`, {
+      const res = await fetch(`/api/admin/almacenes?id=${almacen.nombre}`, {
         method: "DELETE",
       });
       const data = await res.json();
       if (res.ok) {
-        if (editingId === almacen._id) resetForm();
+        if (editingId === almacen.nombre) resetForm();
         fetchAlmacenes();
       } else {
         setError(data.error || "Error al eliminar almacén");
@@ -332,7 +331,7 @@ export default function TablaAlmacenes({
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                 />
               </div>
-              {CAJAS_ARRAY.map((color) => (
+              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                 <div key={color}>
                   <label
                     htmlFor={`stock_${color}`}
@@ -359,7 +358,7 @@ export default function TablaAlmacenes({
                   />
                 </div>
               ))}
-              {CAJAS_ARRAY.map((color) => (
+              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                 <div key={`cajas_rotas_${color}`}>
                   <label
                     htmlFor={`cajas_rotas_${color}`}
@@ -378,7 +377,7 @@ export default function TablaAlmacenes({
                   />
                 </div>
               ))}
-              {TAPAS_ARRAY.map((color) => (
+              {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                 <div key={`tapas_rotas_${color}`}>
                   <label
                     htmlFor={`tapas_rotas_${color}`}
@@ -428,9 +427,14 @@ export default function TablaAlmacenes({
               <thead className="bg-slate-50 text-slate-500">
                 <tr>
                   <th className="px-5 py-4 text-left font-semibold">Nombre</th>
-                  <th className="px-5 py-4 text-left font-semibold">Blancas</th>
-                  <th className="px-5 py-4 text-left font-semibold">Negras</th>
-                  <th className="px-5 py-4 text-left font-semibold">Verdes</th>
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <th
+                      key={color}
+                      className="px-5 py-4 text-left capitalize font-semibold"
+                    >
+                      {color}
+                    </th>
+                  ))}
                   <th className="px-5 py-4 text-left font-semibold">Estado</th>
                   <th className="px-5 py-4 text-left font-semibold">
                     Editado por
@@ -445,21 +449,17 @@ export default function TablaAlmacenes({
               <tbody>
                 {almacenes.map((item) => (
                   <tr
-                    key={item._id}
+                    key={item.nombre}
                     className="border-t border-slate-100 transition hover:bg-slate-50"
                   >
                     <td className="px-5 py-4 font-semibold text-slate-800">
                       {item.nombre}
                     </td>
-                    <td className="px-5 py-4 text-slate-600">
-                      {item.stock.blancas ?? 0}
-                    </td>
-                    <td className="px-5 py-4 text-slate-600">
-                      {item.stock.negras ?? 0}
-                    </td>
-                    <td className="px-5 py-4 text-slate-600">
-                      {item.stock.verdes ?? 0}
-                    </td>
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <td key={color} className="px-5 py-4 text-slate-600">
+                        {item.stock[color] ?? 0}
+                      </td>
+                    ))}
                     <td className="px-5 py-4 text-slate-600">
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
@@ -519,9 +519,9 @@ export default function TablaAlmacenes({
                           </button>
                           <ConfirmDeleteButton
                             entityName={`el almacén ${item.nombre}`}
-                            disabled={deletingId === item._id}
+                            disabled={deletingId === item.nombre}
                             buttonLabel={
-                              deletingId === item._id
+                              deletingId === item.nombre
                                 ? "Eliminando..."
                                 : undefined
                             }

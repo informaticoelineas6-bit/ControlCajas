@@ -1,6 +1,6 @@
-import { Almacen, Cajas, Cierre, COLECCIONES, Tapas } from "@/lib/constants";
-import { connectToDatabase } from "@/lib/mongodb";
-import { usuarioCookie } from "@/lib/utils";
+import { Almacen, Cajas, CajasRoturas, Cierre, TABLAS } from "@/lib/constants";
+import { connectToDatabase } from "@/lib/server";
+import { usuarioCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -18,45 +18,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
     }
 
-    const { db } = await connectToDatabase();
-    const cierre = db.collection<Cierre>(COLECCIONES.CIERRE);
-    const almacenes = db.collection<Almacen>(COLECCIONES.ALMACEN);
+    const db = await connectToDatabase();
 
-    const [almacen, cierres] = await Promise.all([
-      almacenes.findOne({ nombre }),
-      cierre
-        .aggregate<{
-          fecha: string;
-          ajuste_stock: Cajas;
-          cajas_rotas: Cajas;
-          tapas_rotas: Tapas;
-        }>([
-          {
-            $match: {
-              "cierre_almacen.almacen": nombre,
-            },
-          },
-          { $unwind: "$cierre_almacen" },
-          {
-            $match: {
-              "cierre_almacen.almacen": nombre,
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              fecha: 1,
-              ajuste_stock: "$cierre_almacen.ajuste_stock",
-              cajas_rotas: "$cierre_almacen.cajas_rotas",
-              tapas_rotas: "$cierre_almacen.tapas_rotas",
-            },
-          },
-          { $sort: { fecha: -1 } },
-        ])
-        .toArray(),
+    const [almacenRaw, cierresRaw] = await Promise.all([
+      db.from(TABLAS.ALMACEN).select<string, Almacen>("*").eq("nombre", nombre),
+      db
+        .from(TABLAS.CIERRE)
+        .select<string, Cierre>("fecha, cierre_almacen")
+        .contains("cierre_almacen", JSON.stringify([{ almacen: nombre }]))
+        .order("fecha", { ascending: false }), //TODO: Hacer una función SQL dedicada para filtrar
     ]);
 
-    if (!almacen) {
+    const error = almacenRaw.error || cierresRaw.error;
+
+    if (error) throw new Error(error.message);
+
+    if (almacenRaw.data.length === 0) {
       return NextResponse.json(
         { error: "Almacén no encontrado" },
         { status: 404 },
@@ -64,13 +41,24 @@ export async function GET(request: NextRequest) {
     }
 
     const audit: AlmacenAudit = {
-      almacen,
-      cierres: cierres.map((item) => ({
-        fecha: item.fecha,
-        ajuste_stock: item.ajuste_stock,
-        cajas_rotas: item.cajas_rotas,
-        tapas_rotas: item.tapas_rotas,
-      })),
+      almacen: almacenRaw.data[0],
+      cierres: cierresRaw.data.map((item) => {
+        const cierre_almacen = item.cierre_almacen.find(
+          (cierre) => cierre.almacen === nombre,
+        );
+        return {
+          fecha: item.fecha,
+          ajuste_stock: cierre_almacen?.ajuste_stock ?? {
+            blancas: 0,
+            negras: 0,
+            verdes: 0,
+          },
+          roturas: cierre_almacen?.roturas ?? {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas: { blancas: 0, negras: 0 },
+          },
+        };
+      }),
     };
 
     return NextResponse.json(audit);
@@ -85,10 +73,8 @@ export async function GET(request: NextRequest) {
 
 export interface AlmacenAudit {
   almacen: Almacen;
-  cierres: {
+  cierres: ({
     fecha: string;
     ajuste_stock: Cajas;
-    cajas_rotas: Cajas;
-    tapas_rotas: Tapas;
-  }[];
+  } & CajasRoturas)[];
 }

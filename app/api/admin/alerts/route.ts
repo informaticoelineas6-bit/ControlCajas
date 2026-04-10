@@ -1,13 +1,14 @@
 import {
   Cajas,
-  COLECCIONES,
   ItemComparacionEntrega,
   ItemComparacionRecogida,
+  TABLAS,
   Tapas,
 } from "@/lib/constants";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
-import { sameCajas, usuarioCookie } from "@/lib/utils";
+import { sameCajas } from "@/lib/utils";
+import { usuarioCookie } from "@/lib/auth";
 import { getComparacionEntrega, getComparacionRecogida } from "@/lib/compares";
 
 function formatCajas(cajas?: Cajas): string {
@@ -30,21 +31,36 @@ export async function GET(request: NextRequest) {
 
     const fecha = new Date().toISOString().split("T")[0];
 
-    const { db } = await connectToDatabase();
+    // Get UTC start of today
+    const startOfToday = new Date();
+    startOfToday.setUTCHours(0, 0, 0, 0);
+    // Get UTC start of tomorrow
+    const startOfTomorrow = new Date(startOfToday);
+    startOfTomorrow.setUTCDate(startOfToday.getUTCDate() + 1);
 
-    const usuariosRecientes: number = (
-      await db
-        .collection(COLECCIONES.USUARIO)
-        .find({ creacion: fecha, habilitado: false })
-        .toArray()
-    ).length;
+    const db = await connectToDatabase();
 
-    const cierreHoy: boolean = !!(await db
-      .collection(COLECCIONES.CIERRE)
-      .findOne({ fecha }));
+    const [usuariosRecientes, cierreHoy, alertsExpEntRaw, alertsDevRecRaw] =
+      await Promise.all([
+        db
+          .from(TABLAS.USUARIO)
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", startOfToday.toISOString())
+          .lt("created_at", startOfTomorrow.toISOString()),
+        db
+          .from(TABLAS.CIERRE)
+          .select("*", { count: "exact", head: true })
+          .eq("fecha", fecha),
+        getComparacionEntrega(db, fecha),
+        getComparacionRecogida(db, fecha),
+      ]);
 
-    const alertsExpEnt: EventAlerta[] = (await getComparacionEntrega(db, fecha))
-      .filter((item) => {
+    const error = usuariosRecientes.error || cierreHoy.error;
+
+    if (error !== null) throw new Error(error.message);
+
+    const alertsExpEnt: EventAlerta[] = alertsExpEntRaw
+      .filter((item: ItemComparacionEntrega) => {
         if (!item.expedicion) {
           return true;
         }
@@ -76,9 +92,7 @@ export async function GET(request: NextRequest) {
         };
       });
 
-    const alertsDevRec: EventAlerta[] = (
-      await getComparacionRecogida(db, fecha)
-    )
+    const alertsDevRec: EventAlerta[] = alertsDevRecRaw
       .filter((item: ItemComparacionRecogida) => {
         if (!item.recogida) {
           return true;
@@ -90,11 +104,13 @@ export async function GET(request: NextRequest) {
           return true;
         }
         if (
-          !sameCajas(item.recogida.cajas_rotas, item.devolucion.cajas_rotas)
+          !sameCajas(item.recogida.roturas.cajas, item.devolucion.roturas.cajas)
         ) {
           return true;
         }
-        if (!sameCajas(item.recogida.tapas_rotas, item.recogida.tapas_rotas)) {
+        if (
+          !sameCajas(item.recogida.roturas.tapas, item.recogida.roturas.tapas)
+        ) {
           return true;
         }
         return false;
@@ -106,12 +122,12 @@ export async function GET(request: NextRequest) {
         if (item.recogida && item.devolucion) {
           alertCajas = !sameCajas(item.recogida.cajas, item.devolucion.cajas);
           alertRotas = !sameCajas(
-            item.recogida.cajas_rotas,
-            item.devolucion.cajas_rotas,
+            item.recogida.roturas.cajas,
+            item.devolucion.roturas.cajas,
           );
           alertTapas = !sameCajas(
-            item.recogida.tapas_rotas,
-            item.devolucion.tapas_rotas,
+            item.recogida.roturas.tapas,
+            item.devolucion.roturas.tapas,
           );
         }
         return {
@@ -125,27 +141,27 @@ export async function GET(request: NextRequest) {
               : "") +
             (alertRotas
               ? `${alertCajas ? "\n" : ""}Diferencia en cajas rotas: "Recogida cajas(${formatCajas(
-                  item.recogida?.cajas_rotas,
-                )}) vs Devolucion cajas(${formatCajas(item.devolucion?.cajas_rotas)})`
+                  item.recogida?.roturas.cajas,
+                )}) vs Devolucion cajas(${formatCajas(item.devolucion?.roturas.cajas)})`
               : "") +
             (alertTapas
               ? `${alertCajas || alertRotas ? "\n" : ""}Diferencia en tapas rotas: "Recogida cajas(${formatTapas(
-                  item.recogida?.tapas_rotas,
-                )}) vs Devolucion cajas(${formatTapas(item.devolucion?.tapas_rotas)})`
+                  item.recogida?.roturas.tapas,
+                )}) vs Devolucion cajas(${formatTapas(item.devolucion?.roturas.tapas)})`
               : ""),
         };
       });
 
     const response: AlertaResponse = {
       total:
-        usuariosRecientes +
+        (usuariosRecientes.count ?? 0) +
         alertsExpEnt.length +
         alertsDevRec.length +
-        (cierreHoy ? 0 : 1),
-      usuarios_recientes: usuariosRecientes,
+        (cierreHoy.count! > 0 ? 0 : 1),
+      usuarios_recientes: usuariosRecientes.count ?? 0,
       inconsistencias_expedicion_entrega: alertsExpEnt,
       inconsistencias_devolucion_recogida: alertsDevRec,
-      cierre_pendiente: !cierreHoy,
+      cierre_pendiente: cierreHoy.count === 0,
     };
 
     return NextResponse.json(response);
