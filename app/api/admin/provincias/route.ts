@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
+import { connectToDatabase, LogAudit } from "@/lib/server";
 import { Provincia, TABLAS } from "@/lib/constants";
 import { usuarioCookie } from "@/lib/auth";
 
@@ -71,6 +71,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    LogAudit(db, "INSERT", body, "Provincia", usuario.nombre);
+
     const { error } = await provincias.insert(body);
 
     if (error) throw new Error(error.message);
@@ -105,9 +107,23 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.PROVINCIA);
+    const db = await connectToDatabase();
 
-    const { error } = await db.update(body).eq("nombre", nombre);
+    const { data, error: fetchError } = await db
+      .from(TABLAS.PROVINCIA)
+      .select("*")
+      .eq("nombre", nombre);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Provincia no encontrada");
+
+    LogAudit(db, "UPDATE", data[0], "Provincia", usuario.nombre, body);
+
+    const { error } = await db
+      .from(TABLAS.PROVINCIA)
+      .update(body)
+      .eq("nombre", nombre);
 
     if (error) throw new Error(error.message);
 
@@ -141,8 +157,23 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.PROVINCIA);
-    const { error } = await db.delete().eq("nombre", nombre);
+    const db = await connectToDatabase();
+
+    const { data, error: fetchError } = await db
+      .from(TABLAS.PROVINCIA)
+      .select("*")
+      .eq("nombre", nombre);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Provincia no encontrada");
+
+    LogAudit(db, "DELETE", data[0], "Provincia", usuario.nombre);
+
+    const { error } = await db
+      .from(TABLAS.PROVINCIA)
+      .delete()
+      .eq("nombre", nombre);
 
     if (error) throw new Error(error.message);
 

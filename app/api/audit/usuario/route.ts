@@ -1,4 +1,5 @@
 import {
+  AuditLog,
   Cajas,
   Created,
   Devolucion,
@@ -17,7 +18,6 @@ import { connectToDatabase } from "@/lib/server";
 import { AjusteStr, applyAjuste, hasCajas } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { DeleteAudit } from "@/lib/mongodb";
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,10 +53,17 @@ export async function GET(request: NextRequest) {
     }
 
     let eventos;
-    // let deletes;
+    let logs;
 
     if (usuario.rol === "informatico") {
-      //TODO: Implementar el DELETEAUDIT
+      const { data, error } = await db
+        .from(TABLAS.AUDITLOG)
+        .select("*")
+        .eq("usuario", nombre);
+
+      if (error) throw new Error(error.message);
+
+      logs = data;
     } else {
       const [
         expedicionesRaw,
@@ -152,7 +159,7 @@ export async function GET(request: NextRequest) {
     const audit: UsuarioAudit = {
       usuario,
       eventos,
-      // deletes,
+      logs,
     };
 
     return NextResponse.json(audit);
@@ -168,7 +175,7 @@ export async function GET(request: NextRequest) {
 export interface UsuarioAudit {
   usuario: Created<Usuario>;
   eventos?: EventoAudit[];
-  deletes?: DeleteAudit[];
+  logs?: AuditLog[];
 }
 
 export interface EventoAudit {

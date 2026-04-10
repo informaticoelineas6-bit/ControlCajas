@@ -61,6 +61,7 @@ export enum TABLAS {
   RECOGIDA = "recogida",
   CIERRE = "cierre",
   PROVINCIA = "provincia",
+  AUDITLOG = "audit_log",
 }
 
 export const getEventTable: Record<TIPOS_EVENTO, string> = {
@@ -165,7 +166,7 @@ export interface Evento {
   ajuste?: AjusteCajas;
 }
 
-export type Nuevo<Evento> = Omit<Evento, "id">;
+export type Nuevo<Evento> = Omit<Evento, "id" | "created_at">;
 
 export interface EventoRotura extends Evento, CajasRoturas {
   ajuste?: AjusteRoturas;
@@ -229,4 +230,14 @@ export interface Cierre {
     almacen: string;
     ajuste_stock: Cajas;
   } & CajasRoturas)[];
+}
+
+export interface AuditLog {
+  id: number;
+  created_at: string; // ISO timestamp
+  action: "DELETE" | "UPDATE" | "INSERT";
+  object_type: string;
+  usuario: string;
+  snapshot: object;
+  changes?: { prev: object; new: object };
 }

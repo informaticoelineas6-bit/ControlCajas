@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
+import { connectToDatabase, LogAudit } from "@/lib/server";
 import { CentroDistribucion, TABLAS } from "@/lib/constants";
 import { usuarioCookie } from "@/lib/auth";
 
@@ -73,6 +73,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    LogAudit(db, "INSERT", body, "Centro de distribución", usuario.nombre);
+
     const { error } = await centros.insert(body);
 
     if (error) throw new Error(error.message);
@@ -107,9 +109,30 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.CENTRO_DISTRIBUCION);
+    const db = await connectToDatabase();
 
-    const { error } = await db.update(body).eq("nombre", nombre);
+    const { data, error: fetchError } = await db
+      .from(TABLAS.CENTRO_DISTRIBUCION)
+      .select("*")
+      .eq("nombre", nombre);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Centro no encontrado");
+
+    LogAudit(
+      db,
+      "UPDATE",
+      data[0],
+      "Centro de distribución",
+      usuario.nombre,
+      body,
+    );
+
+    const { error } = await db
+      .from(TABLAS.CENTRO_DISTRIBUCION)
+      .update(body)
+      .eq("nombre", nombre);
 
     if (error) throw new Error(error.message);
 
@@ -143,8 +166,23 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.CENTRO_DISTRIBUCION);
-    const { error } = await db.delete().eq("nombre", nombre);
+    const db = await connectToDatabase();
+
+    const { data, error: fetchError } = await db
+      .from(TABLAS.CENTRO_DISTRIBUCION)
+      .select("*")
+      .eq("nombre", nombre);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Centro no encontrado");
+
+    LogAudit(db, "DELETE", data[0], "Centro de distribución", usuario.nombre);
+
+    const { error } = await db
+      .from(TABLAS.CENTRO_DISTRIBUCION)
+      .delete()
+      .eq("nombre", nombre);
 
     if (error) throw new Error(error.message);
 

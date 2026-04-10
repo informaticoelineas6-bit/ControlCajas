@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
+import { connectToDatabase, LogAudit } from "@/lib/server";
 import { TABLAS, Vehiculo } from "@/lib/constants";
 import { usuarioCookie } from "@/lib/auth";
 
@@ -37,8 +37,11 @@ export async function POST(request: NextRequest) {
     const body: Vehiculo = await request.json();
     body.chapa = body.chapa.trim();
 
-    const db = (await connectToDatabase()).from(TABLAS.VEHICULO);
-    const { error } = await db.insert(body);
+    const db = await connectToDatabase();
+
+    LogAudit(db, "INSERT", body, "Vehículo", usuario.nombre);
+
+    const { error } = await db.from(TABLAS.VEHICULO).insert(body);
 
     if (error) throw new Error(error.message);
 
@@ -63,7 +66,7 @@ export async function PUT(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const { chapa, ...updates }: Vehiculo = await request.json();
+    const { chapa, ...body }: Vehiculo = await request.json();
     if (!chapa) {
       return NextResponse.json(
         { error: "Nombre de almacén requerido" },
@@ -71,8 +74,23 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.VEHICULO);
-    const { error } = await db.update(updates).eq("chapa", chapa);
+    const db = await connectToDatabase();
+
+    const { data, error: fetchError } = await db
+      .from(TABLAS.VEHICULO)
+      .select("*")
+      .eq("chapa", chapa);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Vehículo no encontrada");
+
+    LogAudit(db, "UPDATE", data[0], "Vehículo", usuario.nombre, body);
+
+    const { error } = await db
+      .from(TABLAS.VEHICULO)
+      .update(body)
+      .eq("chapa", chapa);
 
     if (error) throw new Error(error.message);
 
@@ -106,8 +124,23 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.VEHICULO);
-    const { error } = await db.delete().eq("chapa", chapa);
+    const db = await connectToDatabase();
+
+    const { data, error: fetchError } = await db
+      .from(TABLAS.VEHICULO)
+      .select("*")
+      .eq("chapa", chapa);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Vehículo no encontrada");
+
+    LogAudit(db, "DELETE", data[0], "Vehículo", usuario.nombre);
+
+    const { error } = await db
+      .from(TABLAS.VEHICULO)
+      .delete()
+      .eq("chapa", chapa);
 
     if (error) throw new Error(error.message);
 

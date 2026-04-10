@@ -5,6 +5,7 @@ import {
   Almacen,
   CAJAS_ARRAY,
   COLORES_CAJAS,
+  COLORES_TAPAS,
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";

@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
+  AuditLog,
   CAJAS_ARRAY,
   COLORES_CAJAS,
   COLORES_TAPAS,
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
-import type { UsuarioAudit } from "@/app/api/audit/usuario/route";
+import type { EventoAudit, UsuarioAudit } from "@/app/api/audit/usuario/route";
 import { formatDate } from "@/lib/utils";
 
 export default function AuditUsuario() {
@@ -81,8 +82,21 @@ export default function AuditUsuario() {
     return "";
   };
 
-  const eventos = datos?.eventos ?? [];
-  const deletes = datos?.deletes ?? [];
+  const eventos: EventoAudit[] = datos?.eventos ?? [];
+  const logs: AuditLog[] = datos?.logs ?? [];
+
+  const getActionClass = (action: "DELETE" | "UPDATE" | "INSERT") => {
+    switch (action) {
+      case "DELETE":
+        return "text-rose-700 bg-rose-50 ring-rose-200";
+      case "INSERT":
+        return "text-emerald-700 bg-emerald-50 ring-emerald-200";
+      case "UPDATE":
+        return "text-amber-700 bg-amber-50 ring-amber-200";
+      default:
+        return "";
+    }
+  };
 
   return (
     <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_-36px_rgba(15,23,42,0.4)]">
@@ -207,42 +221,64 @@ export default function AuditUsuario() {
                         Fecha
                       </th>
                       <th className="px-5 py-4 text-left font-semibold">
-                        Colección
+                        Tipo
                       </th>
                       <th className="px-5 py-4 text-left font-semibold">
                         Acción
                       </th>
                       <th className="px-5 py-4 text-left font-semibold">
-                        Objeto eliminado
+                        Objeto
+                      </th>
+                      <th className="px-5 py-4 text-left font-semibold">
+                        (Cambios)
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {deletes.map((item, index) => (
+                    {logs.map((item, index) => (
                       <tr
-                        key={`${item.deletedAt}-${item.collection}-${index}`}
+                        key={`${item.object_type}-${item.action}-${index}`}
                         className="border-t border-slate-100 transition hover:bg-slate-50"
                       >
                         <td className="px-5 py-4 font-medium text-slate-700">
-                          {formatDate(item.deletedAt)}
+                          {formatDate(item.created_at)}
                         </td>
                         <td className="px-5 py-4 text-slate-600">
-                          {item.collection}
+                          {item.object_type}
                         </td>
                         <td className="px-5 py-4 text-slate-600">
-                          <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-200">
+                          <span
+                            className={
+                              "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
+                              getActionClass(item.action)
+                            }
+                          >
                             {item.action}
                           </span>
                         </td>
-                        <td className="px-5 py-4 text-slate-600">
+                        {item.changes && (
+                          <td className="px-5 py-4 text-slate-600">
+                            <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                              {JSON.stringify(item.changes.prev, null, 2)}
+                            </pre>
+                          </td>
+                        )}
+                        <td
+                          colSpan={item.changes ? 1 : 2}
+                          className="px-5 py-4 text-slate-600"
+                        >
                           <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
-                            {JSON.stringify(item.objectSnapshot, null, 2)}
+                            {JSON.stringify(
+                              item.changes?.new ?? item.snapshot,
+                              null,
+                              2,
+                            )}
                           </pre>
                         </td>
                       </tr>
                     ))}
 
-                    {deletes.length === 0 && (
+                    {logs.length === 0 && (
                       <tr>
                         <td
                           colSpan={4}

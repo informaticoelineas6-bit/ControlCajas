@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
+import { connectToDatabase, LogAudit } from "@/lib/server";
 import { TABLAS, Usuario } from "@/lib/constants";
 import { usuarioCookie } from "@/lib/auth";
 
@@ -51,9 +51,21 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.USUARIO);
+    const db = await connectToDatabase();
+
+    const { data, error: fetchError } = await db
+      .from(TABLAS.USUARIO)
+      .select("*")
+      .eq("nombre", nombre);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Usuario no encontrada");
+
+    LogAudit(db, "UPDATE", data[0], "Usuario", usuario.nombre, body);
 
     const { error } = await db
+      .from(TABLAS.USUARIO)
       .update({
         rol: body.rol,
         ajuste: body.ajuste,
@@ -92,8 +104,23 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.USUARIO);
-    const { error } = await db.delete().eq("nombre", nombre);
+    const db = await connectToDatabase();
+
+    const { data, error: fetchError } = await db
+      .from(TABLAS.USUARIO)
+      .select("*")
+      .eq("nombre", nombre);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Usuario no encontrada");
+
+    LogAudit(db, "DELETE", data[0], "Usuario", usuario.nombre);
+
+    const { error } = await db
+      .from(TABLAS.USUARIO)
+      .delete()
+      .eq("nombre", nombre);
 
     if (error) throw new Error(error.message);
 

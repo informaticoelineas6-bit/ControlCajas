@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
+import { connectToDatabase, LogAudit } from "@/lib/server";
 import { Almacen, TABLAS } from "@/lib/constants";
 import { usuarioCookie } from "@/lib/auth";
 
@@ -37,8 +37,11 @@ export async function POST(request: NextRequest) {
     const body: Almacen = await request.json();
     body.nombre = body.nombre.trim();
 
-    const db = (await connectToDatabase()).from(TABLAS.ALMACEN);
-    const { error } = await db.insert(body);
+    const db = await connectToDatabase();
+
+    LogAudit(db, "INSERT", body, "Almacén", usuario.nombre);
+
+    const { error } = await db.from(TABLAS.ALMACEN).insert(body);
 
     if (error) throw new Error(error.message);
 
@@ -63,7 +66,7 @@ export async function PUT(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const { nombre, ...updates }: Almacen = await request.json();
+    const { nombre, ...body }: Almacen = await request.json();
     if (!nombre) {
       return NextResponse.json(
         { error: "Nombre de almacén requerido" },
@@ -71,8 +74,23 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.ALMACEN);
-    const { error } = await db.update(updates).eq("nombre", nombre);
+    const db = await connectToDatabase();
+
+    const { data, error: fetchError } = await db
+      .from(TABLAS.ALMACEN)
+      .select("*")
+      .eq("nombre", nombre);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Almacén no encontrado");
+
+    LogAudit(db, "UPDATE", data[0], "Almacén", usuario.nombre, body);
+
+    const { error } = await db
+      .from(TABLAS.ALMACEN)
+      .update(body)
+      .eq("nombre", nombre);
 
     if (error) throw new Error(error.message);
 
@@ -106,8 +124,23 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const db = (await connectToDatabase()).from(TABLAS.ALMACEN);
-    const { error } = await db.delete().eq("nombre", nombre);
+    const db = await connectToDatabase();
+
+    const { data, error: fetchError } = await db
+      .from(TABLAS.ALMACEN)
+      .select("*")
+      .eq("nombre", nombre);
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    if (data.length === 0) throw new Error("Almacén no encontrado");
+
+    LogAudit(db, "DELETE", data[0], "Almacén", usuario.nombre);
+
+    const { error } = await db
+      .from(TABLAS.ALMACEN)
+      .delete()
+      .eq("nombre", nombre);
 
     if (error) throw new Error(error.message);
 
