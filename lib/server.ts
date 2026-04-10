@@ -3,6 +3,58 @@ import { AuditLog, Nuevo, TABLAS } from "./constants";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SECRET_KEY;
+const DEFAULT_SUPABASE_REQUEST_TIMEOUT_MS = 10000;
+
+function parseTimeoutMs(value?: string): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0
+    ? parsed
+    : DEFAULT_SUPABASE_REQUEST_TIMEOUT_MS;
+}
+
+function createTimeoutFetch(timeoutMs: number): typeof fetch {
+  return async (input, init) => {
+    const controller = new AbortController();
+    const upstreamSignal = init?.signal;
+    let timedOut = false;
+
+    const abortFromUpstream = () => controller.abort();
+
+    if (upstreamSignal?.aborted) {
+      controller.abort();
+    } else if (upstreamSignal) {
+      upstreamSignal.addEventListener("abort", abortFromUpstream, {
+        once: true,
+      });
+    }
+
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeoutMs);
+
+    try {
+      return await fetch(input, {
+        ...init,
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (timedOut) {
+        throw new Error(
+          `Supabase request timed out after ${timeoutMs}ms: ${String(input)}`,
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+      upstreamSignal?.removeEventListener("abort", abortFromUpstream);
+    }
+  };
+}
+
+const supabaseFetch = createTimeoutFetch(
+  parseTimeoutMs(process.env.SUPABASE_REQUEST_TIMEOUT_MS),
+);
 
 export const connectToDatabase = async () => {
   if (!supabaseUrl || !supabaseKey) {
@@ -14,6 +66,9 @@ export const connectToDatabase = async () => {
       autoRefreshToken: false,
       persistSession: false,
       detectSessionInUrl: false,
+    },
+    global: {
+      fetch: supabaseFetch,
     },
   });
 };

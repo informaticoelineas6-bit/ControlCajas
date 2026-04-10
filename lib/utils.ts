@@ -123,10 +123,15 @@ export function formatDate(date: string): string {
 }
 
 export type DeudaAct<Centro> = Centro & { deuda_activa: Cajas };
+interface DeudaActivaOptions {
+  entregasFiltradas?: boolean;
+  entregasOrdenadas?: boolean;
+}
 
 export function deudaActiva(
   centro: CentroDistribucion,
   entregas: AjusteStr<Entrega>[],
+  options: DeudaActivaOptions = {},
 ): DeudaAct<CentroDistribucion> {
   const rotDate = new Date();
   rotDate.setUTCDate(rotDate.getUTCDate() - (centro.rotacion ?? 0));
@@ -134,9 +139,12 @@ export function deudaActiva(
 
   //TODO: Revisar y rehacer de forma más eficiente.
 
-  const listaEntregas = entregas
-    .filter((elem) => elem.centro_distribucion === centro.nombre)
-    .sort((a, b) => b.fecha.localeCompare(a.fecha));
+  const entregasCentro = options.entregasFiltradas
+    ? entregas
+    : entregas.filter((elem) => elem.centro_distribucion === centro.nombre);
+  const listaEntregas = options.entregasOrdenadas
+    ? entregasCentro
+    : [...entregasCentro].sort((a, b) => b.fecha.localeCompare(a.fecha));
 
   const deuda: Cajas = {
     blancas: centro.deuda.blancas,

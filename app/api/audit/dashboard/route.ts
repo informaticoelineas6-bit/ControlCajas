@@ -47,21 +47,29 @@ export async function GET(request: NextRequest) {
       recogidasRaw,
       devolucionesRaw,
     ] = await Promise.all([
-      db.from(TABLAS.CENTRO_DISTRIBUCION).select<string, CentroDistribucion>(),
-      db.from(TABLAS.ALMACEN).select<string, Almacen>(),
+      db
+        .from(TABLAS.CENTRO_DISTRIBUCION)
+        .select<string, CentroDistribucion>("nombre, deuda, rotacion, roturas, ajuste"),
+      db.from(TABLAS.ALMACEN).select<string, Almacen>("stock, roturas, ajuste"),
       db
         .from(TABLAS.EXPEDICION)
-        .select<string, Expedicion>()
+        .select<string, Expedicion>("fecha, cajas, ajuste")
         .eq("fecha", today),
-      db.from(TABLAS.TRASPASO).select<string, Traspaso>().eq("fecha", today),
+      db
+        .from(TABLAS.TRASPASO)
+        .select<string, Traspaso>("fecha, cajas, ajuste")
+        .eq("fecha", today),
       db
         .from(TABLAS.ENTREGA)
-        .select<string, Entrega>()
+        .select<string, Entrega>("centro_distribucion, fecha, cajas, ajuste")
         .order("fecha", { ascending: false }),
-      db.from(TABLAS.RECOGIDA).select<string, Recogida>().eq("fecha", today),
+      db
+        .from(TABLAS.RECOGIDA)
+        .select<string, Recogida>("fecha, cajas, roturas, ajuste")
+        .eq("fecha", today),
       db
         .from(TABLAS.DEVOLUCION)
-        .select<string, Devolucion>()
+        .select<string, Devolucion>("fecha, cajas, roturas, ajuste")
         .eq("fecha", today),
     ]);
 
@@ -106,6 +114,16 @@ export async function GET(request: NextRequest) {
           .map(applyAjuste)
           .filter(hasCajas) as AjusteStr<Devolucion>[])
       : [];
+    const entregasByCentro = new Map<string, AjusteStr<Entrega>[]>();
+
+    for (const entrega of entregas) {
+      const current = entregasByCentro.get(entrega.centro_distribucion);
+      if (current) {
+        current.push(entrega);
+      } else {
+        entregasByCentro.set(entrega.centro_distribucion, [entrega]);
+      }
+    }
 
     const dashboardData: DashboardRow[] = [];
     const movementToday: number =
@@ -134,11 +152,11 @@ export async function GET(request: NextRequest) {
           centro.roturas.tapas.negras +
           centro.roturas.cajas.verdes,
       };
-      const entregasFiltrado = entregas.filter(
-        (entrega) => entrega.centro_distribucion === centro.nombre,
-      );
-
-      const { deuda_activa } = deudaActiva(centro, entregasFiltrado);
+      const entregasFiltrado = entregasByCentro.get(centro.nombre) ?? [];
+      const { deuda_activa } = deudaActiva(centro, entregasFiltrado, {
+        entregasFiltradas: true,
+        entregasOrdenadas: true,
+      });
 
       iteration.deuda_activa = deuda_activa;
 
