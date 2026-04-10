@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
           return true;
         }
         if (
-          !sameCajas(item.recogida.roturas.tapas, item.recogida.roturas.tapas)
+          !sameCajas(item.recogida.roturas.tapas, item.devolucion.roturas.tapas)
         ) {
           return true;
         }
