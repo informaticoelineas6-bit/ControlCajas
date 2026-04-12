@@ -104,6 +104,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    if (nombre === usuario.nombre) {
+      return NextResponse.json(
+        { error: "No está permitido eliminar el propio usuario" },
+        { status: 403 },
+      );
+    }
+
     const db = await connectToDatabase();
 
     const { data, error: fetchError } = await db

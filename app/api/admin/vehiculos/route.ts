@@ -39,6 +39,22 @@ export async function POST(request: NextRequest) {
 
     const db = await connectToDatabase();
 
+    {
+      const { count, error } = await db
+        .from(TABLAS.VEHICULO)
+        .select<string, Vehiculo>("*", { count: "exact", head: true })
+        .eq("chapa", body.chapa);
+
+      if (error) throw new Error(error.message);
+
+      if (count && count > 0) {
+        return NextResponse.json(
+          { error: "Ya existe un vehículo con esa chapa" },
+          { status: 400 },
+        );
+      }
+    }
+
     LogAudit(db, "INSERT", body, "Vehículo", usuario.nombre);
 
     const { error } = await db.from(TABLAS.VEHICULO).insert(body);
