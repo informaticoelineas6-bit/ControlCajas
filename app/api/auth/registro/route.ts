@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     {
       const { count, error } = await db
-        .select<string, Usuario>("*")
+        .select<string, Usuario>("*", { count: "exact", head: true })
         .eq("nombre", nombre);
 
       if (error) throw new Error(error.message);

@@ -33,11 +33,11 @@ export async function GET(request: NextRequest) {
       getEventTable[tipo_evento as TIPOS_EVENTO],
     );
 
-    const { data, count, error } = await db.select("*").eq("id", id);
+    const { data, error } = await db.select("*").eq("id", id);
 
     if (error) throw new Error(error.message);
 
-    if (!(count && count > 0)) {
+    if (data.length === 0) {
       return NextResponse.json(
         { error: "Evento no encontrado" },
         { status: 404 },
