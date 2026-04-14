@@ -1,10 +1,4 @@
-import {
-  Cajas,
-  CajasRoturas,
-  CentroDistribucion,
-  Cierre,
-  TABLAS,
-} from "@/lib/constants";
+import { Cajas, CajasRoturas, CentroDistribucion } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -26,54 +20,17 @@ export async function GET(request: NextRequest) {
 
     const db = await connectToDatabase();
 
-    const [centroRaw, cierresRaw] = await Promise.all([
-      db
-        .from(TABLAS.CENTRO_DISTRIBUCION)
-        .select<string, CentroDistribucion>()
-        .eq("nombre", nombre),
-      db
-        .from(TABLAS.CIERRE)
-        .select<string, Cierre>("fecha, cierre_cd")
-        .contains(
-          "cierre_cd",
-          JSON.stringify([{ centro_distribucion: nombre }]),
-        )
-        .order("fecha", { ascending: false }), //TODO: Hacer una función SQL dedicada para filtrar
-    ]);
-
-    const error = centroRaw.error || cierresRaw.error;
+    const { data, error } = await db.rpc(
+      "get_centro_audit",
+      {
+        centro_nombre: nombre,
+      },
+      { get: true },
+    );
 
     if (error) throw new Error(error.message);
 
-    if (centroRaw.data.length === 0) {
-      return NextResponse.json(
-        { error: "Centro no encontrado" },
-        { status: 404 },
-      );
-    }
-
-    const audit: CentroAudit = {
-      centro: centroRaw.data[0],
-      cierres: cierresRaw.data.map((item) => {
-        const cierre_cd = item.cierre_cd.find(
-          (cierre) => cierre.centro_distribucion === nombre,
-        );
-        return {
-          fecha: item.fecha,
-          ajuste_deuda: cierre_cd?.ajuste_deuda ?? {
-            blancas: 0,
-            negras: 0,
-            verdes: 0,
-          },
-          roturas: cierre_cd?.roturas ?? {
-            cajas: { blancas: 0, negras: 0, verdes: 0 },
-            tapas: { blancas: 0, negras: 0 },
-          },
-        };
-      }),
-    };
-
-    return NextResponse.json(audit);
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error al obtener datos:", error);
     return NextResponse.json(

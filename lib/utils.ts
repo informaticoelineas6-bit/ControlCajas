@@ -2,7 +2,6 @@ import {
   Almacen,
   Cajas,
   CentroDistribucion,
-  Entrega,
   Evento,
   EventoRotura,
   Provincia,
@@ -122,51 +121,44 @@ export function formatDate(date: string): string {
   });
 }
 
-export type DeudaAct<Centro> = Centro & { deuda_activa: Cajas };
-interface DeudaActivaOptions {
-  entregasFiltradas?: boolean;
-  entregasOrdenadas?: boolean;
-}
+export type DeudaAct<Centro> = Centro & {
+  deuda_activa: Cajas;
+  fecha_liquidacion: string;
+};
 
-export function deudaActiva(
-  centro: CentroDistribucion,
-  entregas: AjusteStr<Entrega>[],
-  options: DeudaActivaOptions = {},
-): DeudaAct<CentroDistribucion> {
-  const rotDate = new Date();
-  rotDate.setUTCDate(rotDate.getUTCDate() - (centro.rotacion ?? 0));
-  const targetStr = rotDate.toISOString().split("T")[0]; // e.g., "2026-03-25"
+// export function deudaActiva(
+//   centro: CentroDistribucion,
+//   entregas: AjusteStr<Entrega>[],
+// ): DeudaAct<CentroDistribucion> {
+//   const rotDate = new Date();
+//   rotDate.setUTCDate(rotDate.getUTCDate() - (centro.rotacion ?? 0));
+//   const targetStr = rotDate.toISOString().split("T")[0]; // e.g., "2026-03-25"
 
-  //TODO: Revisar y rehacer de forma más eficiente.
+//   const listaEntregas = entregas
+//     .filter((elem) => elem.centro_distribucion === centro.nombre)
+//     .sort((a, b) => b.fecha.localeCompare(a.fecha));
 
-  const entregasCentro = options.entregasFiltradas
-    ? entregas
-    : entregas.filter((elem) => elem.centro_distribucion === centro.nombre);
-  const listaEntregas = options.entregasOrdenadas
-    ? entregasCentro
-    : [...entregasCentro].sort((a, b) => b.fecha.localeCompare(a.fecha));
+//   const deuda: Cajas = {
+//     blancas: centro.deuda.blancas,
+//     negras: centro.deuda.negras,
+//     verdes: centro.deuda.verdes,
+//   };
+//   let deuda_activa: Cajas = {
+//     blancas: 0,
+//     negras: 0,
+//     verdes: 0,
+//   };
+//   for (const entrega of listaEntregas) {
+//     if (entrega.fecha < targetStr) {
+//       deuda_activa = deuda;
+//     } else if (deuda.blancas >= 0 || deuda.negras >= 0 || deuda.verdes >= 0) {
+//       deuda.blancas -= entrega.cajas.blancas;
+//       deuda.negras -= entrega.cajas.negras;
+//       deuda.verdes -= entrega.cajas.verdes;
+//     } else {
+//       break;
+//     }
+//   }
 
-  const deuda: Cajas = {
-    blancas: centro.deuda.blancas,
-    negras: centro.deuda.negras,
-    verdes: centro.deuda.verdes,
-  };
-  let deuda_activa: Cajas = {
-    blancas: 0,
-    negras: 0,
-    verdes: 0,
-  };
-  for (const entrega of listaEntregas) {
-    if (entrega.fecha < targetStr) {
-      deuda_activa = deuda;
-    } else if (deuda.blancas >= 0 || deuda.negras >= 0 || deuda.verdes >= 0) {
-      deuda.blancas -= entrega.cajas.blancas;
-      deuda.negras -= entrega.cajas.negras;
-      deuda.verdes -= entrega.cajas.verdes;
-    } else {
-      break;
-    }
-  }
-
-  return { ...centro, deuda_activa };
-}
+//   return { ...centro, deuda_activa };
+// }

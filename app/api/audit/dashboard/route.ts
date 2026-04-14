@@ -14,9 +14,8 @@ import {
 import {
   AjusteStr,
   applyAjuste,
-  deudaActiva,
+  DeudaAct,
   hasCajas,
-  isEnabled,
   sumCajas,
   totalCajas,
 } from "@/lib/utils";
@@ -31,7 +30,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const db = await connectToDatabase();
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date();
+    const todayString = today.toISOString().split("T")[0];
     const parseDate = (value: string) => {
       const [year, month, day] = value.split("-").map(Number);
       return new Date(Date.UTC(year, month - 1, day));
@@ -47,30 +47,31 @@ export async function GET(request: NextRequest) {
       recogidasRaw,
       devolucionesRaw,
     ] = await Promise.all([
+      db.rpc<string, DeudaAct<CentroDistribucion>>("all_centros_deuda_activa"),
       db
-        .from(TABLAS.CENTRO_DISTRIBUCION)
-        .select<string, CentroDistribucion>("nombre, deuda, rotacion, roturas, ajuste"),
-      db.from(TABLAS.ALMACEN).select<string, Almacen>("stock, roturas, ajuste"),
+        .from(TABLAS.ALMACEN)
+        .select<string, Almacen>("stock, roturas, ajuste")
+        .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
       db
         .from(TABLAS.EXPEDICION)
         .select<string, Expedicion>("fecha, cajas, ajuste")
-        .eq("fecha", today),
+        .eq("fecha", todayString),
       db
         .from(TABLAS.TRASPASO)
         .select<string, Traspaso>("fecha, cajas, ajuste")
-        .eq("fecha", today),
+        .eq("fecha", todayString),
       db
         .from(TABLAS.ENTREGA)
-        .select<string, Entrega>("centro_distribucion, fecha, cajas, ajuste")
-        .order("fecha", { ascending: false }),
+        .select<string, Entrega>("fecha, cajas, ajuste")
+        .eq("fecha", todayString),
       db
         .from(TABLAS.RECOGIDA)
         .select<string, Recogida>("fecha, cajas, roturas, ajuste")
-        .eq("fecha", today),
+        .eq("fecha", todayString),
       db
         .from(TABLAS.DEVOLUCION)
         .select<string, Devolucion>("fecha, cajas, roturas, ajuste")
-        .eq("fecha", today),
+        .eq("fecha", todayString),
     ]);
 
     const error =
@@ -85,10 +86,8 @@ export async function GET(request: NextRequest) {
     if (error) throw new Error(error.message);
 
     // Apply post-processing (map, filter, sort) to the raw results
-    const centros = centrosRaw.data ? centrosRaw.data.filter(isEnabled) : [];
-    const almacenes = almacenesRaw.data
-      ? almacenesRaw.data.filter(isEnabled)
-      : [];
+    const centros: DeudaAct<CentroDistribucion>[] = centrosRaw.data ?? [];
+    const almacenes = almacenesRaw.data ?? [];
     const expediciones = expedicionesRaw.data
       ? (expedicionesRaw.data
           .map(applyAjuste)
@@ -114,36 +113,22 @@ export async function GET(request: NextRequest) {
           .map(applyAjuste)
           .filter(hasCajas) as AjusteStr<Devolucion>[])
       : [];
-    const entregasByCentro = new Map<string, AjusteStr<Entrega>[]>();
-
-    for (const entrega of entregas) {
-      const current = entregasByCentro.get(entrega.centro_distribucion);
-      if (current) {
-        current.push(entrega);
-      } else {
-        entregasByCentro.set(entrega.centro_distribucion, [entrega]);
-      }
-    }
 
     const dashboardData: DashboardRow[] = [];
     const movementToday: number =
-      expediciones.filter((evento) => evento.fecha === today).length +
-      traspasos.filter((evento) => evento.fecha === today).length +
-      entregas.filter((evento) => evento.fecha === today).length +
-      recogidas.filter((evento) => evento.fecha === today).length +
-      devoluciones.filter((evento) => evento.fecha === today).length;
+      expediciones.length +
+      traspasos.length +
+      entregas.length +
+      recogidas.length +
+      devoluciones.length;
 
     for (const centro of centros) {
       const iteration: DashboardRow = {
         nombre: centro.nombre,
         deuda: centro.deuda,
-        deuda_activa: {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
-        },
+        deuda_activa: centro.deuda_activa,
         rotacion: centro.rotacion,
-        fechaRot: today,
+        fechaRot: centro.fecha_liquidacion,
         estadoRot: "En tiempo",
         roturasTotal:
           centro.roturas.cajas.blancas +
@@ -152,44 +137,16 @@ export async function GET(request: NextRequest) {
           centro.roturas.tapas.negras +
           centro.roturas.cajas.verdes,
       };
-      const entregasFiltrado = entregasByCentro.get(centro.nombre) ?? [];
-      const { deuda_activa } = deudaActiva(centro, entregasFiltrado, {
-        entregasFiltradas: true,
-        entregasOrdenadas: true,
-      });
 
-      iteration.deuda_activa = deuda_activa;
-
-      const deuda: Cajas = {
-        blancas: centro.deuda.blancas,
-        negras: centro.deuda.negras,
-        verdes: centro.deuda.verdes,
-      };
-      for (const entrega of entregasFiltrado) {
-        iteration.fechaRot = entrega.fecha;
-        if (deuda.blancas >= 0 || deuda.negras >= 0 || deuda.verdes >= 0) {
-          deuda.blancas -= entrega.cajas.blancas;
-          deuda.negras -= entrega.cajas.negras;
-          deuda.verdes -= entrega.cajas.verdes;
-        } else {
-          break;
-        }
-      }
-
-      const cumplido =
-        centro.deuda.blancas <= 0 &&
-        centro.deuda.negras <= 0 &&
-        centro.deuda.verdes <= 0;
       const fechaRotDate = parseDate(iteration.fechaRot);
-      const todayDate = parseDate(today);
       const fechaLimite = new Date(fechaRotDate);
       fechaLimite.setUTCDate(fechaLimite.getUTCDate() + (centro.rotacion ?? 0));
 
-      if (fechaLimite < todayDate) {
+      if (fechaLimite < today) {
         iteration.estadoRot = "Retrasada";
-      } else if (cumplido) {
+      } else if (totalCajas(centro.deuda_activa) <= 0) {
         iteration.estadoRot = "Cumplida";
-      } else if (fechaLimite > todayDate) {
+      } else if (fechaLimite > today) {
         iteration.estadoRot = "Pendiente";
       } else {
         iteration.estadoRot = "En tiempo";

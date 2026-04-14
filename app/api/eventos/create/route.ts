@@ -66,7 +66,7 @@ async function buildMessage(
   if (sameCajas(cajasActuales, referenciaTotal))
     return `Evento creado exitosamente.\nLa cantidad de cajas registradas coincide con ${ref.label}.`;
   else
-    return `Evento creado exitosamente.\nAdvertencia: la cantidad de cajas no coincide con la cantidad registrada durante ${ref.label}. Cuente nuevamente y póngase en contacto con un informático.`;
+    return `Evento creado exitosamente.\nAdvertencia: la cantidad de cajas no coincide con la cantidad registrada durante ${ref.label}.\nCuente nuevamente y póngase en contacto con un informático.`;
 }
 
 export async function POST(request: NextRequest) {
