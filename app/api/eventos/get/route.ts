@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
-import { usuarioCookie } from "@/lib/utils";
+import { connectToDatabase } from "@/lib/server";
+import { usuarioCookie } from "@/lib/auth";
+import { EVENTOS_ARRAY, getEventTable, TIPOS_EVENTO } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,27 +12,42 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
-    const tipo = searchParams.get("tipo");
+    const tipo_evento = searchParams.get("tipo");
     const id = searchParams.get("id");
 
-    if (!tipo || !id) {
+    if (!tipo_evento || !id) {
       return NextResponse.json(
         { error: "Tipo e id son requeridos" },
         { status: 400 },
       );
     }
 
-    const { db } = await connectToDatabase();
-    const collection = db.collection(tipo);
-    const item = await collection.findOne({ _id: new ObjectId(id) });
-    if (!item) {
+    if (!EVENTOS_ARRAY.includes(tipo_evento as TIPOS_EVENTO)) {
+      return NextResponse.json(
+        { error: "Tipo de evento inválido" },
+        { status: 400 },
+      );
+    }
+
+    const db = (await connectToDatabase()).from(
+      getEventTable[tipo_evento as TIPOS_EVENTO],
+    );
+
+    const { data, error } = await db.select("*").eq("id", id);
+
+    if (error) throw new Error(error.message);
+
+    if (data.length === 0) {
       return NextResponse.json(
         { error: "Evento no encontrado" },
         { status: 404 },
       );
     }
-    // convert _id to string
-    return NextResponse.json({ ...item, _id: item._id.toString(), tipo: tipo });
+
+    return NextResponse.json({
+      ...data[0],
+      tipo: tipo_evento,
+    });
   } catch (err) {
     console.error("Error fetching event detail:", err);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });

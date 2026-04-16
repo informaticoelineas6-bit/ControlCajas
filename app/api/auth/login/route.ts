@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
 import { comparePassword } from "@/lib/auth";
-import { COLECCIONES, Usuario } from "@/lib/constants";
+import { TABLAS, Usuario } from "@/lib/constants";
+import { connectToDatabase } from "@/lib/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,14 +14,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { db } = await connectToDatabase();
-    const usuarios = db.collection<Usuario>(COLECCIONES.USUARIO);
+    const db = (await connectToDatabase()).from(TABLAS.USUARIO);
 
-    const usuario = await usuarios.findOne({ nombre });
+    const { data, error } = await db
+      .select<string, Usuario>("*")
+      .eq("nombre", nombre);
+
+    if (error) throw new Error(error.message);
+
+    const usuario = data[0];
 
     if (!usuario) {
       return NextResponse.json(
-        { error: "Usuario o contraseña incorrectos" },
+        { error: "Usuario no registrado en el sistema" },
         { status: 401 },
       );
     }
@@ -43,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     if (!passwordMatch) {
       return NextResponse.json(
-        { error: "Usuario o contraseña incorrectos" },
+        { error: "Contraseña incorrecta" },
         { status: 401 },
       );
     }
@@ -51,7 +56,6 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       usuario: {
-        id: usuario._id.toString(),
         nombre: usuario.nombre,
         rol: usuario.rol,
       },
@@ -60,7 +64,6 @@ export async function POST(request: NextRequest) {
     response.cookies.set(
       "usuario",
       JSON.stringify({
-        id: usuario._id.toString(),
         nombre: usuario.nombre,
         rol: usuario.rol,
       }),

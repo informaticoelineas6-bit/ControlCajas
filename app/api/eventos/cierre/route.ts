@@ -1,7 +1,7 @@
-import { Cierre, COLECCIONES } from "@/lib/constants";
-import { connectToDatabase } from "@/lib/mongodb";
+import { Cierre, TABLAS } from "@/lib/constants";
+import { connectToDatabase } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
-import { usuarioCookie } from "@/lib/utils";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,14 +18,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Fecha requerida" }, { status: 400 });
     }
 
-    const { db } = await connectToDatabase();
-    const cierre = await db.collection(COLECCIONES.CIERRE).findOne({ fecha });
+    const db = (await connectToDatabase()).from(TABLAS.CIERRE);
+    const { data, error } = await db.select().eq("fecha", fecha);
 
-    if (cierre) {
-      return NextResponse.json(cierre);
-    } else {
-      return NextResponse.json(null);
-    }
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(data[0] ?? null);
   } catch (error) {
     console.error("Error al obtener cierre:", error);
     return NextResponse.json(
@@ -43,44 +41,27 @@ export async function POST(request: NextRequest) {
     if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const data = await request.json();
-    const { fecha, cierre_cd, cierre_almacen } = data;
+    const { fecha, cierre_cd, cierre_almacen }: Cierre = await request.json();
 
     if (!fecha) {
       return NextResponse.json({ error: "Fecha requerida" }, { status: 400 });
     }
 
     // Verificar si ya existe un cierre para esta fecha
-    const { db } = await connectToDatabase();
-    const cierreExistente = await db
-      .collection(COLECCIONES.CIERRE)
-      .findOne({ fecha });
+    const db = (await connectToDatabase()).from(TABLAS.CIERRE);
 
-    if (cierreExistente) {
-      return NextResponse.json(
-        { error: "Ya existe un cierre para esta fecha" },
-        { status: 409 },
-      );
-    }
-
-    const nuevoCierre: Cierre = {
+    const { error } = await db.insert({
       fecha,
       cierre_almacen,
       cierre_cd,
-    };
+    });
 
-    const resultado = await db
-      .collection(COLECCIONES.CIERRE)
-      .insertOne(nuevoCierre);
+    if (error) throw new Error(error.message);
 
-    if (resultado.insertedId) {
-      return NextResponse.json(nuevoCierre, { status: 201 });
-    } else {
-      return NextResponse.json(
-        { error: "Error al crear cierre" },
-        { status: 500 },
-      );
-    }
+    return NextResponse.json(
+      { message: "Cierre creado exitosamente" },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error al crear cierre:", error);
     return NextResponse.json(

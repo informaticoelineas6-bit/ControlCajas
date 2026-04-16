@@ -1,6 +1,6 @@
-import { Almacen, Cajas, Cierre, COLECCIONES, Tapas } from "@/lib/constants";
-import { connectToDatabase } from "@/lib/mongodb";
-import { usuarioCookie } from "@/lib/utils";
+import { Almacen, Cajas, CajasRoturas } from "@/lib/constants";
+import { connectToDatabase } from "@/lib/server";
+import { usuarioCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -18,62 +18,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
     }
 
-    const { db } = await connectToDatabase();
-    const cierre = db.collection<Cierre>(COLECCIONES.CIERRE);
-    const almacenes = db.collection<Almacen>(COLECCIONES.ALMACEN);
+    const db = await connectToDatabase();
 
-    const [almacen, cierres] = await Promise.all([
-      almacenes.findOne({ nombre }),
-      cierre
-        .aggregate<{
-          fecha: string;
-          ajuste_stock: Cajas;
-          cajas_rotas: Cajas;
-          tapas_rotas: Tapas;
-        }>([
-          {
-            $match: {
-              "cierre_almacen.almacen": nombre,
-            },
-          },
-          { $unwind: "$cierre_almacen" },
-          {
-            $match: {
-              "cierre_almacen.almacen": nombre,
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              fecha: 1,
-              ajuste_stock: "$cierre_almacen.ajuste_stock",
-              cajas_rotas: "$cierre_almacen.cajas_rotas",
-              tapas_rotas: "$cierre_almacen.tapas_rotas",
-            },
-          },
-          { $sort: { fecha: -1 } },
-        ])
-        .toArray(),
-    ]);
+    const { data, error } = await db.rpc(
+      "get_almacen_audit",
+      {
+        almacen_nombre: nombre,
+      },
+      { get: true },
+    );
 
-    if (!almacen) {
-      return NextResponse.json(
-        { error: "Almacén no encontrado" },
-        { status: 404 },
-      );
-    }
+    if (error) throw new Error(error.message);
 
-    const audit: AlmacenAudit = {
-      almacen,
-      cierres: cierres.map((item) => ({
-        fecha: item.fecha,
-        ajuste_stock: item.ajuste_stock,
-        cajas_rotas: item.cajas_rotas,
-        tapas_rotas: item.tapas_rotas,
-      })),
-    };
-
-    return NextResponse.json(audit);
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error al obtener datos:", error);
     return NextResponse.json(
@@ -85,10 +42,8 @@ export async function GET(request: NextRequest) {
 
 export interface AlmacenAudit {
   almacen: Almacen;
-  cierres: {
+  cierres: ({
     fecha: string;
     ajuste_stock: Cajas;
-    cajas_rotas: Cajas;
-    tapas_rotas: Tapas;
-  }[];
+  } & CajasRoturas)[];
 }

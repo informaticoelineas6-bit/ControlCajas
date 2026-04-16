@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { COLECCIONES, Usuario } from "@/lib/constants";
-import { isEnabled, usuarioCookie } from "@/lib/utils";
+import { connectToDatabase } from "@/lib/server";
+import { TABLAS, Usuario } from "@/lib/constants";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,17 +9,15 @@ export async function GET(request: NextRequest) {
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-    const { db } = await connectToDatabase();
-    const usuarios = db.collection<Usuario>(COLECCIONES.USUARIO);
-    const listaUsuarios = (await usuarios.find({}).toArray()).filter(isEnabled);
-    return NextResponse.json(
-      listaUsuarios.map((usr): Usuario => {
-        return {
-          nombre: usr.nombre,
-          rol: usr.rol,
-        };
-      }),
-    );
+    const db = (await connectToDatabase()).from(TABLAS.USUARIO);
+
+    const { data, error } = await db
+      .select<string, Usuario>("nombre, rol")
+      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null");
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching usuarios:", error);
     return NextResponse.json(

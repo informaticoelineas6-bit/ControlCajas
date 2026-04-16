@@ -1,13 +1,13 @@
-import { Db } from "mongodb";
+import { SupabaseClient } from "@supabase/supabase-js";
 import {
   Cajas,
-  COLECCIONES,
   Devolucion,
   Entrega,
   Expedicion,
   ItemComparacionEntrega,
   ItemComparacionRecogida,
   Recogida,
+  TABLAS,
   Tapas,
   Traspaso,
 } from "./constants";
@@ -20,33 +20,33 @@ import {
 } from "./utils";
 
 export async function getComparacionEntrega(
-  db: Db,
+  db: SupabaseClient,
   fecha: string,
 ): Promise<ItemComparacionEntrega[]> {
   // Obtener expediciones y entregas
-  const expediciones = (
-    await db
-      .collection<Expedicion>(COLECCIONES.EXPEDICION)
-      .find({ fecha })
-      .toArray()
-  )
-    .map(applyAjuste)
-    .filter(hasCajas) as Expedicion[];
 
-  const entregas = (
-    await db.collection<Entrega>(COLECCIONES.ENTREGA).find({ fecha }).toArray()
-  )
-    .map(applyAjuste)
-    .filter(hasCajas) as Entrega[];
+  const [expedicionesRaw, traspasosRaw, entregasRaw] = await Promise.all([
+    db.from(TABLAS.EXPEDICION).select<string, Expedicion>().eq("fecha", fecha),
+    db.from(TABLAS.TRASPASO).select<string, Traspaso>().eq("fecha", fecha),
+    db.from(TABLAS.ENTREGA).select<string, Entrega>().eq("fecha", fecha),
+  ]);
 
-  const traspasos = (
-    await db
-      .collection<Traspaso>(COLECCIONES.TRASPASO)
-      .find({ fecha })
-      .toArray()
-  )
-    .map(applyAjuste)
-    .filter(hasCajas) as Traspaso[];
+  const error =
+    expedicionesRaw.error || traspasosRaw.error || entregasRaw.error;
+
+  if (error !== null) throw new Error(error.message);
+
+  const expediciones = expedicionesRaw.data
+    ? (expedicionesRaw.data.map(applyAjuste).filter(hasCajas) as Expedicion[])
+    : [];
+
+  const traspasos = traspasosRaw.data
+    ? (traspasosRaw.data.map(applyAjuste).filter(hasCajas) as Traspaso[])
+    : [];
+
+  const entregas = entregasRaw.data
+    ? (entregasRaw.data.map(applyAjuste).filter(hasCajas) as Entrega[])
+    : [];
 
   // Agrupar por centro de distribución
   const centrosExp = new Map<string, ItemComparacionEntrega>();
@@ -143,27 +143,27 @@ export async function getComparacionEntrega(
 }
 
 export async function getComparacionRecogida(
-  db: Db,
+  db: SupabaseClient,
   fecha: string,
 ): Promise<ItemComparacionRecogida[]> {
   // Obtener devoluciones y recogidas
-  const recogidas: Recogida[] = (
-    await db
-      .collection<Recogida>(COLECCIONES.RECOGIDA)
-      .find({ fecha })
-      .toArray()
-  )
-    .map(applyAjuste)
-    .filter(hasCajas) as Recogida[];
 
-  const devoluciones = (
-    await db
-      .collection<Devolucion>(COLECCIONES.DEVOLUCION)
-      .find({ fecha })
-      .toArray()
-  )
-    .map(applyAjuste)
-    .filter(hasCajas) as Devolucion[];
+  const [recogidasRaw, devolucionesRaw] = await Promise.all([
+    db.from(TABLAS.RECOGIDA).select<string, Recogida>().eq("fecha", fecha),
+    db.from(TABLAS.DEVOLUCION).select<string, Devolucion>().eq("fecha", fecha),
+  ]);
+
+  const error = recogidasRaw.error || devolucionesRaw.error;
+
+  if (error !== null) throw new Error(error.message);
+
+  const recogidas = recogidasRaw.data
+    ? (recogidasRaw.data.map(applyAjuste).filter(hasCajas) as Recogida[])
+    : [];
+
+  const devoluciones = devolucionesRaw.data
+    ? (devolucionesRaw.data.map(applyAjuste).filter(hasCajas) as Devolucion[])
+    : [];
 
   // Agrupar por centro de distribución
   const centrosRec = new Map<string, ItemComparacionRecogida>();
@@ -178,13 +178,20 @@ export async function getComparacionRecogida(
         cajas: item.recogida?.cajas
           ? (sumCajas(item.recogida?.cajas, current.cajas) as Cajas)
           : current.cajas,
-        cajas_rotas: item.recogida?.cajas_rotas
-          ? (sumCajas(item.recogida?.cajas_rotas, current.cajas_rotas) as Cajas)
-          : current.cajas_rotas,
-        tapas_rotas: item.recogida?.tapas_rotas
-          ? sumCajas(item.recogida?.tapas_rotas, current.tapas_rotas)
-          : current.tapas_rotas,
-        ajuste: appendNombre(item.recogida?.ajuste, current.ajuste?.nombre),
+        roturas: {
+          cajas: item.recogida?.roturas.cajas
+            ? (sumCajas(
+                item.recogida.roturas.cajas,
+                current.roturas.cajas,
+              ) as Cajas)
+            : current.roturas.cajas,
+          tapas: item.recogida?.roturas.tapas
+            ? (sumCajas(
+                item.recogida.roturas.tapas,
+                current.roturas.tapas,
+              ) as Tapas)
+            : current.roturas.tapas,
+        },
       };
     } else {
       centrosRec.set(centro, {
@@ -194,8 +201,7 @@ export async function getComparacionRecogida(
         recogida: {
           nombre: current.nombre,
           cajas: current.cajas,
-          cajas_rotas: current.cajas_rotas,
-          tapas_rotas: current.tapas_rotas,
+          roturas: current.roturas,
           ajuste: current.ajuste?.nombre,
         },
         devolucion: null,
@@ -215,15 +221,20 @@ export async function getComparacionRecogida(
         cajas: item.devolucion?.cajas
           ? (sumCajas(item.devolucion?.cajas, current.cajas) as Cajas)
           : current.cajas,
-        cajas_rotas: item.devolucion?.cajas_rotas
-          ? (sumCajas(
-              item.devolucion?.cajas_rotas,
-              current.cajas_rotas,
-            ) as Cajas)
-          : current.cajas_rotas,
-        tapas_rotas: item.devolucion?.tapas_rotas
-          ? sumCajas(item.devolucion?.tapas_rotas, current.tapas_rotas)
-          : current.tapas_rotas,
+        roturas: {
+          cajas: item.devolucion?.roturas.cajas
+            ? (sumCajas(
+                item.devolucion.roturas.cajas,
+                current.roturas.cajas,
+              ) as Cajas)
+            : current.roturas.cajas,
+          tapas: item.devolucion?.roturas.tapas
+            ? (sumCajas(
+                item.devolucion.roturas.tapas,
+                current.roturas.tapas,
+              ) as Tapas)
+            : current.roturas.tapas,
+        },
         ajuste: appendNombre(item.devolucion?.ajuste, current.ajuste?.nombre),
       };
     } else {
@@ -235,8 +246,7 @@ export async function getComparacionRecogida(
         devolucion: {
           nombre: current.nombre,
           cajas: current.cajas,
-          cajas_rotas: current.cajas_rotas,
-          tapas_rotas: current.tapas_rotas,
+          roturas: current.roturas,
           ajuste: current.ajuste?.nombre,
         },
         alerta: false,
@@ -249,15 +259,13 @@ export async function getComparacionRecogida(
 }
 
 export function alertCompare(
-  event1: { cajas: Cajas; cajas_rotas?: Cajas; tapas_rotas?: Tapas },
-  event2: { cajas: Cajas; cajas_rotas?: Cajas; tapas_rotas?: Tapas },
+  event1: { cajas: Cajas; roturas?: { cajas: Cajas; tapas: Tapas } },
+  event2: { cajas: Cajas; roturas?: { cajas: Cajas; tapas: Tapas } },
 ): boolean {
   if (!sameCajas(event2.cajas, event1.cajas)) return true;
-  if (event1.cajas_rotas && event2.cajas_rotas) {
-    if (!sameCajas(event2.cajas_rotas, event1.cajas_rotas)) return true;
-  }
-  if (event1.tapas_rotas && event2.tapas_rotas) {
-    if (!sameCajas(event2.tapas_rotas, event1.tapas_rotas)) return true;
+  if (event1.roturas && event2.roturas) {
+    if (!sameCajas(event2.roturas.cajas, event1.roturas.cajas)) return true;
+    if (!sameCajas(event2.roturas.tapas, event1.roturas.tapas)) return true;
   }
   return false;
 }

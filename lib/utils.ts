@@ -2,7 +2,6 @@ import {
   Almacen,
   Cajas,
   CentroDistribucion,
-  Entrega,
   Evento,
   EventoRotura,
   Provincia,
@@ -10,13 +9,12 @@ import {
   Usuario,
   Vehiculo,
 } from "@/lib/constants";
-import { NextRequest } from "next/server";
 
 export type AjusteStr<Str> = Omit<Str, "ajuste"> & { ajuste?: string };
 
 export function applyAjuste(
   item: Evento | EventoRotura,
-): AjusteStr<Evento> | AjusteStr<EventoRotura> {
+): AjusteStr<Evento | EventoRotura> {
   if (!item.ajuste) {
     return { ...item, ajuste: undefined };
   }
@@ -25,34 +23,27 @@ export function applyAjuste(
     negras: (item.cajas.negras ?? 0) + (item.ajuste.cajas.negras ?? 0),
     verdes: (item.cajas.verdes ?? 0) + (item.ajuste.cajas.verdes ?? 0),
   };
-  if (
-    "cajas_rotas" in item &&
-    item.cajas_rotas &&
-    "cajas_rotas" in item.ajuste &&
-    item.ajuste.cajas_rotas
-  ) {
-    item.cajas_rotas = {
-      blancas:
-        (item.cajas_rotas.blancas ?? 0) +
-        (item.ajuste.cajas_rotas.blancas ?? 0),
-      negras:
-        (item.cajas_rotas.negras ?? 0) + (item.ajuste.cajas_rotas.negras ?? 0),
-      verdes:
-        (item.cajas_rotas.verdes ?? 0) + (item.ajuste.cajas_rotas.verdes ?? 0),
-    };
-  }
-  if (
-    "tapas_rotas" in item &&
-    item.tapas_rotas &&
-    "tapas_rotas" in item.ajuste &&
-    item.ajuste.tapas_rotas
-  ) {
-    item.tapas_rotas = {
-      blancas:
-        (item.tapas_rotas.blancas ?? 0) +
-        (item.ajuste.tapas_rotas.blancas ?? 0),
-      negras:
-        (item.tapas_rotas.negras ?? 0) + (item.ajuste.tapas_rotas.negras ?? 0),
+  if ("roturas" in item) {
+    item.roturas = {
+      cajas: {
+        blancas:
+          (item.roturas.cajas.blancas ?? 0) +
+          (item.ajuste.roturas.cajas.blancas ?? 0),
+        negras:
+          (item.roturas.cajas.negras ?? 0) +
+          (item.ajuste.roturas.cajas.negras ?? 0),
+        verdes:
+          (item.roturas.cajas.verdes ?? 0) +
+          (item.ajuste.roturas.cajas.verdes ?? 0),
+      },
+      tapas: {
+        blancas:
+          (item.roturas.tapas.blancas ?? 0) +
+          (item.ajuste.roturas.tapas.blancas ?? 0),
+        negras:
+          (item.roturas.tapas.negras ?? 0) +
+          (item.ajuste.roturas.tapas.negras ?? 0),
+      },
     };
   }
   return {
@@ -124,63 +115,50 @@ export function appendNombre(
   return actual + " + " + nuevo;
 }
 
-export function usuarioCookie(request: NextRequest): Usuario | null {
-  const usuarioCookie = request.cookies.get("usuario");
-  let usuario: Usuario | null = null;
-  if (usuarioCookie) {
-    try {
-      usuario = JSON.parse(usuarioCookie.value);
-      if (!usuario) {
-        return null;
-      }
-    } catch {
-      return null;
-    }
-  }
-  return usuario ?? null;
-}
-
 export function formatDate(date: string): string {
   return new Date(date).toLocaleString("es-MX", {
     dateStyle: "long",
   });
 }
 
-export type DeudaAct<Centro> = Centro & { deuda_activa: Cajas };
+export type DeudaAct<Centro> = Centro & {
+  deuda_activa: Cajas;
+  fecha_liquidacion: string;
+};
 
-export function deudaActiva(
-  centro: CentroDistribucion,
-  entregas: AjusteStr<Entrega>[],
-): DeudaAct<CentroDistribucion> {
-  const rotDate = new Date();
-  rotDate.setUTCDate(rotDate.getUTCDate() - (centro.rotacion ?? 0));
-  const targetStr = rotDate.toISOString().split("T")[0]; // e.g., "2026-03-25"
+// export function deudaActiva(
+//   centro: CentroDistribucion,
+//   entregas: AjusteStr<Entrega>[],
+// ): DeudaAct<CentroDistribucion> {
+//   const rotDate = new Date();
+//   rotDate.setUTCDate(rotDate.getUTCDate() - (centro.rotacion ?? 0));
+//   const targetStr = rotDate.toISOString().split("T")[0]; // e.g., "2026-03-25"
 
-  const listaEntregas = entregas
-    .filter((elem) => elem.centro_distribucion === centro.nombre)
-    .sort((a, b) => b.fecha.localeCompare(a.fecha));
+//   const listaEntregas = entregas
+//     .filter((elem) => elem.centro_distribucion === centro.nombre)
+//     .sort((a, b) => b.fecha.localeCompare(a.fecha));
 
-  const deuda: Cajas = {
-    blancas: centro.deuda.blancas,
-    negras: centro.deuda.negras,
-    verdes: centro.deuda.verdes,
-  };
-  let deuda_activa: Cajas = {
-    blancas: 0,
-    negras: 0,
-    verdes: 0,
-  };
-  for (const entrega of listaEntregas) {
-    if (entrega.fecha < targetStr) {
-      deuda_activa = deuda;
-    } else if (deuda.blancas >= 0 || deuda.negras >= 0 || deuda.verdes >= 0) {
-      deuda.blancas -= entrega.cajas.blancas;
-      deuda.negras -= entrega.cajas.negras;
-      deuda.verdes -= entrega.cajas.verdes;
-    } else {
-      break;
-    }
-  }
+//   const deuda: Cajas = {
+//     blancas: centro.deuda.blancas,
+//     negras: centro.deuda.negras,
+//     verdes: centro.deuda.verdes,
+//   };
+//   let deuda_activa: Cajas = {
+//     blancas: 0,
+//     negras: 0,
+//     verdes: 0,
+//   };
+//   for (const entrega of listaEntregas) {
+//     if (entrega.fecha < targetStr) {
+//       deuda_activa = deuda;
+//     } else if (deuda.blancas >= 0 || deuda.negras >= 0 || deuda.verdes >= 0) {
+//       deuda.blancas -= entrega.cajas.blancas;
+//       deuda.negras -= entrega.cajas.negras;
+//       deuda.verdes -= entrega.cajas.verdes;
+//     } else {
+//       break;
+//     }
+//   }
 
-  return { ...centro, deuda_activa };
-}
+//   return { ...centro, deuda_activa };
+// }

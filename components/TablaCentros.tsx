@@ -5,6 +5,7 @@ import {
   CAJAS_ARRAY,
   CentroDistribucion,
   COLORES_CAJAS,
+  COLORES_TAPAS,
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
@@ -162,7 +163,6 @@ export default function TablaCentros({
     try {
       const method = editingId ? "PUT" : "POST";
       const body: CentroDistribucion = {
-        _id: editingId || undefined,
         nombre: form.nombre,
         deuda: {
           blancas: form.habilitado.blancas
@@ -233,7 +233,7 @@ export default function TablaCentros({
       habilitado: centro.habilitado,
       roturas: centro.roturas,
     });
-    setEditingId(centro._id ?? null);
+    setEditingId(centro.nombre ?? null);
   };
 
   const enableCentro = async (
@@ -241,7 +241,7 @@ export default function TablaCentros({
     habilitado: boolean,
   ) => {
     try {
-      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
+      const res = await fetch(`/api/admin/ajuste?id=${target.nombre}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -265,12 +265,12 @@ export default function TablaCentros({
   };
 
   const handleDelete = async (centro: CentroDistribucion) => {
-    if (!centro._id) return;
+    if (!centro.nombre) return;
 
-    setDeletingId(centro._id);
+    setDeletingId(centro.nombre);
     setError("");
     try {
-      const res = await fetch(`/api/admin/centros?id=${centro._id}`, {
+      const res = await fetch(`/api/admin/centros?id=${centro.nombre}`, {
         method: "DELETE",
       });
       const data = await res.json();
@@ -353,7 +353,7 @@ export default function TablaCentros({
             </div>
 
             <div className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}>
-              {CAJAS_ARRAY.map((color) => (
+              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                 <div key={color}>
                   <label
                     htmlFor={`deuda_${color}`}
@@ -380,7 +380,7 @@ export default function TablaCentros({
                   />
                 </div>
               ))}
-              {CAJAS_ARRAY.map((color) => (
+              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                 <div key={`cajas_rotas_${color}`}>
                   <label
                     htmlFor={`cajas_rotas_${color}`}
@@ -399,7 +399,7 @@ export default function TablaCentros({
                   />
                 </div>
               ))}
-              {TAPAS_ARRAY.map((color) => (
+              {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                 <div key={`tapas_rota_s${color}`}>
                   <label
                     htmlFor={`tapas_rotas_${color}`}
@@ -449,9 +449,14 @@ export default function TablaCentros({
               <thead className="bg-slate-50 text-slate-500">
                 <tr>
                   <th className="px-5 py-4 text-left font-semibold">Nombre</th>
-                  <th className="px-5 py-4 text-left font-semibold">Blancas</th>
-                  <th className="px-5 py-4 text-left font-semibold">Negras</th>
-                  <th className="px-5 py-4 text-left font-semibold">Verdes</th>
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <th
+                      key={color}
+                      className="px-5 py-4 text-left font-semibold capitalize"
+                    >
+                      {color}
+                    </th>
+                  ))}
                   <th className="px-5 py-4 text-left font-semibold">
                     Rotación
                   </th>
@@ -469,21 +474,18 @@ export default function TablaCentros({
               <tbody>
                 {centros.map((item) => (
                   <tr
-                    key={item._id}
+                    key={item.nombre}
                     className="border-t border-slate-100 transition hover:bg-slate-50"
                   >
                     <td className="px-5 py-4 font-semibold text-slate-800">
                       {item.nombre}
                     </td>
-                    <td className="px-5 py-4 text-slate-600">
-                      {item.deuda.blancas ?? 0}
-                    </td>
-                    <td className="px-5 py-4 text-slate-600">
-                      {item.deuda.negras ?? 0}
-                    </td>
-                    <td className="px-5 py-4 text-slate-600">
-                      {item.deuda.verdes ?? 0}
-                    </td>
+
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <td key={color} className="px-5 py-4 text-slate-600">
+                        {item.deuda[color] ?? 0}
+                      </td>
+                    ))}
                     <td className="px-5 py-4">
                       <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
                         {item.rotacion ?? 0} días
@@ -548,9 +550,9 @@ export default function TablaCentros({
                           </button>
                           <ConfirmDeleteButton
                             entityName={`el centro ${item.nombre}`}
-                            disabled={deletingId === item._id}
+                            disabled={deletingId === item.nombre}
                             buttonLabel={
-                              deletingId === item._id
+                              deletingId === item.nombre
                                 ? "Eliminando..."
                                 : undefined
                             }

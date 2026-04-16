@@ -1,6 +1,10 @@
 "use client";
 
-import { ItemComparacionEntrega } from "@/lib/constants";
+import {
+  CAJAS_ARRAY,
+  COLORES_CAJAS,
+  ItemComparacionEntrega,
+} from "@/lib/constants";
 import { totalCajas } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
@@ -162,7 +166,11 @@ export default function TablaExpedicionEntrega({
                         {item.expedicion?.ajuste ?? "-"}
                       </td>
                       <td
-                        title={`Blancas: ${item.expedicion?.cajas.blancas ?? 0}, Negras: ${item.expedicion?.cajas.negras ?? 0}, Verdes: ${item.expedicion?.cajas.verdes ?? 0}`}
+                        title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                          const capitalize =
+                            color.charAt(0).toUpperCase + color.slice(1);
+                          return `${capitalize}: ${item.expedicion?.cajas[color] ?? 0}`;
+                        }).join("\n")}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                       >
                         {item.expedicion?.cajas
@@ -176,7 +184,11 @@ export default function TablaExpedicionEntrega({
                         {item.traspaso?.ajuste ?? "-"}
                       </td>
                       <td
-                        title={`Blancas: ${item.traspaso?.cajas.blancas ?? 0}, Negras: ${item.traspaso?.cajas.negras ?? 0}, Verdes: ${item.traspaso?.cajas.verdes ?? 0}`}
+                        title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                          const capitalize =
+                            color.charAt(0).toUpperCase + color.slice(1);
+                          return `${capitalize}: ${item.traspaso?.cajas[color] ?? 0}`;
+                        }).join("\n")}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                       >
                         {item.traspaso?.cajas
@@ -190,7 +202,11 @@ export default function TablaExpedicionEntrega({
                         {item.entrega?.ajuste ?? "-"}
                       </td>
                       <td
-                        title={`Blancas: ${item.entrega?.cajas.blancas ?? 0}, Negras: ${item.entrega?.cajas.negras ?? 0}, Verdes: ${item.entrega?.cajas.verdes ?? 0}`}
+                        title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                          const capitalize =
+                            color.charAt(0).toUpperCase + color.slice(1);
+                          return `${capitalize}: ${item.entrega?.cajas[color] ?? 0}`;
+                        }).join("\n")}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                       >
                         {item.entrega?.cajas

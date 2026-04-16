@@ -1,12 +1,6 @@
-import {
-  Cajas,
-  CentroDistribucion,
-  Cierre,
-  COLECCIONES,
-  Tapas,
-} from "@/lib/constants";
-import { connectToDatabase } from "@/lib/mongodb";
-import { usuarioCookie } from "@/lib/utils";
+import { Cajas, CajasRoturas, CentroDistribucion } from "@/lib/constants";
+import { connectToDatabase } from "@/lib/server";
+import { usuarioCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -24,64 +18,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
     }
 
-    const { db } = await connectToDatabase();
-    const cierre = db.collection<Cierre>(COLECCIONES.CIERRE);
-    const centros = db.collection<CentroDistribucion>(
-      COLECCIONES.CENTRO_DISTRIBUCION,
+    const db = await connectToDatabase();
+
+    const { data, error } = await db.rpc(
+      "get_centro_audit",
+      {
+        centro_nombre: nombre,
+      },
+      { get: true },
     );
 
-    const [centro, cierres] = await Promise.all([
-      centros.findOne({ nombre }),
-      cierre
-        .aggregate<{
-          fecha: string;
-          ajuste_deuda: Cajas;
-          cajas_rotas: Cajas;
-          tapas_rotas: Tapas;
-        }>([
-          {
-            $match: {
-              "cierre_cd.centro_distribucion": nombre,
-            },
-          },
-          { $unwind: "$cierre_cd" },
-          {
-            $match: {
-              "cierre_cd.centro_distribucion": nombre,
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              fecha: 1,
-              ajuste_deuda: "$cierre_cd.ajuste_deuda",
-              cajas_rotas: "$cierre_cd.cajas_rotas",
-              tapas_rotas: "$cierre_cd.tapas_rotas",
-            },
-          },
-          { $sort: { fecha: -1 } },
-        ])
-        .toArray(),
-    ]);
+    if (error) throw new Error(error.message);
 
-    if (!centro) {
-      return NextResponse.json(
-        { error: "Centro no encontrado" },
-        { status: 404 },
-      );
-    }
-
-    const audit: CentroAudit = {
-      centro,
-      cierres: cierres.map((item) => ({
-        fecha: item.fecha,
-        ajuste_deuda: item.ajuste_deuda,
-        cajas_rotas: item.cajas_rotas,
-        tapas_rotas: item.tapas_rotas,
-      })),
-    };
-
-    return NextResponse.json(audit);
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error al obtener datos:", error);
     return NextResponse.json(
@@ -93,10 +42,8 @@ export async function GET(request: NextRequest) {
 
 export interface CentroAudit {
   centro: CentroDistribucion;
-  cierres: {
+  cierres: ({
     fecha: string;
     ajuste_deuda: Cajas;
-    cajas_rotas: Cajas;
-    tapas_rotas: Tapas;
-  }[];
+  } & CajasRoturas)[];
 }

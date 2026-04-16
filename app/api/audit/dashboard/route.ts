@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from "@/lib/server";
 import {
   Almacen,
   Cajas,
   CentroDistribucion,
-  COLECCIONES,
+  TABLAS,
   Devolucion,
   Entrega,
   Expedicion,
@@ -14,13 +14,12 @@ import {
 import {
   AjusteStr,
   applyAjuste,
-  deudaActiva,
+  DeudaAct,
   hasCajas,
-  isEnabled,
   sumCajas,
   totalCajas,
-  usuarioCookie,
 } from "@/lib/utils";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,8 +29,9 @@ export async function GET(request: NextRequest) {
     if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const { db } = await connectToDatabase();
-    const today = new Date().toISOString().split("T")[0];
+    const db = await connectToDatabase();
+    const today = new Date();
+    const todayString = today.toISOString().split("T")[0];
     const parseDate = (value: string) => {
       const [year, month, day] = value.split("-").map(Number);
       return new Date(Date.UTC(year, month - 1, day));
@@ -47,71 +47,88 @@ export async function GET(request: NextRequest) {
       recogidasRaw,
       devolucionesRaw,
     ] = await Promise.all([
+      db.rpc<string, DeudaAct<CentroDistribucion>>("all_centros_deuda_activa"),
       db
-        .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-        .find()
-        .toArray() as Promise<CentroDistribucion[]>,
-      db.collection<Almacen>(COLECCIONES.ALMACEN).find().toArray() as Promise<
-        Almacen[]
-      >,
+        .from(TABLAS.ALMACEN)
+        .select<string, Almacen>("stock, roturas, ajuste")
+        .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
       db
-        .collection<Expedicion>(COLECCIONES.EXPEDICION)
-        .find({ fecha: today })
-        .toArray() as Promise<Expedicion[]>,
-      db.collection<Traspaso>(COLECCIONES.TRASPASO).find().toArray() as Promise<
-        Traspaso[]
-      >,
-      db.collection<Entrega>(COLECCIONES.ENTREGA).find().toArray() as Promise<
-        Entrega[]
-      >,
+        .from(TABLAS.EXPEDICION)
+        .select<string, Expedicion>("fecha, cajas, ajuste")
+        .eq("fecha", todayString),
       db
-        .collection<Recogida>(COLECCIONES.RECOGIDA)
-        .find({ fecha: today })
-        .toArray() as Promise<Recogida[]>,
+        .from(TABLAS.TRASPASO)
+        .select<string, Traspaso>("fecha, cajas, ajuste")
+        .eq("fecha", todayString),
       db
-        .collection<Devolucion>(COLECCIONES.DEVOLUCION)
-        .find({ fecha: today })
-        .toArray() as Promise<Devolucion[]>,
+        .from(TABLAS.ENTREGA)
+        .select<string, Entrega>("fecha, cajas, ajuste")
+        .eq("fecha", todayString),
+      db
+        .from(TABLAS.RECOGIDA)
+        .select<string, Recogida>("fecha, cajas, roturas, ajuste")
+        .eq("fecha", todayString),
+      db
+        .from(TABLAS.DEVOLUCION)
+        .select<string, Devolucion>("fecha, cajas, roturas, ajuste")
+        .eq("fecha", todayString),
     ]);
 
+    const error =
+      centrosRaw.error ||
+      almacenesRaw.error ||
+      expedicionesRaw.error ||
+      traspasosRaw.error ||
+      entregasRaw.error ||
+      recogidasRaw.error ||
+      devolucionesRaw.error;
+
+    if (error) throw new Error(error.message);
+
     // Apply post-processing (map, filter, sort) to the raw results
-    const centros = centrosRaw.filter(isEnabled);
-    const almacenes = almacenesRaw.filter(isEnabled);
-    const expediciones = expedicionesRaw
-      .map(applyAjuste)
-      .filter(hasCajas) as AjusteStr<Expedicion>[];
-    const traspasos = traspasosRaw
-      .map(applyAjuste)
-      .filter(hasCajas) as AjusteStr<Traspaso>[];
-    const entregas = (entregasRaw.map(applyAjuste) as AjusteStr<Entrega>[])
-      .filter(hasCajas)
-      .sort((a, b) => b.fecha.localeCompare(a.fecha));
-    const recogidas = recogidasRaw
-      .map(applyAjuste)
-      .filter(hasCajas) as AjusteStr<Recogida>[];
-    const devoluciones = devolucionesRaw
-      .map(applyAjuste)
-      .filter(hasCajas) as AjusteStr<Devolucion>[];
+    const centros: DeudaAct<CentroDistribucion>[] = centrosRaw.data ?? [];
+    const almacenes = almacenesRaw.data ?? [];
+    const expediciones = expedicionesRaw.data
+      ? (expedicionesRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Expedicion>[])
+      : [];
+    const traspasos = traspasosRaw.data
+      ? (traspasosRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Traspaso>[])
+      : [];
+    const entregas = entregasRaw.data
+      ? (entregasRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Entrega>[])
+      : [];
+    const recogidas = recogidasRaw.data
+      ? (recogidasRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Recogida>[])
+      : [];
+    const devoluciones = devolucionesRaw.data
+      ? (devolucionesRaw.data
+          .map(applyAjuste)
+          .filter(hasCajas) as AjusteStr<Devolucion>[])
+      : [];
 
     const dashboardData: DashboardRow[] = [];
     const movementToday: number =
-      expediciones.filter((evento) => evento.fecha === today).length +
-      traspasos.filter((evento) => evento.fecha === today).length +
-      entregas.filter((evento) => evento.fecha === today).length +
-      recogidas.filter((evento) => evento.fecha === today).length +
-      devoluciones.filter((evento) => evento.fecha === today).length;
+      expediciones.length +
+      traspasos.length +
+      entregas.length +
+      recogidas.length +
+      devoluciones.length;
 
     for (const centro of centros) {
       const iteration: DashboardRow = {
         nombre: centro.nombre,
         deuda: centro.deuda,
-        deuda_activa: {
-          blancas: 0,
-          negras: 0,
-          verdes: 0,
-        },
+        deuda_activa: centro.deuda_activa,
         rotacion: centro.rotacion,
-        fechaRot: today,
+        fechaRot: centro.fecha_liquidacion,
         estadoRot: "En tiempo",
         roturasTotal:
           centro.roturas.cajas.blancas +
@@ -120,44 +137,16 @@ export async function GET(request: NextRequest) {
           centro.roturas.tapas.negras +
           centro.roturas.cajas.verdes,
       };
-      const entregasFiltrado = entregas.filter(
-        (entrega) => entrega.centro_distribucion === centro.nombre,
-      );
 
-      const { deuda_activa } = deudaActiva(centro, entregasFiltrado);
-
-      iteration.deuda_activa = deuda_activa;
-
-      const deuda: Cajas = {
-        blancas: centro.deuda.blancas,
-        negras: centro.deuda.negras,
-        verdes: centro.deuda.verdes,
-      };
-      for (const entrega of entregasFiltrado) {
-        iteration.fechaRot = entrega.fecha;
-        if (deuda.blancas >= 0 || deuda.negras >= 0 || deuda.verdes >= 0) {
-          deuda.blancas -= entrega.cajas.blancas;
-          deuda.negras -= entrega.cajas.negras;
-          deuda.verdes -= entrega.cajas.verdes;
-        } else {
-          break;
-        }
-      }
-
-      const cumplido =
-        centro.deuda.blancas <= 0 &&
-        centro.deuda.negras <= 0 &&
-        centro.deuda.verdes <= 0;
       const fechaRotDate = parseDate(iteration.fechaRot);
-      const todayDate = parseDate(today);
       const fechaLimite = new Date(fechaRotDate);
       fechaLimite.setUTCDate(fechaLimite.getUTCDate() + (centro.rotacion ?? 0));
 
-      if (fechaLimite < todayDate) {
+      if (fechaLimite < today) {
         iteration.estadoRot = "Retrasada";
-      } else if (cumplido) {
+      } else if (totalCajas(centro.deuda_activa) <= 0) {
         iteration.estadoRot = "Cumplida";
-      } else if (fechaLimite > todayDate) {
+      } else if (fechaLimite > today) {
         iteration.estadoRot = "Pendiente";
       } else {
         iteration.estadoRot = "En tiempo";
@@ -217,8 +206,8 @@ export async function GET(request: NextRequest) {
       (acc: number, devolucion: AjusteStr<Devolucion>) => {
         return (
           acc +
-          totalCajas(devolucion.cajas_rotas) +
-          totalCajas(devolucion.tapas_rotas)
+          totalCajas(devolucion.roturas.cajas) +
+          totalCajas(devolucion.roturas.tapas)
         );
       },
       0,

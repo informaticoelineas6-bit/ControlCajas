@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { COLECCIONES, Provincia } from "@/lib/constants";
-import { isEnabled, usuarioCookie } from "@/lib/utils";
+import { connectToDatabase } from "@/lib/server";
+import { Provincia, TABLAS } from "@/lib/constants";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,19 +9,15 @@ export async function GET(request: NextRequest) {
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-    const { db } = await connectToDatabase();
-    const provincias = db.collection<Provincia>(COLECCIONES.PROVINCIA);
-    const listaProvincias = (await provincias.find({}).toArray()).filter(
-      isEnabled,
-    );
-    return NextResponse.json(
-      listaProvincias.map((prov): Provincia => {
-        return {
-          centro_distribucion: prov.centro_distribucion,
-          nombre: prov.nombre,
-        };
-      }),
-    );
+    const db = (await connectToDatabase()).from(TABLAS.PROVINCIA);
+
+    const { data, error } = await db
+      .select<string, Provincia>("nombre, centro_distribucion")
+      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null");
+
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching almacenes:", error);
     return NextResponse.json(

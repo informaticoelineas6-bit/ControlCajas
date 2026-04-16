@@ -1,6 +1,12 @@
 "use client";
 
-import { ItemComparacionRecogida } from "@/lib/constants";
+import {
+  CAJAS_ARRAY,
+  COLORES_CAJAS,
+  COLORES_TAPAS,
+  ItemComparacionRecogida,
+  TAPAS_ARRAY,
+} from "@/lib/constants";
 import { totalCajas } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
@@ -163,7 +169,11 @@ export default function TablaRecogidaDevolucion({
                         {item.recogida?.ajuste ?? "-"}
                       </td>
                       <td
-                        title={`Blancas: ${item.recogida?.cajas.blancas ?? 0}, Negras: ${item.recogida?.cajas.negras ?? 0}, Verdes: ${item.recogida?.cajas.verdes ?? 0}`}
+                        title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                          const capitalize =
+                            color.charAt(0).toUpperCase + color.slice(1);
+                          return `${capitalize}: ${item.recogida?.cajas[color] ?? 0}`;
+                        }).join("\n")}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                       >
                         {item.recogida ? totalCajas(item.recogida?.cajas) : 0}
@@ -175,7 +185,11 @@ export default function TablaRecogidaDevolucion({
                         {item.devolucion?.ajuste ?? "-"}
                       </td>
                       <td
-                        title={`Blancas: ${item.devolucion?.cajas.blancas ?? 0}, Negras: ${item.devolucion?.cajas.negras ?? 0}, Verdes: ${item.devolucion?.cajas.verdes ?? 0}`}
+                        title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                          const capitalize =
+                            color.charAt(0).toUpperCase + color.slice(1);
+                          return `${capitalize}: ${item.devolucion?.cajas[color] ?? 0}`;
+                        }).join("\n")}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                       >
                         {item.devolucion
@@ -184,20 +198,44 @@ export default function TablaRecogidaDevolucion({
                       </td>
                       <td
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
-                        title={`Cajas Blancas: ${item.recogida?.cajas_rotas?.blancas ?? 0}, Negras: ${item.recogida?.cajas_rotas?.negras ?? 0}, Verdes: ${item.recogida?.cajas_rotas?.verdes ?? 0}\nTapas Blancas: ${item.recogida?.tapas_rotas?.blancas ?? 0}, Negras: ${item.recogida?.tapas_rotas?.negras ?? 0}`}
+                        title={`Cajas ${CAJAS_ARRAY.map(
+                          (color: COLORES_CAJAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.recogida?.roturas.cajas[color] ?? 0}`;
+                          },
+                        ).join("\n")}\nTapas ${TAPAS_ARRAY.map(
+                          (color: COLORES_TAPAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.recogida?.roturas.tapas[color] ?? 0}`;
+                          },
+                        ).join("\n")}`}
                       >
                         {item.recogida
-                          ? totalCajas(item.recogida.cajas_rotas) +
-                            totalCajas(item.recogida.tapas_rotas)
+                          ? totalCajas(item.recogida.roturas.cajas) +
+                            totalCajas(item.recogida.roturas.tapas)
                           : "-"}
                       </td>
                       <td
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
-                        title={`Cajas Blancas: ${item.devolucion?.cajas_rotas?.blancas ?? 0}, Negras: ${item.devolucion?.cajas_rotas?.negras ?? 0}, Verdes: ${item.devolucion?.cajas_rotas?.verdes ?? 0}\nTapas Blancas: ${item.devolucion?.tapas_rotas?.blancas ?? 0}, Negras: ${item.devolucion?.tapas_rotas?.negras ?? 0}`}
+                        title={`Cajas ${CAJAS_ARRAY.map(
+                          (color: COLORES_CAJAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.devolucion?.roturas.cajas[color] ?? 0}`;
+                          },
+                        ).join("\n")}\nTapas ${TAPAS_ARRAY.map(
+                          (color: COLORES_TAPAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.devolucion?.roturas.tapas[color] ?? 0}`;
+                          },
+                        ).join("\n")}`}
                       >
                         {item.devolucion
-                          ? totalCajas(item.devolucion.cajas_rotas) +
-                            totalCajas(item.devolucion.tapas_rotas)
+                          ? totalCajas(item.devolucion.roturas.cajas) +
+                            totalCajas(item.devolucion.roturas.tapas)
                           : "-"}
                       </td>
                     </tr>

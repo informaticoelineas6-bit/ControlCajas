@@ -1,8 +1,12 @@
 "use client";
 
 import {
+  CAJAS_ARRAY,
   COLECCIONES,
+  COLORES_CAJAS,
+  COLORES_TAPAS,
   Devolucion,
+  TAPAS_ARRAY,
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
@@ -16,7 +20,7 @@ export default function TablaDevolucion({
 }: Readonly<{
   usuario: Usuario;
   fecha: string;
-  onAjustar?: (tipo: TIPOS_EVENTO, id: string) => void;
+  onAjustar?: (tipo: TIPOS_EVENTO, id: number) => void;
 }>) {
   const [datos, setDatos] = useState<AjusteStr<Devolucion>[]>([]);
   const [loading, setLoading] = useState(false);
@@ -85,7 +89,7 @@ export default function TablaDevolucion({
               ) : (
                 datos.map((item) => (
                   <article
-                    key={item._id}
+                    key={item.id}
                     className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -100,7 +104,7 @@ export default function TablaDevolucion({
                       {usuario.rol === "informatico" && (
                         <button
                           className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                          onClick={() => onAjustar?.("Devolucion", item._id!)}
+                          onClick={() => onAjustar?.("Devolucion", item.id)}
                         >
                           Ajustar
                         </button>
@@ -119,34 +123,24 @@ export default function TablaDevolucion({
                           {item.nombre ?? "-"}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-slate-500">Blancas</p>
-                        <p className="font-medium text-slate-700">
-                          {item.cajas?.blancas ?? "-"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Negras</p>
-                        <p className="font-medium text-slate-700">
-                          {item.cajas?.negras ?? "-"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Verdes</p>
-                        <p className="font-medium text-slate-700">
-                          {item.cajas?.verdes ?? "-"}
-                        </p>
-                      </div>
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="text-slate-500 capitalize">{color}</p>
+                          <p className="font-medium text-slate-700">
+                            {item.cajas?.[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
                       <div>
                         <p className="text-slate-500">Cajas Rotas</p>
                         <p className="font-medium text-slate-700">
-                          {totalCajas(item.cajas_rotas)}
+                          {totalCajas(item.roturas.cajas)}
                         </p>
                       </div>
                       <div>
                         <p className="text-slate-500">Tapas Rotas</p>
                         <p className="font-medium text-slate-700">
-                          {totalCajas(item.tapas_rotas)}
+                          {totalCajas(item.roturas.tapas)}
                         </p>
                       </div>
                       <div>
@@ -174,15 +168,14 @@ export default function TablaDevolucion({
                     <th className="px-5 py-4 text-left font-semibold">
                       Almacenero
                     </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Blancas
-                    </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Negras
-                    </th>
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Verdes
-                    </th>
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <th
+                        key={color}
+                        className="px-5 py-4 text-center font-semibold capitalize"
+                      >
+                        {color}
+                      </th>
+                    ))}
                     <th className="px-5 py-4 text-center font-semibold">
                       Cajas rotas
                     </th>
@@ -212,7 +205,7 @@ export default function TablaDevolucion({
                   ) : (
                     datos.map((item) => (
                       <tr
-                        key={item._id}
+                        key={item.id}
                         className="border-t border-slate-100 transition hover:bg-amber-50/40"
                       >
                         <td className="px-5 py-4 font-semibold text-slate-800">
@@ -224,26 +217,33 @@ export default function TablaDevolucion({
                         <td className="px-5 py-4 text-slate-600">
                           {item.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.cajas?.blancas ?? "-"}
-                        </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.cajas?.negras ?? "-"}
-                        </td>
-                        <td className="px-5 py-4 text-center text-slate-700">
-                          {item.cajas?.verdes ?? "-"}
-                        </td>
+                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                          <td
+                            key={color}
+                            className="px-5 py-4 text-center text-slate-700"
+                          >
+                            {item.cajas[color] ?? "-"}
+                          </td>
+                        ))}
                         <td
-                          title={`Blancas: ${item.cajas_rotas.blancas ?? 0}, Negras: ${item.cajas_rotas.negras ?? 0}, Verdes: ${item.cajas_rotas.verdes ?? 0}`}
+                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.roturas.cajas[color] ?? 0}`;
+                          }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.cajas_rotas)}
+                          {totalCajas(item.roturas.cajas)}
                         </td>
                         <td
-                          title={`Blancas: ${item.tapas_rotas.blancas ?? 0}, Negras: ${item.tapas_rotas.negras ?? 0}`}
+                          title={TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase + color.slice(1);
+                            return `${capitalize}: ${item.roturas.tapas[color] ?? 0}`;
+                          }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.tapas_rotas)}
+                          {totalCajas(item.roturas.tapas)}
                         </td>
                         <td className="px-5 py-4 text-center text-slate-500">
                           {item.ajuste ?? "-"}
@@ -252,9 +252,7 @@ export default function TablaDevolucion({
                           <td className="px-5 py-4 text-center">
                             <button
                               className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                              onClick={() =>
-                                onAjustar?.("Devolucion", item._id!)
-                              }
+                              onClick={() => onAjustar?.("Devolucion", item.id)}
                             >
                               Ajustar
                             </button>

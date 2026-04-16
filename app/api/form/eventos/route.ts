@@ -1,28 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from "@/lib/server";
 import {
   Almacen,
   Cajas,
   CajasHabilitadas,
   CentroDistribucion,
-  COLECCIONES,
-  Entrega,
   EVENTOS_ARRAY,
   Expedicion,
   Provincia,
   Recogida,
+  TABLAS,
   TIPOS_EVENTO,
   Traspaso,
   Vehiculo,
 } from "@/lib/constants";
-import {
-  AjusteStr,
-  applyAjuste,
-  deudaActiva,
-  hasCajas,
-  isEnabled,
-  usuarioCookie,
-} from "@/lib/utils";
+import { DeudaAct } from "@/lib/utils";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,7 +34,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { db } = await connectToDatabase();
+    const db = await connectToDatabase();
 
     const resultado: EventoBuilder = {};
     const respuesta: EventoResponse = {};
@@ -49,23 +42,27 @@ export async function GET(request: NextRequest) {
       case "Expedicion": {
         const [centrosRaw, almacenesRaw, provinciasRaw] = await Promise.all([
           db
-            .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-            .find()
-            .toArray() as Promise<CentroDistribucion[]>,
+            .from(TABLAS.CENTRO_DISTRIBUCION)
+            .select<string, CentroDistribucion>("nombre, habilitado")
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
           db
-            .collection<Almacen>(COLECCIONES.ALMACEN)
-            .find()
-            .toArray() as Promise<Almacen[]>,
+            .from(TABLAS.ALMACEN)
+            .select<string, Almacen>("nombre")
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
           db
-            .collection<Provincia>(COLECCIONES.PROVINCIA)
-            .find()
-            .toArray() as Promise<Provincia[]>,
+            .from(TABLAS.PROVINCIA)
+            .select<string, Provincia>("nombre, centro_distribucion")
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
         ]);
-        for (const centro of centrosRaw) {
+
+        const error =
+          centrosRaw.error || almacenesRaw.error || provinciasRaw.error;
+
+        if (error) throw new Error(error.message);
+
+        for (const centro of centrosRaw.data) {
           resultado[centro.nombre] = {
-            almacenes: new Set(
-              almacenesRaw.filter(isEnabled).map((alm) => alm.nombre),
-            ),
+            almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
             habilitado: centro.habilitado ?? {
               blancas: false,
               negras: false,
@@ -74,12 +71,11 @@ export async function GET(request: NextRequest) {
             vehiculos: new Set([]),
           };
         }
-        for (const prov of provinciasRaw) {
+        console.log(provinciasRaw.data);
+        for (const prov of provinciasRaw.data) {
           resultado[prov.nombre] = {
-            almacenes: new Set(
-              almacenesRaw.filter(isEnabled).map((alm) => alm.nombre),
-            ),
-            habilitado: centrosRaw.find(
+            almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
+            habilitado: centrosRaw.data.find(
               (centro) => centro.nombre === prov.centro_distribucion,
             )?.habilitado ?? { blancas: false, negras: false, verdes: false },
             vehiculos: new Set([]),
@@ -103,44 +99,45 @@ export async function GET(request: NextRequest) {
       case "Traspaso": {
         const [eventosRaw, centrosRaw, vehiculosRaw] = await Promise.all([
           db
-            .collection<Expedicion>(COLECCIONES.EXPEDICION)
-            .find({ fecha })
-            .toArray() as Promise<Expedicion[]>,
+            .from(TABLAS.EXPEDICION)
+            .select<
+              string,
+              Expedicion
+            >("centro_distribucion, provincia, almacen")
+            .eq("fecha", fecha),
           db
-            .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-            .find()
-            .toArray() as Promise<CentroDistribucion[]>,
+            .from(TABLAS.CENTRO_DISTRIBUCION)
+            .select<string, CentroDistribucion>("nombre, habilitado")
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
           db
-            .collection<Vehiculo>(COLECCIONES.VEHICULO)
-            .find()
-            .toArray() as Promise<Vehiculo[]>,
+            .from(TABLAS.VEHICULO)
+            .select<string, Vehiculo>("categoria, chapa, marca, modelo")
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
         ]);
-        if (eventosRaw.length === 0) {
+
+        const error =
+          eventosRaw.error || centrosRaw.error || vehiculosRaw.error;
+
+        if (error) throw new Error(error.message);
+
+        if (eventosRaw.data.length === 0) {
           return NextResponse.json(
             { error: "No se han registrado expediciones" },
             { status: 400 },
           );
         }
-        for (const element of eventosRaw) {
+
+        for (const element of eventosRaw.data) {
           const index = element.provincia ?? element.centro_distribucion;
           if (index in resultado) {
             resultado[index].almacenes.add(element.almacen);
           } else {
             resultado[index] = {
               almacenes: new Set([element.almacen]),
-              habilitado: centrosRaw.find(
+              habilitado: centrosRaw.data.find(
                 (centro) => centro.nombre === element.centro_distribucion,
               )?.habilitado ?? { blancas: false, negras: false, verdes: false },
-              vehiculos: new Set(
-                vehiculosRaw.filter(isEnabled).map((veh): Vehiculo => {
-                  return {
-                    categoria: veh.categoria,
-                    chapa: veh.chapa,
-                    marca: veh.marca,
-                    modelo: veh.modelo,
-                  };
-                }),
-              ),
+              vehiculos: new Set(vehiculosRaw.data),
             };
           }
         }
@@ -162,45 +159,47 @@ export async function GET(request: NextRequest) {
       case "Entrega": {
         const [eventosRaw, centrosRaw, vehiculosRaw] = await Promise.all([
           db
-            .collection<Traspaso>(COLECCIONES.TRASPASO)
-            .find({ fecha })
-            .toArray() as Promise<Traspaso[]>,
+            .from(TABLAS.TRASPASO)
+            .select<string, Traspaso>("centro_distribucion, provincia, chapa")
+            .eq("fecha", fecha)
+            .eq("nombre", usuario.nombre),
           db
-            .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-            .find()
-            .toArray() as Promise<CentroDistribucion[]>,
+            .from(TABLAS.CENTRO_DISTRIBUCION)
+            .select<string, CentroDistribucion>("nombre, habilitado")
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
           db
-            .collection<Vehiculo>(COLECCIONES.VEHICULO)
-            .find({})
-            .toArray() as Promise<Vehiculo[]>,
+            .from(TABLAS.VEHICULO)
+            .select<string, Vehiculo>("categoria, chapa, marca, modelo")
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
         ]);
-        if (eventosRaw.length === 0) {
+
+        const error =
+          eventosRaw.error || centrosRaw.error || vehiculosRaw.error;
+
+        if (error) throw new Error(error.message);
+
+        if (eventosRaw.data.length === 0) {
           return NextResponse.json(
             { error: "No se han registrado traspasos" },
             { status: 400 },
           );
         }
-        for (const element of eventosRaw.filter(
-          (evento) => evento.nombre === usuario.nombre,
-        )) {
+
+        for (const element of eventosRaw.data) {
           const index = element.provincia ?? element.centro_distribucion;
-          const vehiculo = vehiculosRaw.find(
-            (veh) => veh.chapa === element.chapa,
-          ) as Vehiculo;
           if (index in resultado) {
-            resultado[index].vehiculos.add({
-              categoria: vehiculo.categoria,
-              chapa: vehiculo.chapa,
-              marca: vehiculo.marca,
-              modelo: vehiculo.modelo,
-            });
+            resultado[index].vehiculos.add(
+              vehiculosRaw.data.find((veh) => veh.chapa === element.chapa)!,
+            );
           } else {
             resultado[index] = {
               almacenes: new Set([]),
-              habilitado: centrosRaw.find(
+              habilitado: centrosRaw.data.find(
                 (centro) => centro.nombre === element.centro_distribucion,
               )?.habilitado ?? { blancas: false, negras: false, verdes: false },
-              vehiculos: new Set([vehiculo]),
+              vehiculos: new Set([
+                vehiculosRaw.data.find((veh) => veh.chapa === element.chapa)!,
+              ]),
             };
           }
         }
@@ -223,40 +222,26 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(respuesta);
       }
       case "Recogida": {
-        const [centrosRaw, vehiculosRaw, listaEntregas] = await Promise.all([
+        const [centrosRaw, vehiculosRaw] = await Promise.all([
+          db.rpc<string, DeudaAct<CentroDistribucion>>(
+            "all_centros_deuda_activa",
+          ),
           db
-            .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-            .find()
-            .toArray() as Promise<CentroDistribucion[]>,
-          db
-            .collection<Vehiculo>(COLECCIONES.VEHICULO)
-            .find()
-            .toArray() as Promise<Vehiculo[]>,
-          db
-            .collection<Entrega>(COLECCIONES.ENTREGA)
-            .find()
-            .toArray() as Promise<Entrega[]>,
+            .from(TABLAS.VEHICULO)
+            .select<string, Vehiculo>("categoria, chapa, marca, modelo")
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
         ]);
-        for (const centro of centrosRaw) {
+
+        const error = centrosRaw.error || vehiculosRaw.error;
+
+        if (error) throw new Error(error.message);
+
+        for (const centro of centrosRaw.data) {
           resultado[centro.nombre] = {
             almacenes: new Set([]),
             habilitado: centro.habilitado,
-            vehiculos: new Set(
-              vehiculosRaw.filter(isEnabled).map((veh) => {
-                return {
-                  categoria: veh.categoria,
-                  chapa: veh.chapa,
-                  marca: veh.marca,
-                  modelo: veh.modelo,
-                };
-              }),
-            ),
-            deuda_activa: deudaActiva(
-              centro,
-              listaEntregas
-                .map(applyAjuste)
-                .filter(hasCajas) as AjusteStr<Entrega>[],
-            ).deuda_activa,
+            vehiculos: new Set(vehiculosRaw.data),
+            deuda_activa: centro.deuda_activa,
           };
         }
         for (const key in resultado) {
@@ -270,53 +255,41 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(respuesta);
       }
       case "Devolucion": {
-        const [eventosRaw, centrosRaw, almacenesRaw, listaEntregas] =
-          await Promise.all([
-            db
-              .collection<Recogida>(COLECCIONES.RECOGIDA)
-              .find({ fecha })
-              .toArray() as Promise<Recogida[]>,
-            db
-              .collection<CentroDistribucion>(COLECCIONES.CENTRO_DISTRIBUCION)
-              .find()
-              .toArray() as Promise<CentroDistribucion[]>,
-            db
-              .collection<Almacen>(COLECCIONES.ALMACEN)
-              .find()
-              .toArray() as Promise<Almacen[]>,
-            db
-              .collection<Entrega>(COLECCIONES.ENTREGA)
-              .find()
-              .toArray() as Promise<Entrega[]>,
-          ]);
-        if (eventosRaw.length === 0) {
+        const [eventosRaw, centrosRaw, almacenesRaw] = await Promise.all([
+          db
+            .from(TABLAS.RECOGIDA)
+            .select<string, Recogida>("centro_distribucion")
+            .eq("fecha", fecha),
+          db.rpc<string, DeudaAct<CentroDistribucion>>(
+            "all_centros_deuda_activa",
+          ),
+          db
+            .from(TABLAS.ALMACEN)
+            .select<string, Almacen>("nombre")
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+        ]);
+
+        const error =
+          eventosRaw.error || centrosRaw.error || almacenesRaw.error;
+
+        if (error) throw new Error(error.message);
+
+        if (eventosRaw.data.length === 0) {
           return NextResponse.json(
             { error: "No se han registrado recogidas" },
             { status: 400 },
           );
         }
-        for (const element of eventosRaw) {
-          const centro = centrosRaw.find((cent) => {
-            {
-              return cent.nombre === element.centro_distribucion;
-            }
-          });
+        for (const element of eventosRaw.data) {
+          const centro: DeudaAct<CentroDistribucion> = centrosRaw.data.find(
+            (cent: DeudaAct<CentroDistribucion>) =>
+              cent.nombre === element.centro_distribucion,
+          );
           resultado[element.centro_distribucion] = {
-            almacenes: new Set(
-              almacenesRaw.filter(isEnabled).map((alm) => alm.nombre),
-            ),
-            habilitado: centrosRaw.find(
-              (centro) => centro.nombre === element.centro_distribucion,
-            )?.habilitado ?? { blancas: false, negras: false, verdes: false },
+            almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
+            habilitado: centro.habilitado,
             vehiculos: new Set([]),
-            deuda_activa: centro
-              ? deudaActiva(
-                  centro,
-                  listaEntregas
-                    .map(applyAjuste)
-                    .filter(hasCajas) as AjusteStr<Entrega>[],
-                ).deuda_activa
-              : undefined,
+            deuda_activa: centro.deuda_activa,
           };
         }
         for (const key in resultado) {

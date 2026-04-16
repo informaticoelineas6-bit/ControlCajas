@@ -11,7 +11,7 @@ export default function TablaUsuarios({
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<Partial<Usuario>>({
+  const [form, setForm] = useState<Usuario>({
     nombre: "",
     rol: "chofer",
   });
@@ -69,8 +69,8 @@ export default function TablaUsuarios({
         return;
       }
       const method = "PUT";
-      const body: Partial<Usuario> = {
-        _id: editingId,
+      const body: Usuario = {
+        nombre: editingId,
         rol: form.rol,
         ajuste: {
           nombre: usuario.nombre,
@@ -99,12 +99,12 @@ export default function TablaUsuarios({
 
   const startEdit = (usuario: Usuario) => {
     setForm(usuario);
-    setEditingId(usuario._id ?? null);
+    setEditingId(usuario.nombre ?? null);
   };
 
   const enableUsuario = async (target: Usuario, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
+      const res = await fetch(`/api/admin/ajuste?id=${target.nombre}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -128,17 +128,17 @@ export default function TablaUsuarios({
   };
 
   const handleDelete = async (target: Usuario) => {
-    if (!target._id) return;
+    if (!target.nombre) return;
 
-    setDeletingId(target._id);
+    setDeletingId(target.nombre);
     setError("");
     try {
-      const res = await fetch(`/api/admin/usuarios?id=${target._id}`, {
+      const res = await fetch(`/api/admin/usuarios?id=${target.nombre}`, {
         method: "DELETE",
       });
       const data = await res.json();
       if (res.ok) {
-        if (editingId === target._id) resetForm();
+        if (editingId === target.nombre) resetForm();
         fetchUsuarios();
       } else {
         setError(data.error || "Error al eliminar usuario");
@@ -266,7 +266,7 @@ export default function TablaUsuarios({
               <tbody>
                 {usuarios.map((item) => (
                   <tr
-                    key={item._id}
+                    key={item.nombre}
                     className="border-t border-slate-100 transition hover:bg-slate-50"
                   >
                     <td className="px-5 py-4 font-semibold text-slate-800">
@@ -332,9 +332,9 @@ export default function TablaUsuarios({
                           </button>
                           <ConfirmDeleteButton
                             entityName={`el usuario ${item.nombre}`}
-                            disabled={deletingId === item._id}
+                            disabled={deletingId === item.nombre}
                             buttonLabel={
-                              deletingId === item._id
+                              deletingId === item.nombre
                                 ? "Eliminando..."
                                 : undefined
                             }

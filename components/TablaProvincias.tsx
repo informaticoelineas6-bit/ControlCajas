@@ -87,7 +87,6 @@ export default function TablaProvincias({
     try {
       const method = editingId ? "PUT" : "POST";
       const body: Provincia = {
-        _id: editingId || undefined,
         nombre: form.nombre,
         centro_distribucion: form.centro_distribucion,
         ajuste: editingId
@@ -119,12 +118,12 @@ export default function TablaProvincias({
 
   const startEdit = (provincia: Provincia) => {
     setForm(provincia);
-    setEditingId(provincia._id ?? null);
+    setEditingId(provincia.nombre ?? null);
   };
 
   const enableProvincia = async (target: Provincia, habilitado: boolean) => {
     try {
-      const res = await fetch(`/api/admin/ajuste?id=${target._id}`, {
+      const res = await fetch(`/api/admin/ajuste?id=${target.nombre}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -148,17 +147,17 @@ export default function TablaProvincias({
   };
 
   const handleDelete = async (provincia: Provincia) => {
-    if (!provincia._id) return;
+    if (!provincia.nombre) return;
 
-    setDeletingId(provincia._id);
+    setDeletingId(provincia.nombre);
     setError("");
     try {
-      const res = await fetch(`/api/admin/provincias?id=${provincia._id}`, {
+      const res = await fetch(`/api/admin/provincias?id=${provincia.nombre}`, {
         method: "DELETE",
       });
       const data = await res.json();
       if (res.ok) {
-        if (editingId === provincia._id) resetForm();
+        if (editingId === provincia.nombre) resetForm();
         fetchProvincias();
       } else {
         setError(data.error || "Error al eliminar provincia");
@@ -285,7 +284,7 @@ export default function TablaProvincias({
               <tbody>
                 {provincias.map((item) => (
                   <tr
-                    key={item._id}
+                    key={item.nombre}
                     className="border-t border-slate-100 transition hover:bg-slate-50"
                   >
                     <td className="px-5 py-4 font-semibold text-slate-800">
@@ -338,9 +337,9 @@ export default function TablaProvincias({
                           </button>
                           <ConfirmDeleteButton
                             entityName={`la provincia ${item.nombre}`}
-                            disabled={deletingId === item._id}
+                            disabled={deletingId === item.nombre}
                             buttonLabel={
-                              deletingId === item._id
+                              deletingId === item.nombre
                                 ? "Eliminando..."
                                 : undefined
                             }
