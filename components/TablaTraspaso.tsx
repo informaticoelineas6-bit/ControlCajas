@@ -79,7 +79,7 @@ export default function TablaTraspaso({
           <p className="text-sm text-slate-500">Cargando...</p>
         ) : (
           <>
-            <div className="space-y-3 md:hidden">
+            <div className="space-y-3 lg:hidden">
               {datos.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
                   No hay eventos para esta fecha
@@ -110,7 +110,7 @@ export default function TablaTraspaso({
                         </button>
                       )}
                     </div>
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       <div>
                         <p className="text-slate-500">Almacén</p>
                         <p className="font-medium text-slate-700">
@@ -149,7 +149,7 @@ export default function TablaTraspaso({
               )}
             </div>
 
-            <div className="hidden overflow-x-auto md:block">
+            <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-slate-500">
                   <tr>

@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
         db
           .from(TABLAS.USUARIO)
           .select("*", { count: "exact", head: true })
+          .or("ajuste->habilitado.neq.true, ajuste->habilitado.is.null")
           .gte("created_at", startOfToday.toISOString())
           .lt("created_at", startOfTomorrow.toISOString()),
         db

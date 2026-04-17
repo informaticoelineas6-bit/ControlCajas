@@ -444,90 +444,29 @@ export default function TablaCentros({
         {loading ? (
           <p className="mt-6 text-sm text-slate-500">Cargando...</p>
         ) : (
-          <div className="mt-8 overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500">
-                <tr>
-                  <th className="px-5 py-4 text-left font-semibold">Nombre</th>
-                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                    <th
-                      key={color}
-                      className="px-5 py-4 text-left font-semibold capitalize"
-                    >
-                      {color}
-                    </th>
-                  ))}
-                  <th className="px-5 py-4 text-left font-semibold">
-                    Rotación
-                  </th>
-                  <th className="px-5 py-4 text-left font-semibold">Estado</th>
-                  <th className="px-5 py-4 text-left font-semibold">
-                    Editado por
-                  </th>
-                  {usuario.rol === "informatico" && (
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Acciones
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {centros.map((item) => (
-                  <tr
+          <>
+            <div className="space-y-3 mt-8 lg:hidden">
+              {centros.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                  No hay centros registrados
+                </div>
+              ) : (
+                centros.map((item) => (
+                  <article
                     key={item.nombre}
-                    className="border-t border-slate-100 transition hover:bg-slate-50"
+                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
                   >
-                    <td className="px-5 py-4 font-semibold text-slate-800">
-                      {item.nombre}
-                    </td>
-
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <td key={color} className="px-5 py-4 text-slate-600">
-                        {item.deuda[color] ?? 0}
-                      </td>
-                    ))}
-                    <td className="px-5 py-4">
-                      <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
-                        {item.rotacion ?? 0} días
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-slate-600">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                          item.ajuste?.habilitado
-                            ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                            : "bg-rose-50 text-rose-700 ring-rose-200"
-                        }`}
-                      >
-                        {item.ajuste?.habilitado
-                          ? "Habilitado"
-                          : "Deshabilitado"}
-                      </span>
-                    </td>
-                    <td
-                      title={
-                        item.ajuste
-                          ? "Ajustado el " +
-                            new Date(item.ajuste?.fechaHora).toLocaleString(
-                              "es-MX",
-                              {
-                                dateStyle: "full",
-                                timeStyle: "short",
-                              },
-                            )
-                          : undefined
-                      }
-                      className={
-                        "px-5 py-4 text-slate-500" + !!item.ajuste
-                          ? " hover:bg-slate-300"
-                          : ""
-                      }
-                    >
-                      {item.ajuste?.nombre ?? "-"}
-                    </td>
-                    {usuario.rol === "informatico" && (
-                      <td className="px-5 py-4 text-center">
-                        <div className="flex justify-center gap-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                          Nombre
+                        </p>
+                        <h4 className="mt-1 text-base font-semibold text-slate-900">
+                          {item.nombre ?? "-"}
+                        </h4>
+                      </div>
+                      {usuario.rol === "informatico" && (
+                        <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => startEdit(item)}
                             className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
@@ -559,23 +498,188 @@ export default function TablaCentros({
                             onConfirm={() => handleDelete(item)}
                           />
                         </div>
-                      </td>
+                      )}
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="text-slate-500 capitalize">
+                            {"Deuda " + color}
+                          </p>
+                          <p className="font-medium text-slate-700">
+                            {item.deuda?.[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                      <div>
+                        <p className="text-slate-500">Rotación</p>
+                        <p className="font-medium text-slate-700">
+                          {item.rotacion ?? "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500">Estado</p>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                            item.ajuste?.habilitado
+                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                              : "bg-rose-50 text-rose-700 ring-rose-200"
+                          }`}
+                        >
+                          {item.ajuste?.habilitado
+                            ? "Habilitado"
+                            : "Deshabilitado"}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-slate-500">Editado por</p>
+                        <p className="font-medium text-slate-700">
+                          {item.ajuste?.nombre ?? "-"}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+
+            <div className="mt-8 overflow-x-auto hidden lg:block">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-50 text-slate-500">
+                  <tr>
+                    <th className="px-5 py-4 text-left font-semibold">
+                      Nombre
+                    </th>
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <th
+                        key={color}
+                        className="px-5 py-4 text-left font-semibold"
+                      >
+                        {"Deuda " + color}
+                      </th>
+                    ))}
+                    <th className="px-5 py-4 text-left font-semibold">
+                      Rotación
+                    </th>
+                    <th className="px-5 py-4 text-left font-semibold">
+                      Estado
+                    </th>
+                    <th className="px-5 py-4 text-left font-semibold">
+                      Editado por
+                    </th>
+                    {usuario.rol === "informatico" && (
+                      <th className="px-5 py-4 text-center font-semibold">
+                        Acciones
+                      </th>
                     )}
                   </tr>
-                ))}
-                {centros.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="px-5 py-10 text-center text-slate-500"
+                </thead>
+                <tbody>
+                  {centros.map((item) => (
+                    <tr
+                      key={item.nombre}
+                      className="border-t border-slate-100 transition hover:bg-slate-50"
                     >
-                      No hay centros registrados
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      <td className="px-5 py-4 font-semibold text-slate-800">
+                        {item.nombre}
+                      </td>
+
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <td key={color} className="px-5 py-4 text-slate-600">
+                          {item.deuda[color] ?? 0}
+                        </td>
+                      ))}
+                      <td className="px-5 py-4">
+                        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+                          {item.rotacion ?? 0} días
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                            item.ajuste?.habilitado
+                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                              : "bg-rose-50 text-rose-700 ring-rose-200"
+                          }`}
+                        >
+                          {item.ajuste?.habilitado
+                            ? "Habilitado"
+                            : "Deshabilitado"}
+                        </span>
+                      </td>
+                      <td
+                        title={
+                          item.ajuste
+                            ? "Ajustado el " +
+                              new Date(item.ajuste?.fechaHora).toLocaleString(
+                                "es-MX",
+                                {
+                                  dateStyle: "full",
+                                  timeStyle: "short",
+                                },
+                              )
+                            : undefined
+                        }
+                        className={
+                          "px-5 py-4 text-slate-500" + !!item.ajuste
+                            ? " hover:bg-slate-300"
+                            : ""
+                        }
+                      >
+                        {item.ajuste?.nombre ?? "-"}
+                      </td>
+                      {usuario.rol === "informatico" && (
+                        <td className="px-5 py-4 text-center">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => startEdit(item)}
+                              className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() =>
+                                enableCentro(item, !item.ajuste?.habilitado)
+                              }
+                              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                                item.ajuste?.habilitado
+                                  ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                  : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                              }`}
+                            >
+                              {item.ajuste?.habilitado
+                                ? "Deshabilitar"
+                                : "Habilitar"}
+                            </button>
+                            <ConfirmDeleteButton
+                              entityName={`el centro ${item.nombre}`}
+                              disabled={deletingId === item.nombre}
+                              buttonLabel={
+                                deletingId === item.nombre
+                                  ? "Eliminando..."
+                                  : undefined
+                              }
+                              onConfirm={() => handleDelete(item)}
+                            />
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                  {centros.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="px-5 py-10 text-center text-slate-500"
+                      >
+                        No hay centros registrados
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </section>

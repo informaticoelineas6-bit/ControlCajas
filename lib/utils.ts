@@ -123,7 +123,7 @@ export function formatDate(date: string): string {
 
 export type DeudaAct<Centro> = Centro & {
   deuda_activa: Cajas;
-  fecha_liquidacion: string;
+  fecha_liquidacion: string | null;
 };
 
 // export function deudaActiva(

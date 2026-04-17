@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
         deuda_activa: centro.deuda_activa,
         rotacion: centro.rotacion,
         fechaRot: centro.fecha_liquidacion,
-        estadoRot: "En tiempo",
+        estadoRot: "Desconocido",
         roturasTotal:
           centro.roturas.cajas.blancas +
           centro.roturas.tapas.blancas +
@@ -137,6 +137,8 @@ export async function GET(request: NextRequest) {
           centro.roturas.tapas.negras +
           centro.roturas.cajas.verdes,
       };
+
+      if (!iteration.fechaRot) continue;
 
       const fechaRotDate = parseDate(iteration.fechaRot);
       const fechaLimite = new Date(fechaRotDate);
@@ -250,7 +252,12 @@ export interface DashboardRow {
   deuda: Cajas;
   deuda_activa: Cajas;
   rotacion: number;
-  fechaRot: string;
-  estadoRot: "Pendiente" | "Retrasada" | "En tiempo" | "Cumplida";
+  fechaRot: string | null;
+  estadoRot:
+    | "Pendiente"
+    | "Retrasada"
+    | "En tiempo"
+    | "Cumplida"
+    | "Desconocido";
   roturasTotal: number;
 }

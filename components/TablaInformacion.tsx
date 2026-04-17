@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DashboardData } from "@/app/api/audit/dashboard/route";
-import { totalCajas } from "@/lib/utils";
+import { formatDate, totalCajas } from "@/lib/utils";
 
 interface MetricCardProps {
   eyebrow: string;
@@ -344,7 +344,74 @@ export default function TablaInformacion() {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="space-y-3 lg:hidden">
+              {data.dashboardData.map((centro) => (
+                <article
+                  key={centro.nombre}
+                  className={`g-gradient-to-r ${rowTone(
+                    centro.estadoRot ?? "",
+                  )} rounded-[24px] border border-slate-200 bg-slate-50/70 p-4`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        Nombre
+                      </p>
+                      <h4 className="mt-1 text-base font-semibold text-slate-900">
+                        {centro.nombre ?? "-"}
+                      </h4>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div>
+                      <p className="text-slate-500">Deuda</p>
+                      <p className="font-medium text-slate-700">
+                        {totalCajas(centro.deuda)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500">Deuda activa</p>
+                      <p className="font-medium text-slate-700">
+                        {totalCajas(centro.deuda_activa)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500">Roturas</p>
+                      <p className="font-medium text-slate-700">
+                        {centro.roturasTotal}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500">Rotación</p>
+                      <p className="font-medium text-slate-700">
+                        {centro.rotacion ?? "-"} días
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500">Fecha de deuda</p>
+                      <p className="font-medium text-slate-700">
+                        {centro.fechaRot
+                          ? formatDate(centro.fechaRot)
+                          : "Sin fecha"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500">Estado de deuda</p>
+                      <span
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                          estadoStyles[centro.estadoRot ?? ""] ??
+                          "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
+                        }`}
+                      >
+                        {centro.estadoRot ?? "Desconocido"}
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="overflow-x-auto hidden lg:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-slate-500">
                   <tr>
@@ -370,9 +437,8 @@ export default function TablaInformacion() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.dashboardData.map((centro) => {
-                    const deuda = totalCajas(centro.deuda);
-                    return (
+                  {data.dashboardData.map((centro) => (
+                    <>
                       <tr
                         key={centro.nombre}
                         className={`bg-gradient-to-r ${rowTone(
@@ -389,11 +455,13 @@ export default function TablaInformacion() {
                             <div className="h-2.5 w-24 overflow-hidden rounded-full bg-slate-100">
                               <div
                                 className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600"
-                                style={{ width: deudaWidth(deuda) }}
+                                style={{
+                                  width: deudaWidth(totalCajas(centro.deuda)),
+                                }}
                               />
                             </div>
                             <span className="font-semibold text-slate-700">
-                              {deuda}
+                              {totalCajas(centro.deuda)}
                             </span>
                           </div>
                         </td>
@@ -407,7 +475,9 @@ export default function TablaInformacion() {
                           {centro.rotacion ?? 0} días
                         </td>
                         <td className="px-6 py-4 text-slate-500">
-                          {centro.fechaRot || "Sin fecha"}
+                          {centro.fechaRot
+                            ? formatDate(centro.fechaRot)
+                            : "Sin fecha"}
                         </td>
                         <td className="px-6 py-4">
                           <span
@@ -420,8 +490,8 @@ export default function TablaInformacion() {
                           </span>
                         </td>
                       </tr>
-                    );
-                  })}
+                    </>
+                  ))}
                   {data.dashboardData.length === 0 && (
                     <tr>
                       <td

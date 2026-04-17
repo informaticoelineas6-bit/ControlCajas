@@ -320,63 +320,61 @@ export default function Dashboard() {
 
   return (
     <>
-      <Header usuario={usuario} />
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.18),_transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_48%,_#f8fafc_100%)]">
-        <div className="mx-auto max-lg:max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-          <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
-            <aside className="rounded-[34px] bg-[linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(15,23,42,0.92))] p-5 text-white shadow-[0_30px_90px_-42px_rgba(15,23,42,0.95)]">
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.34em] text-sky-200/80">
-                  Control de cajas
-                </p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-                  {usuario.nombre}
-                </h2>
-                <p className="mt-2 text-sm capitalize text-slate-300">
-                  {usuario.rol}
-                </p>
-              </div>
+      <div className="flex min-h-screen flex-col xl:h-screen">
+        <Header usuario={usuario} />
+        <div className="flex flex-1 flex-col gap-6 bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.18),_transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_48%,_#f8fafc_100%)] px-4 py-6 sm:px-6 lg:px-8 lg:py-10 xl:flex-row xl:overflow-hidden">
+          <aside className="rounded-[34px] bg-[linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(15,23,42,0.92))] p-5 text-white shadow-[0_30px_90px_-42px_rgba(15,23,42,0.95)] xl:w-[260px] xl:shrink-0 xl:overflow-y-auto">
+            <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.34em] text-sky-200/80">
+                Control de cajas
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                {usuario.nombre}
+              </h2>
+              <p className="mt-2 text-sm capitalize text-slate-300">
+                {usuario.rol}
+              </p>
+            </div>
 
-              <nav className="mt-6 space-y-2">
-                {pageAccess[usuario.rol].map((item) => {
-                  const isActive = activeTab === item;
-                  return (
-                    <button
-                      key={item}
-                      title={pageTabs[item].helper}
-                      onClick={() => setActiveTab(item)}
-                      className={`w-full rounded-[22px] px-4 py-4 text-left transition ${
-                        isActive
-                          ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_18px_35px_-18px_rgba(59,130,246,0.9)]"
-                          : "bg-white/0 text-slate-200 hover:bg-white/8 hover:text-white"
+            <nav className="mt-6 space-y-2">
+              {pageAccess[usuario.rol].map((item) => {
+                const isActive = activeTab === item;
+                return (
+                  <button
+                    key={item}
+                    title={pageTabs[item].helper}
+                    onClick={() => setActiveTab(item)}
+                    className={`w-full rounded-[22px] px-4 py-4 text-left transition ${
+                      isActive
+                        ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_18px_35px_-18px_rgba(59,130,246,0.9)]"
+                        : "bg-white/0 text-slate-200 hover:bg-white/8 hover:text-white"
+                    }`}
+                  >
+                    <p className="text-base font-semibold">
+                      {pageTabs[item].title}
+                    </p>
+                    <p
+                      className={`mt-1 text-sm ${
+                        isActive ? "text-blue-50" : "text-slate-400"
                       }`}
                     >
-                      <p className="text-base font-semibold">
-                        {pageTabs[item].title}
-                      </p>
-                      <p
-                        className={`mt-1 text-sm ${
-                          isActive ? "text-blue-50" : "text-slate-400"
-                        }`}
-                      >
-                        {pageTabs[item].description}
-                      </p>
-                    </button>
-                  );
-                })}
-              </nav>
-            </aside>
+                      {pageTabs[item].description}
+                    </p>
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
 
-            <main className="space-y-6">
-              {pageAccess[usuario.rol].includes(activeTab) ? (
-                pageRender[activeTab]
-              ) : (
-                <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
-                  No tiene acceso a esta información.
-                </div>
-              )}
-            </main>
-          </div>
+          <main className="min-w-0 flex-1 space-y-6 overflow-x-auto xl:overflow-y-auto">
+            {pageAccess[usuario.rol].includes(activeTab) ? (
+              pageRender[activeTab]
+            ) : (
+              <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
+                No tiene acceso a esta información.
+              </div>
+            )}
+          </main>
         </div>
       </div>
 

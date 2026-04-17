@@ -149,14 +149,18 @@ export default function FormularioEvento({
   }, [tipoEvento, fetchDatos]);
 
   useEffect(() => {
-    if (formData.centro_distribucion)
-      setHabilitado(
-        response[formData.centro_distribucion].habilitado ?? {
-          blancas: false,
-          negras: false,
-          verdes: false,
-        },
-      );
+    if (
+      formData.centro_distribucion &&
+      formData.centro_distribucion in response
+    ) {
+      setHabilitado(response[formData.centro_distribucion].habilitado);
+    } else {
+      setHabilitado({
+        blancas: false,
+        negras: false,
+        verdes: false,
+      });
+    }
   }, [formData.centro_distribucion, response]);
 
   const resetForm = () => {
@@ -574,9 +578,16 @@ export default function FormularioEvento({
                     <option
                       value={undefined}
                     >{`Selecciona un centro${mostrarRoturas ? " o provincia" : ""}`}</option>
-                    {Object.keys(response).length > 0 &&
-                      Object.keys(response).map((key: string, index) => (
-                        <option key={key + index} value={key}>
+                    {initialData ? (
+                      <option
+                        key={initialData.centro_distribucion}
+                        value={initialData.centro_distribucion}
+                      >
+                        {initialData.centro_distribucion}
+                      </option>
+                    ) : (
+                      Object.keys(response).map((key: string) => (
+                        <option key={key} value={key}>
                           {key +
                             (mostrarRoturas
                               ? " (deuda: " +
@@ -586,7 +597,8 @@ export default function FormularioEvento({
                                 ")"
                               : "")}
                         </option>
-                      ))}
+                      ))
+                    )}
                   </select>
                 </div>
                 {mostrarAlmacen && formData.centro_distribucion && (
@@ -609,12 +621,21 @@ export default function FormularioEvento({
                       className={fieldClass}
                     >
                       <option value={undefined}>Selecciona un almacén</option>
-                      {response[formData.centro_distribucion].almacenes?.map(
-                        (almacen, index) => (
-                          <option key={almacen + index} value={almacen}>
-                            {almacen}
-                          </option>
-                        ),
+                      {initialData ? (
+                        <option
+                          key={initialData.almacen}
+                          value={initialData.almacen}
+                        >
+                          {initialData.almacen}
+                        </option>
+                      ) : (
+                        response[formData.centro_distribucion].almacenes?.map(
+                          (almacen) => (
+                            <option key={almacen} value={almacen}>
+                              {almacen}
+                            </option>
+                          ),
+                        )
                       )}
                     </select>
                   </div>
@@ -640,15 +661,25 @@ export default function FormularioEvento({
                       className={fieldClass}
                     >
                       <option value={undefined}>Selecciona una chapa</option>
-                      {response[formData.centro_distribucion].vehiculos?.map(
-                        (vehiculo) => (
-                          <option key={vehiculo.chapa} value={vehiculo.chapa}>
-                            {vehiculo.categoria}{" "}
-                            {vehiculo.marca ? vehiculo.marca + " " : ""}
-                            {vehiculo.modelo ? vehiculo.modelo + " " : ""}-{" "}
-                            {vehiculo.chapa}
-                          </option>
-                        ),
+                      {initialData ? (
+                        <option
+                          key={initialData.chapa}
+                          value={initialData.chapa}
+                        >
+                          {initialData.chapa}
+                        </option>
+                      ) : (
+                        response[formData.centro_distribucion].vehiculos.map(
+                          (vehiculo) => (
+                            <option key={vehiculo.chapa} value={vehiculo.chapa}>
+                              {vehiculo.categoria}{" "}
+                              {vehiculo.marca ? vehiculo.marca + " " : ""}
+                              {vehiculo.modelo
+                                ? vehiculo.modelo + " "
+                                : ""}- {vehiculo.chapa}
+                            </option>
+                          ),
+                        )
                       )}
                     </select>
                   </div>

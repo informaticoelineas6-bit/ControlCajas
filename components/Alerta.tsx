@@ -95,15 +95,31 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
     );
   };
 
+  const rowTone = () => {
+    if (!data.total) return "border-slate-500 bg-white";
+    else if (data.total === 0) return "border-emerald-500 bg-emerald-200";
+    else if (data.total === 1) return "border-amber-500 bg-amber-200";
+    else return "border-rose-500 bg-rose-200";
+  };
+
+  const rowToneLower = () => {
+    if (!data.total) return "text-slate-700 bg-white";
+    else if (data.total === 0) return "text-emerald-700 bg-emerald-200";
+    else if (data.total === 1) return "text-amber-700 bg-amber-200";
+    else return "text-rose-700 bg-rose-200";
+  };
+
   return (
     <div className="relative">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+        className={`inline-flex items-center gap-2 rounded-full border ${rowTone()} px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50`}
       >
         <span>{error || "Notificaciones"}</span>
-        <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${rowToneLower()}`}
+        >
           {loading ? "..." : data.total}
         </span>
       </button>
