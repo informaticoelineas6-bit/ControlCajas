@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const db = (await connectToDatabase()).from(TABLAS.CENTRO_DISTRIBUCION);
 
-    const { data, error } = await db.select("*");
+    const { data, error } = await db.select("*").order("nombre");
 
     if (error) throw new Error(error.message);
 

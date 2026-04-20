@@ -37,13 +37,22 @@ export async function GET(request: NextRequest) {
       getEventTable[tipo_evento as TIPOS_EVENTO],
     );
 
-    const { data, error } =
-      usuario.rol === "informatico"
-        ? await db.select<string, Evento>("*").eq("fecha", fecha)
-        : await db
-            .select<string, Evento>("*")
-            .eq("fecha", fecha)
-            .eq("nombre", usuario.nombre);
+    let query = db.select<string, Evento>("*").eq("fecha", fecha);
+
+    if (usuario.rol !== "informatico") {
+      query = query.eq("nombre", usuario.nombre);
+    } else if (tipo_evento === "Expedicion") {
+      query = query.order("almacen");
+    }
+
+    query = query.order("centro_distribucion");
+
+    // Conditionally add provincia ordering unless it's Devolucion or Recogida
+    if (tipo_evento !== "Devolucion" && tipo_evento !== "Recogida") {
+      query = query.order("provincia");
+    }
+
+    const { data, error } = await query;
 
     if (error) throw new Error(error.message);
 

@@ -13,7 +13,9 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await db
       .select<string, Vehiculo>("categoria, chapa, marca, modelo")
-      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null");
+      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+      .order("categoria")
+      .order("chapa");
 
     if (error) throw new Error(error.message);
 

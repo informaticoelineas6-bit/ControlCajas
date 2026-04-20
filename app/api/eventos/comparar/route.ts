@@ -32,35 +32,43 @@ export async function GET(request: NextRequest) {
     if (tipo === "expedicion_entrega") {
       const resultados: ItemComparacionEntrega[] = (
         await getComparacionEntrega(db, fecha)
-      ).map((item: ItemComparacionEntrega): ItemComparacionEntrega => {
-        item.alerta =
-          !item.expedicion ||
-          !item.traspaso ||
-          !item.entrega ||
-          !sameCajas(item.expedicion.cajas, item.traspaso.cajas) ||
-          !sameCajas(item.traspaso.cajas, item.entrega.cajas);
-        return item;
-      });
+      )
+        .map((item: ItemComparacionEntrega): ItemComparacionEntrega => {
+          item.alerta =
+            !item.expedicion ||
+            !item.traspaso ||
+            !item.entrega ||
+            !sameCajas(item.expedicion.cajas, item.traspaso.cajas) ||
+            !sameCajas(item.traspaso.cajas, item.entrega.cajas);
+          return item;
+        })
+        .sort((a, b) =>
+          a.centro_distribucion.localeCompare(b.centro_distribucion),
+        );
 
       return NextResponse.json(resultados);
     } else if (tipo === "devolucion_recogida") {
       const resultados: ItemComparacionRecogida[] = (
         await getComparacionRecogida(db, fecha)
-      ).map((item: ItemComparacionRecogida): ItemComparacionRecogida => {
-        item.alerta =
-          !item.recogida ||
-          !item.devolucion ||
-          !sameCajas(item.recogida.cajas, item.devolucion.cajas) ||
-          !sameCajas(
-            item.recogida.roturas.cajas,
-            item.devolucion.roturas.cajas,
-          ) ||
-          !sameCajas(
-            item.recogida.roturas.tapas,
-            item.devolucion.roturas.tapas,
-          );
-        return item;
-      });
+      )
+        .map((item: ItemComparacionRecogida): ItemComparacionRecogida => {
+          item.alerta =
+            !item.recogida ||
+            !item.devolucion ||
+            !sameCajas(item.recogida.cajas, item.devolucion.cajas) ||
+            !sameCajas(
+              item.recogida.roturas.cajas,
+              item.devolucion.roturas.cajas,
+            ) ||
+            !sameCajas(
+              item.recogida.roturas.tapas,
+              item.devolucion.roturas.tapas,
+            );
+          return item;
+        })
+        .sort((a, b) =>
+          a.centro_distribucion.localeCompare(b.centro_distribucion),
+        );
 
       return NextResponse.json(resultados);
     }

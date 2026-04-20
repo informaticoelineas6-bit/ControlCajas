@@ -44,15 +44,18 @@ export async function GET(request: NextRequest) {
           db
             .from(TABLAS.CENTRO_DISTRIBUCION)
             .select<string, CentroDistribucion>("nombre, habilitado")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .order("nombre"),
           db
             .from(TABLAS.ALMACEN)
             .select<string, Almacen>("nombre")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .order("nombre"),
           db
             .from(TABLAS.PROVINCIA)
             .select<string, Provincia>("nombre, centro_distribucion")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .order("nombre"),
         ]);
 
         const error =
@@ -104,15 +107,20 @@ export async function GET(request: NextRequest) {
               string,
               Expedicion
             >("centro_distribucion, provincia, almacen")
-            .eq("fecha", fecha),
+            .eq("fecha", fecha)
+            .order("centro_distribucion")
+            .order("provincia"),
           db
             .from(TABLAS.CENTRO_DISTRIBUCION)
             .select<string, CentroDistribucion>("nombre, habilitado")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .order("nombre"),
           db
             .from(TABLAS.VEHICULO)
             .select<string, Vehiculo>("categoria, chapa, marca, modelo")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .order("categoria")
+            .order("chapa"),
         ]);
 
         const error =
@@ -162,15 +170,20 @@ export async function GET(request: NextRequest) {
             .from(TABLAS.TRASPASO)
             .select<string, Traspaso>("centro_distribucion, provincia, chapa")
             .eq("fecha", fecha)
-            .eq("nombre", usuario.nombre),
+            .eq("nombre", usuario.nombre)
+            .order("centro_distribucion")
+            .order("provincia"),
           db
             .from(TABLAS.CENTRO_DISTRIBUCION)
             .select<string, CentroDistribucion>("nombre, habilitado")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .order("nombre"),
           db
             .from(TABLAS.VEHICULO)
             .select<string, Vehiculo>("categoria, chapa, marca, modelo")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .order("categoria")
+            .order("chapa"),
         ]);
 
         const error =
@@ -223,20 +236,26 @@ export async function GET(request: NextRequest) {
       }
       case "Recogida": {
         const [centrosRaw, vehiculosRaw] = await Promise.all([
-          db.rpc<string, DeudaAct<CentroDistribucion>>(
-            "all_centros_deuda_activa",
-          ),
+          db
+            .rpc<
+              string,
+              DeudaAct<CentroDistribucion>
+            >("all_centros_deuda_activa")
+            .order("nombre"),
           db
             .from(TABLAS.VEHICULO)
             .select<string, Vehiculo>("categoria, chapa, marca, modelo")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .order("categoria")
+            .order("chapa"),
         ]);
 
         const error = centrosRaw.error || vehiculosRaw.error;
 
         if (error) throw new Error(error.message);
 
-        for (const centro of centrosRaw.data) {
+        for (const centro of centrosRaw.data) //.sort((a,b)=>a.nombre.localeCompare(b.nombre))
+        {
           resultado[centro.nombre] = {
             almacenes: new Set([]),
             habilitado: centro.habilitado,
@@ -259,14 +278,19 @@ export async function GET(request: NextRequest) {
           db
             .from(TABLAS.RECOGIDA)
             .select<string, Recogida>("centro_distribucion")
-            .eq("fecha", fecha),
-          db.rpc<string, DeudaAct<CentroDistribucion>>(
-            "all_centros_deuda_activa",
-          ),
+            .eq("fecha", fecha)
+            .order("centro_distribucion"),
+          db
+            .rpc<
+              string,
+              DeudaAct<CentroDistribucion>
+            >("all_centros_deuda_activa")
+            .order("nombre"),
           db
             .from(TABLAS.ALMACEN)
             .select<string, Almacen>("nombre")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .order("nombre"),
         ]);
 
         const error =

@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const db = (await connectToDatabase()).from(TABLAS.PROVINCIA);
-    const { data, error } = await db.select("*");
+
+    const { data, error } = await db.select("*").order("nombre");
 
     if (error) throw new Error(error.message);
 

@@ -13,7 +13,8 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await db
       .select<string, Provincia>("nombre, centro_distribucion")
-      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null");
+      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+      .order("nombre");
 
     if (error) throw new Error(error.message);
 

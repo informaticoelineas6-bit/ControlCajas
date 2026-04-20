@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
         string,
         CentroDistribucion
       >("nombre, habilitado, deuda, rotacion, roturas")
-      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null");
+      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+      .order("nombre");
 
     if (error) throw new Error(error.message);
 

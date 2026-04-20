@@ -13,7 +13,9 @@ export async function GET(request: NextRequest) {
 
     const db = (await connectToDatabase()).from(TABLAS.USUARIO);
 
-    const { data, error } = await db.select("nombre, rol, ajuste");
+    const { data, error } = await db
+      .select("nombre, rol, ajuste")
+      .order("nombre");
 
     if (error) throw new Error(error.message);
 
