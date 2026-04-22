@@ -1,15 +1,9 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { AuditLog, Nuevo, TABLAS } from "./constants";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SECRET_KEY;
-const DEFAULT_SUPABASE_REQUEST_TIMEOUT_MS = 10000;
-
 function parseTimeoutMs(value?: string): number {
   const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0
-    ? parsed
-    : DEFAULT_SUPABASE_REQUEST_TIMEOUT_MS;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 10000;
 }
 
 function createTimeoutFetch(timeoutMs: number): typeof fetch {
@@ -52,11 +46,10 @@ function createTimeoutFetch(timeoutMs: number): typeof fetch {
   };
 }
 
-const supabaseFetch = createTimeoutFetch(
-  parseTimeoutMs(process.env.SUPABASE_REQUEST_TIMEOUT_MS),
-);
-
 export const connectToDatabase = async () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SECRET_KEY;
+
   if (!supabaseUrl || !supabaseKey) {
     throw new Error("Supabase server environment variables are not configured");
   }
@@ -68,7 +61,9 @@ export const connectToDatabase = async () => {
       detectSessionInUrl: false,
     },
     global: {
-      fetch: supabaseFetch,
+      fetch: createTimeoutFetch(
+        parseTimeoutMs(process.env.SUPABASE_REQUEST_TIMEOUT_MS),
+      ),
     },
   });
 };
