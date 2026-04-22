@@ -6,11 +6,13 @@ import {
   CAJAS_ARRAY,
   COLORES_CAJAS,
   COLORES_TAPAS,
+  TABLAS,
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
+import { frontendClient } from "@/lib/client";
 
 export default function TablaAlmacenes({
   usuario,
@@ -40,23 +42,46 @@ export default function TablaAlmacenes({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchAlmacenes();
+    const abortController = new AbortController();
+
+    fetchAlmacenes(abortController.signal);
+
+    const channel = frontendClient
+      .channel(`${TABLAS.ALMACEN}_changes`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.ALMACEN },
+        () => {
+          fetchAlmacenes(abortController.signal);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      abortController.abort();
+      channel.unsubscribe();
+    };
   }, []);
 
-  const fetchAlmacenes = async () => {
+  const fetchAlmacenes = async (signal: AbortSignal) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/almacenes");
+      const res = await fetch("/api/admin/almacenes", { signal });
       const data = await res.json();
       if (res.ok) {
         setAlmacenes(data);
       } else {
         setError(data.error || "Error al cargar almacenes");
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setError("Error en el servidor");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
@@ -216,7 +241,6 @@ export default function TablaAlmacenes({
       const data = await res.json();
       if (res.ok) {
         resetForm();
-        fetchAlmacenes();
       } else {
         setError(data.error || "Error en la operación");
       }
@@ -239,6 +263,7 @@ export default function TablaAlmacenes({
 
   const enableAlmacen = async (target: Almacen, habilitado: boolean) => {
     try {
+      setSubmitting(true);
       const res = await fetch(`/api/admin/ajuste?id=${target.nombre}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -251,14 +276,14 @@ export default function TablaAlmacenes({
           },
         } as ObjetoAjusteForm),
       });
-      if (res.ok) {
-        fetchAlmacenes();
-      } else {
+      if (!res.ok) {
         const data = await res.json();
         setError(data.error || "Error habilitando almacén");
       }
     } catch {
       setError("Error en el servidor");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -274,7 +299,6 @@ export default function TablaAlmacenes({
       const data = await res.json();
       if (res.ok) {
         if (editingId === almacen.nombre) resetForm();
-        fetchAlmacenes();
       } else {
         setError(data.error || "Error al eliminar almacén");
       }
@@ -548,7 +572,7 @@ export default function TablaAlmacenes({
                   {almacenes.map((item) => (
                     <tr
                       key={item.nombre}
-                      className="border-t border-slate-100 transition hover:bg-slate-50"
+                      className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
                       <td className="px-5 py-4 font-semibold text-slate-800">
                         {item.nombre}
@@ -602,6 +626,7 @@ export default function TablaAlmacenes({
                               Editar
                             </button>
                             <button
+                              disabled={submitting}
                               onClick={() =>
                                 enableAlmacen(item, !item.ajuste?.habilitado)
                               }

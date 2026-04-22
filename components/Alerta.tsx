@@ -1,7 +1,8 @@
 "use client";
 
 import { AlertaResponse } from "@/app/api/admin/alerts/route";
-import { Usuario } from "@/lib/constants";
+import { frontendClient } from "@/lib/client";
+import { TABLAS, Usuario } from "@/lib/constants";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
@@ -16,32 +17,81 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
     cierre_pendiente: false,
   });
 
-  const fetchAlerts = useCallback(async () => {
-    if (usuario.rol !== "informatico") {
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`/api/admin/alerts`, { cache: "no-store" });
-      const body = await res.json();
-      if (!res.ok) {
-        setError(body.error || "Error al cargar alertas");
+  const fetchAlerts = useCallback(
+    async (signal: AbortSignal) => {
+      if (usuario.rol !== "informatico") {
         return;
       }
-      setData(body);
+      setLoading(true);
       setError("");
-    } catch {
-      setError("Error al cargar alertas");
-    } finally {
-      setLoading(false);
-    }
-  }, [usuario.rol]);
+      try {
+        const res = await fetch(`/api/admin/alerts`, {
+          cache: "no-store",
+          signal,
+        });
+        const body = await res.json();
+        if (!res.ok) {
+          setError(body.error || "Error al cargar alertas");
+          return;
+        }
+        setData(body);
+        setError("");
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return;
+        }
+        setError("Error al cargar alertas");
+      } finally {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      }
+    },
+    [usuario.rol],
+  );
 
   useEffect(() => {
-    fetchAlerts();
-    const id = setInterval(fetchAlerts, 15000);
-    return () => clearInterval(id);
+    const abortController = new AbortController();
+
+    fetchAlerts(abortController.signal);
+
+    let fetchTimeout: NodeJS.Timeout;
+    const debouncedFetch = () => {
+      clearTimeout(fetchTimeout);
+      fetchTimeout = setTimeout(() => {
+        fetchAlerts(abortController.signal);
+      }, 200);
+    };
+
+    const channel = frontendClient
+      .channel("alerta_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.TRASPASO },
+        debouncedFetch,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.ENTREGA },
+        debouncedFetch,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.DEVOLUCION },
+        debouncedFetch,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.USUARIO },
+        debouncedFetch,
+      )
+      .subscribe();
+
+    return () => {
+      abortController.abort();
+      clearTimeout(fetchTimeout);
+      channel.unsubscribe();
+    };
   }, [fetchAlerts]);
 
   const fecha = new Date().toISOString().split("T")[0];
@@ -114,7 +164,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`inline-flex items-center gap-2 rounded-full border ${rowTone()} px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50`}
+        className={`inline-flex items-center gap-2 rounded-full border ${rowTone()} px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100`}
       >
         <span>{error || "Notificaciones"}</span>
         <span

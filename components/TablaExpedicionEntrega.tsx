@@ -1,9 +1,11 @@
 "use client";
 
+import { frontendClient } from "@/lib/client";
 import {
   CAJAS_ARRAY,
   COLORES_CAJAS,
   ItemComparacionEntrega,
+  TABLAS,
 } from "@/lib/constants";
 import { totalCajas } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
@@ -20,30 +22,72 @@ export default function TablaExpedicionEntrega({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchDatos = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetch(
-        `/api/eventos/comparar?fecha=${fecha}&tipo=expedicion_entrega`,
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setDatos(data);
-      } else {
-        setError(data.error || "Error al cargar datos");
+  const fetchDatos = useCallback(
+    async (signal: AbortSignal) => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch(
+          `/api/eventos/comparar?fecha=${fecha}&tipo=expedicion_entrega`,
+          { signal },
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setDatos(data);
+        } else {
+          setError(data.error || "Error al cargar datos");
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setError("Error en el servidor");
+      } finally {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
       }
-    } catch {
-      setError("Error en el servidor");
-    } finally {
-      setLoading(false);
-    }
-  }, [fecha, setDatos]);
+    },
+    [fecha, setDatos],
+  );
 
   useEffect(() => {
-    fetchDatos();
-    const id = setInterval(fetchDatos, 30000);
-    return () => clearInterval(id);
+    const abortController = new AbortController();
+
+    fetchDatos(abortController.signal);
+
+    let fetchTimeout: NodeJS.Timeout;
+    const debouncedFetch = () => {
+      clearTimeout(fetchTimeout);
+      fetchTimeout = setTimeout(() => {
+        fetchDatos(abortController.signal);
+      }, 200);
+    };
+
+    const channel = frontendClient
+      .channel("expedicion_entrega_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.EXPEDICION },
+        debouncedFetch,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.TRASPASO },
+        debouncedFetch,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.ENTREGA },
+        debouncedFetch,
+      )
+      .subscribe();
+
+    return () => {
+      abortController.abort();
+      clearTimeout(fetchTimeout);
+      channel.unsubscribe();
+    };
   }, [fetchDatos]);
 
   return (
@@ -146,8 +190,8 @@ export default function TablaExpedicionEntrega({
                       key={item.centro_distribucion}
                       className={`border-t border-slate-100 transition ${
                         item.alerta
-                          ? "bg-rose-50 hover:bg-rose-100/70"
-                          : "hover:bg-slate-50"
+                          ? "bg-rose-200 hover:bg-rose-100/70"
+                          : "hover:bg-slate-100"
                       }`}
                     >
                       <td className="px-5 py-4 font-semibold text-slate-800">
@@ -168,7 +212,7 @@ export default function TablaExpedicionEntrega({
                       <td
                         title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
                           const capitalize =
-                            color.charAt(0).toUpperCase + color.slice(1);
+                            color.charAt(0).toUpperCase() + color.slice(1);
                           return `${capitalize}: ${item.expedicion?.cajas[color] ?? 0}`;
                         }).join("\n")}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
@@ -186,7 +230,7 @@ export default function TablaExpedicionEntrega({
                       <td
                         title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
                           const capitalize =
-                            color.charAt(0).toUpperCase + color.slice(1);
+                            color.charAt(0).toUpperCase() + color.slice(1);
                           return `${capitalize}: ${item.traspaso?.cajas[color] ?? 0}`;
                         }).join("\n")}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
@@ -204,7 +248,7 @@ export default function TablaExpedicionEntrega({
                       <td
                         title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
                           const capitalize =
-                            color.charAt(0).toUpperCase + color.slice(1);
+                            color.charAt(0).toUpperCase() + color.slice(1);
                           return `${capitalize}: ${item.entrega?.cajas[color] ?? 0}`;
                         }).join("\n")}
                         className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"

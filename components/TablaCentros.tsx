@@ -6,11 +6,13 @@ import {
   CentroDistribucion,
   COLORES_CAJAS,
   COLORES_TAPAS,
+  TABLAS,
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
+import { frontendClient } from "@/lib/client";
 
 export default function TablaCentros({
   usuario,
@@ -39,23 +41,46 @@ export default function TablaCentros({
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
 
   useEffect(() => {
-    fetchCentros();
+    const abortController = new AbortController();
+
+    fetchCentros(abortController.signal);
+
+    const channel = frontendClient
+      .channel(`${TABLAS.CENTRO_DISTRIBUCION}_changes`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.CENTRO_DISTRIBUCION },
+        () => {
+          fetchCentros(abortController.signal);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      abortController.abort();
+      channel.unsubscribe();
+    };
   }, []);
 
-  const fetchCentros = async () => {
+  const fetchCentros = async (signal: AbortSignal) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/centros");
+      const res = await fetch("/api/admin/centros", { signal });
       const data = await res.json();
       if (res.ok) {
         setCentros(data);
       } else {
         setError(data.error || "Error al cargar centros");
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setError("Error en el servidor");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
@@ -214,7 +239,6 @@ export default function TablaCentros({
       const data = await res.json();
       if (res.ok) {
         resetForm();
-        fetchCentros();
       } else {
         setError(data.error || "Error en la operación");
       }
@@ -241,6 +265,7 @@ export default function TablaCentros({
     habilitado: boolean,
   ) => {
     try {
+      setSubmitting(true);
       const res = await fetch(`/api/admin/ajuste?id=${target.nombre}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -253,14 +278,14 @@ export default function TablaCentros({
           },
         } as ObjetoAjusteForm),
       });
-      if (res.ok) {
-        fetchCentros();
-      } else {
+      if (!res.ok) {
         const data = await res.json();
         setError(data.error || "Error habilitando centro");
       }
     } catch {
       setError("Error en el servidor");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -276,7 +301,6 @@ export default function TablaCentros({
       const data = await res.json();
       if (res.ok) {
         resetForm();
-        fetchCentros();
       } else {
         setError(data.error || "Error al eliminar centro");
       }
@@ -578,7 +602,7 @@ export default function TablaCentros({
                   {centros.map((item) => (
                     <tr
                       key={item.nombre}
-                      className="border-t border-slate-100 transition hover:bg-slate-50"
+                      className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
                       <td className="px-5 py-4 font-semibold text-slate-800">
                         {item.nombre}
@@ -638,6 +662,7 @@ export default function TablaCentros({
                               Editar
                             </button>
                             <button
+                              disabled={submitting}
                               onClick={() =>
                                 enableCentro(item, !item.ajuste?.habilitado)
                               }

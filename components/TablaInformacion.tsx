@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { DashboardData } from "@/app/api/audit/dashboard/route";
 import { formatDate, totalCajas } from "@/lib/utils";
+import { frontendClient } from "@/lib/client";
+import { TABLAS } from "@/lib/constants";
 
 interface MetricCardProps {
   eyebrow: string;
@@ -71,15 +73,55 @@ export default function TablaInformacion() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchData();
+    const abortController = new AbortController();
+
+    fetchData(abortController.signal);
+
+    let fetchTimeout: NodeJS.Timeout;
+    const debouncedFetch = () => {
+      clearTimeout(fetchTimeout);
+      fetchTimeout = setTimeout(() => {
+        fetchData(abortController.signal);
+      }, 200);
+    };
+
+    const channel = frontendClient
+      .channel(`informacion_changes`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.EXPEDICION },
+        debouncedFetch,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.DEVOLUCION },
+        debouncedFetch,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.CENTRO_DISTRIBUCION },
+        debouncedFetch,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.ALMACEN },
+        debouncedFetch,
+      )
+      .subscribe();
+
+    return () => {
+      abortController.abort();
+      clearTimeout(fetchTimeout);
+      channel.unsubscribe();
+    };
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (signal: AbortSignal) => {
     setLoading(true);
     setError("");
 
     try {
-      const resDashboard = await fetch("/api/audit/dashboard");
+      const resDashboard = await fetch("/api/audit/dashboard", { signal });
       const dataDashboard = await resDashboard.json();
 
       if (!resDashboard.ok) {
@@ -88,10 +130,15 @@ export default function TablaInformacion() {
       }
 
       setData(dataDashboard as DashboardData);
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setError("Error en el servidor");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
@@ -438,59 +485,57 @@ export default function TablaInformacion() {
                 </thead>
                 <tbody>
                   {data.dashboardData.map((centro) => (
-                    <>
-                      <tr
-                        key={centro.nombre}
-                        className={`bg-gradient-to-r ${rowTone(
-                          centro.estadoRot ?? "",
-                        )} border-t border-slate-100 transition hover:from-slate-50 hover:to-white`}
-                      >
-                        <td className="px-6 py-4">
-                          <p className="font-semibold text-slate-800">
-                            {centro.nombre}
-                          </p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-2.5 w-24 overflow-hidden rounded-full bg-slate-100">
-                              <div
-                                className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600"
-                                style={{
-                                  width: deudaWidth(totalCajas(centro.deuda)),
-                                }}
-                              />
-                            </div>
-                            <span className="font-semibold text-slate-700">
-                              {totalCajas(centro.deuda)}
-                            </span>
+                    <tr
+                      key={centro.nombre}
+                      className={`bg-gradient-to-r ${rowTone(
+                        centro.estadoRot ?? "",
+                      )} border-t border-slate-100 transition hover:from-slate-50 hover:to-white`}
+                    >
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-slate-800">
+                          {centro.nombre}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-2.5 w-24 overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600"
+                              style={{
+                                width: deudaWidth(totalCajas(centro.deuda)),
+                              }}
+                            />
                           </div>
-                        </td>
-                        <td className="px-6 py-4 font-medium text-slate-700">
-                          {totalCajas(centro.deuda_activa)}
-                        </td>
-                        <td className="px-6 py-4 font-medium text-slate-700">
-                          {centro.roturasTotal ?? 0}
-                        </td>
-                        <td className="px-6 py-4 font-medium text-slate-700">
-                          {centro.rotacion ?? 0} días
-                        </td>
-                        <td className="px-6 py-4 text-slate-500">
-                          {centro.fechaRot
-                            ? formatDate(centro.fechaRot)
-                            : "Sin fecha"}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                              estadoStyles[centro.estadoRot ?? ""] ??
-                              "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
-                            }`}
-                          >
-                            {centro.estadoRot ?? "Desconocido"}
+                          <span className="font-semibold text-slate-700">
+                            {totalCajas(centro.deuda)}
                           </span>
-                        </td>
-                      </tr>
-                    </>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-medium text-slate-700">
+                        {totalCajas(centro.deuda_activa)}
+                      </td>
+                      <td className="px-6 py-4 font-medium text-slate-700">
+                        {centro.roturasTotal ?? 0}
+                      </td>
+                      <td className="px-6 py-4 font-medium text-slate-700">
+                        {centro.rotacion ?? 0} días
+                      </td>
+                      <td className="px-6 py-4 text-slate-500">
+                        {centro.fechaRot
+                          ? formatDate(centro.fechaRot)
+                          : "Sin fecha"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                            estadoStyles[centro.estadoRot ?? ""] ??
+                            "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
+                          }`}
+                        >
+                          {centro.estadoRot ?? "Desconocido"}
+                        </span>
+                      </td>
+                    </tr>
                   ))}
                   {data.dashboardData.length === 0 && (
                     <tr>

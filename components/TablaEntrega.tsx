@@ -1,10 +1,12 @@
 "use client";
 
+import { frontendClient } from "@/lib/client";
 import {
   CAJAS_ARRAY,
   COLECCIONES,
   COLORES_CAJAS,
   Entrega,
+  TABLAS,
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
@@ -24,30 +26,55 @@ export default function TablaEntrega({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchDatos = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(
-        `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.ENTREGA}`,
-      );
-      const data = await res.json();
-      if (res.ok) {
-        setDatos(data.map(applyAjuste));
-      } else {
-        setError(data.error || "Error al cargar eventos");
+  const fetchDatos = useCallback(
+    async (signal: AbortSignal) => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(
+          `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.ENTREGA}`,
+          { signal },
+        );
+        const data = await res.json();
+        if (res.ok) {
+          setDatos(data.map(applyAjuste));
+        } else {
+          setError(data.error || "Error al cargar eventos");
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setError("Error en el servidor");
+      } finally {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
       }
-    } catch {
-      setError("Error en el servidor");
-    } finally {
-      setLoading(false);
-    }
-  }, [fecha]);
+    },
+    [fecha],
+  );
 
   useEffect(() => {
-    fetchDatos();
-    const id = setInterval(fetchDatos, 30000);
-    return () => clearInterval(id);
+    const abortController = new AbortController();
+
+    fetchDatos(abortController.signal);
+
+    const channel = frontendClient
+      .channel(`${TABLAS.ENTREGA}_changes`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.ENTREGA },
+        () => {
+          fetchDatos(abortController.signal);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      abortController.abort();
+      channel.unsubscribe();
+    };
   }, [fetchDatos]);
 
   return (

@@ -236,12 +236,9 @@ export async function GET(request: NextRequest) {
       }
       case "Recogida": {
         const [centrosRaw, vehiculosRaw] = await Promise.all([
-          db
-            .rpc<
-              string,
-              DeudaAct<CentroDistribucion>
-            >("all_centros_deuda_activa")
-            .order("nombre"),
+          db.rpc<string, DeudaAct<CentroDistribucion>>(
+            "all_centros_deuda_activa",
+          ),
           db
             .from(TABLAS.VEHICULO)
             .select<string, Vehiculo>("categoria, chapa, marca, modelo")
@@ -254,8 +251,7 @@ export async function GET(request: NextRequest) {
 
         if (error) throw new Error(error.message);
 
-        for (const centro of centrosRaw.data) //.sort((a,b)=>a.nombre.localeCompare(b.nombre))
-        {
+        for (const centro of centrosRaw.data) { //.sort((a,b)=>a.nombre.localeCompare(b.nombre))
           resultado[centro.nombre] = {
             almacenes: new Set([]),
             habilitado: centro.habilitado,
@@ -280,12 +276,9 @@ export async function GET(request: NextRequest) {
             .select<string, Recogida>("centro_distribucion")
             .eq("fecha", fecha)
             .order("centro_distribucion"),
-          db
-            .rpc<
-              string,
-              DeudaAct<CentroDistribucion>
-            >("all_centros_deuda_activa")
-            .order("nombre"),
+          db.rpc<string, DeudaAct<CentroDistribucion>>(
+            "all_centros_deuda_activa",
+          ),
           db
             .from(TABLAS.ALMACEN)
             .select<string, Almacen>("nombre")

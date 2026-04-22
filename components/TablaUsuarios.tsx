@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ROLES_ARRAY, Usuario } from "@/lib/constants";
+import { ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
+import { frontendClient } from "@/lib/client";
 
 export default function TablaUsuarios({
   usuario,
@@ -20,23 +21,46 @@ export default function TablaUsuarios({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchUsuarios();
+    const abortController = new AbortController();
+
+    fetchUsuarios(abortController.signal);
+
+    const channel = frontendClient
+      .channel(`${TABLAS.USUARIO}_changes`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.USUARIO },
+        () => {
+          fetchUsuarios(abortController.signal);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      abortController.abort();
+      channel.unsubscribe();
+    };
   }, []);
 
-  const fetchUsuarios = async () => {
+  const fetchUsuarios = async (signal: AbortSignal) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/usuarios");
+      const res = await fetch("/api/admin/usuarios", { signal });
       const data = await res.json();
       if (res.ok) {
         setUsuarios(data);
       } else {
         setError(data.error || "Error al cargar usuarios");
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setError("Error en el servidor");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
@@ -86,7 +110,6 @@ export default function TablaUsuarios({
       const data = await res.json();
       if (res.ok) {
         resetForm();
-        fetchUsuarios();
       } else {
         setError(data.error || "Error en la operación");
       }
@@ -104,6 +127,7 @@ export default function TablaUsuarios({
 
   const enableUsuario = async (target: Usuario, habilitado: boolean) => {
     try {
+      setSubmitting(true);
       const res = await fetch(`/api/admin/ajuste?id=${target.nombre}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -116,14 +140,14 @@ export default function TablaUsuarios({
           },
         } as ObjetoAjusteForm),
       });
-      if (res.ok) {
-        fetchUsuarios();
-      } else {
+      if (!res.ok) {
         const data = await res.json();
         setError(data.error || "Error habilitando usuario");
       }
     } catch {
       setError("Error en el servidor");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -139,7 +163,6 @@ export default function TablaUsuarios({
       const data = await res.json();
       if (res.ok) {
         if (editingId === target.nombre) resetForm();
-        fetchUsuarios();
       } else {
         setError(data.error || "Error al eliminar usuario");
       }
@@ -360,7 +383,7 @@ export default function TablaUsuarios({
                   {usuarios.map((item) => (
                     <tr
                       key={item.nombre}
-                      className="border-t border-slate-100 transition hover:bg-slate-50"
+                      className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
                       <td className="px-5 py-4 font-semibold text-slate-800">
                         {item.nombre ?? "-"}
@@ -404,6 +427,7 @@ export default function TablaUsuarios({
                         <td className="px-5 py-4 text-center">
                           <div className="flex justify-center gap-2">
                             <button
+                              disabled={submitting}
                               onClick={() =>
                                 enableUsuario(item, !item.ajuste?.habilitado)
                               }

@@ -126,26 +126,42 @@ export default function FormularioEvento({
     }
   }, [initialData]);
 
-  const fetchDatos = useCallback(async () => {
-    if (!tipoEvento) {
-      return;
-    }
-    setLoading(true);
-    setResponse({});
-    try {
-      const response = await fetch(`/api/form/eventos?tipo=${tipoEvento}`);
-      const data = await response.json();
-      if (data.error) setMensaje(data.error);
-      else setResponse(data as EventoResponse);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [tipoEvento]);
+  const fetchDatos = useCallback(
+    async (signal: AbortSignal) => {
+      if (!tipoEvento) {
+        return;
+      }
+      setLoading(true);
+      setResponse({});
+      try {
+        const response = await fetch(`/api/form/eventos?tipo=${tipoEvento}`, {
+          signal,
+        });
+        const data = await response.json();
+        if (data.error) setMensaje(data.error);
+        else setResponse(data as EventoResponse);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        console.error("Error fetching data:", error);
+      } finally {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      }
+    },
+    [tipoEvento],
+  );
 
   useEffect(() => {
-    fetchDatos();
+    const abortController = new AbortController();
+
+    fetchDatos(abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
   }, [tipoEvento, fetchDatos]);
 
   useEffect(() => {

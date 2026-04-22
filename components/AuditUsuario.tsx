@@ -77,8 +77,8 @@ export default function AuditUsuario() {
 
   const getRoturaClass = (value?: number) => {
     if (!value) return "";
-    if (value < 0) return "bg-emerald-50";
-    if (value > 0) return "bg-rose-50";
+    if (value < 0) return "bg-emerald-200";
+    if (value > 0) return "bg-rose-200";
     return "";
   };
 
@@ -238,7 +238,7 @@ export default function AuditUsuario() {
                     {logs.map((item, index) => (
                       <tr
                         key={`${item.object_type}-${item.action}-${index}`}
-                        className="border-t border-slate-100 transition hover:bg-slate-50"
+                        className="border-t border-slate-100 transition hover:bg-slate-100"
                       >
                         <td className="px-5 py-4 font-medium text-slate-700">
                           {formatDate(item.created_at)}
@@ -335,7 +335,7 @@ export default function AuditUsuario() {
                     {eventos.map((item, index) => (
                       <tr
                         key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
-                        className="border-t border-slate-100 transition hover:bg-slate-50"
+                        className="border-t border-slate-100 transition hover:bg-slate-100"
                       >
                         <td className="px-5 py-4 font-medium text-slate-700">
                           {formatDate(item.fecha)}

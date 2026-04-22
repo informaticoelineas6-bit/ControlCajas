@@ -70,14 +70,14 @@ export default function AuditCentro() {
   };
 
   const getAjusteDeudaClass = (value: number) => {
-    if (value > 0) return "bg-amber-50";
-    if (value < 0) return "bg-emerald-50";
+    if (value > 0) return "bg-amber-200";
+    if (value < 0) return "bg-emerald-200";
     return "";
   };
 
   const getRoturaClass = (value: number) => {
-    if (value < 0) return "bg-emerald-50";
-    if (value > 0) return "bg-rose-50";
+    if (value < 0) return "bg-emerald-200";
+    if (value > 0) return "bg-rose-200";
     return "";
   };
 
@@ -231,7 +231,7 @@ export default function AuditCentro() {
                   {datos.cierres.map((item) => (
                     <tr
                       key={`${item.fecha}`}
-                      className="border-t border-slate-100 transition hover:bg-slate-50"
+                      className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
                       <td className="px-5 py-4 font-medium text-slate-700">
                         {formatDate(item.fecha)}

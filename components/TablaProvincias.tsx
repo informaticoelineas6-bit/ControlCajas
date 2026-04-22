@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CentroDistribucion, Provincia, Usuario } from "@/lib/constants";
+import {
+  CentroDistribucion,
+  Provincia,
+  TABLAS,
+  Usuario,
+} from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
+import { frontendClient } from "@/lib/client";
 
 export default function TablaProvincias({
   usuario,
@@ -21,41 +27,69 @@ export default function TablaProvincias({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchProvincias();
-    fetchCentros();
+    const abortController = new AbortController();
+
+    fetchProvincias(abortController.signal);
+    fetchCentros(abortController.signal);
+
+    const channel = frontendClient
+      .channel(`${TABLAS.PROVINCIA}_changes`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.PROVINCIA },
+        () => {
+          fetchProvincias(abortController.signal);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      abortController.abort();
+      channel.unsubscribe();
+    };
   }, []);
 
-  const fetchProvincias = async () => {
+  const fetchProvincias = async (signal: AbortSignal) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/provincias");
+      const res = await fetch("/api/admin/provincias", { signal });
       const data = await res.json();
       if (res.ok) {
         setProvincias(data);
       } else {
         setError(data.error || "Error al cargar provincias");
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setError("Error en el servidor");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
-  const fetchCentros = async () => {
+  const fetchCentros = async (signal: AbortSignal) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/centros");
+      const res = await fetch("/api/admin/centros", { signal });
       const data = await res.json();
       if (res.ok) {
         setCentros(data);
       } else {
         setError(data.error || "Error al cargar centros");
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setError("Error en el servidor");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
@@ -105,7 +139,6 @@ export default function TablaProvincias({
       const data = await res.json();
       if (res.ok) {
         resetForm();
-        fetchProvincias();
       } else {
         setError(data.error || "Error en la operación");
       }
@@ -123,6 +156,7 @@ export default function TablaProvincias({
 
   const enableProvincia = async (target: Provincia, habilitado: boolean) => {
     try {
+      setSubmitting(true);
       const res = await fetch(`/api/admin/ajuste?id=${target.nombre}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -135,14 +169,14 @@ export default function TablaProvincias({
           },
         } as ObjetoAjusteForm),
       });
-      if (res.ok) {
-        fetchProvincias();
-      } else {
+      if (!res.ok) {
         const data = await res.json();
         setError(data.error || "Error habilitando almacén");
       }
     } catch {
       setError("Error en el servidor");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -158,7 +192,6 @@ export default function TablaProvincias({
       const data = await res.json();
       if (res.ok) {
         if (editingId === provincia.nombre) resetForm();
-        fetchProvincias();
       } else {
         setError(data.error || "Error al eliminar provincia");
       }
@@ -365,6 +398,9 @@ export default function TablaProvincias({
                       Centro
                     </th>
                     <th className="px-5 py-4 text-left font-semibold">
+                      Estado
+                    </th>
+                    <th className="px-5 py-4 text-left font-semibold">
                       Ajustado por
                     </th>
                     {usuario.rol === "informatico" && (
@@ -378,7 +414,7 @@ export default function TablaProvincias({
                   {provincias.map((item) => (
                     <tr
                       key={item.nombre}
-                      className="border-t border-slate-100 transition hover:bg-slate-50"
+                      className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
                       <td className="px-5 py-4 font-semibold text-slate-800">
                         {item.nombre ?? "-"}
@@ -386,6 +422,19 @@ export default function TablaProvincias({
                       <td className="px-5 py-4">
                         <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold capitalize text-indigo-700 ring-1 ring-indigo-200">
                           {item.centro_distribucion ?? "-"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                            item.ajuste?.habilitado
+                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                              : "bg-rose-50 text-rose-700 ring-rose-200"
+                          }`}
+                        >
+                          {item.ajuste?.habilitado
+                            ? "Habilitado"
+                            : "Deshabilitado"}
                         </span>
                       </td>
                       <td
@@ -415,6 +464,7 @@ export default function TablaProvincias({
                               Editar
                             </button>
                             <button
+                              disabled={submitting}
                               onClick={() =>
                                 enableProvincia(item, !item.ajuste?.habilitado)
                               }

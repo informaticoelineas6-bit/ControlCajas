@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Usuario, Vehiculo } from "@/lib/constants";
+import { TABLAS, Usuario, Vehiculo } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
+import { frontendClient } from "@/lib/client";
 
 export default function TablaVehiculos({
   usuario,
@@ -22,23 +23,46 @@ export default function TablaVehiculos({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchVehiculos();
+    const abortController = new AbortController();
+
+    fetchVehiculos(abortController.signal);
+
+    const channel = frontendClient
+      .channel(`${TABLAS.VEHICULO}_changes`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: TABLAS.VEHICULO },
+        () => {
+          fetchVehiculos(abortController.signal);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      abortController.abort();
+      channel.unsubscribe();
+    };
   }, []);
 
-  const fetchVehiculos = async () => {
+  const fetchVehiculos = async (signal: AbortSignal) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/vehiculos");
+      const res = await fetch("/api/admin/vehiculos", { signal });
       const data = await res.json();
       if (res.ok) {
         setVehiculos(data);
       } else {
         setError(data.error || "Error al cargar vehículos");
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setError("Error en el servidor");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
@@ -87,7 +111,6 @@ export default function TablaVehiculos({
       const data = await res.json();
       if (res.ok) {
         resetForm();
-        fetchVehiculos();
       } else {
         setError(data.error || "Error en la operación");
       }
@@ -105,6 +128,7 @@ export default function TablaVehiculos({
 
   const enableVehiculo = async (target: Vehiculo, habilitado: boolean) => {
     try {
+      setSubmitting(true);
       const res = await fetch(`/api/admin/ajuste?id=${target.chapa}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -117,14 +141,14 @@ export default function TablaVehiculos({
           },
         } as ObjetoAjusteForm),
       });
-      if (res.ok) {
-        fetchVehiculos();
-      } else {
+      if (!res.ok) {
         const data = await res.json();
         setError(data.error || "Error habilitando vehículo");
       }
     } catch {
       setError("Error en el servidor");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -140,7 +164,6 @@ export default function TablaVehiculos({
       const data = await res.json();
       if (res.ok) {
         if (editingId === vehiculo.chapa) resetForm();
-        fetchVehiculos();
       } else {
         setError(data.error || "Error al eliminar vehículo");
       }
@@ -401,7 +424,7 @@ export default function TablaVehiculos({
                   {vehiculos.map((item) => (
                     <tr
                       key={item.chapa}
-                      className="border-t border-slate-100 transition hover:bg-slate-50"
+                      className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
                       <td className="px-5 py-4">
                         <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200">
@@ -457,6 +480,7 @@ export default function TablaVehiculos({
                               Editar
                             </button>
                             <button
+                              disabled={submitting}
                               onClick={() =>
                                 enableVehiculo(item, !item.ajuste?.habilitado)
                               }
