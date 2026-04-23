@@ -30,8 +30,6 @@ import AuditAlmacen from "@/components/AuditAlmacen";
 import AuditCentro from "@/components/AuditCentro";
 import AuditUsuario from "@/components/AuditUsuario";
 
-export const dynamic = 'force-dynamic';
-
 type TabNames =
   | "new_eventos"
   | "mis_eventos"
