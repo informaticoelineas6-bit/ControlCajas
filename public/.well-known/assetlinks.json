@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "dev.workers.informaticoelineas6.control_cajas.twa",
+            "sha256_cert_fingerprints": [
+                "e99709322cb49b3b0c59fe80a38fbb53949662e9b431e63f1c93c32d16734536"
+            ]
+        }
+    }
+]
