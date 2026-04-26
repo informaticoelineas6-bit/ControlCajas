@@ -35,14 +35,8 @@ export interface EventoAjusteForm {
 }
 
 export type AjusteProp<Orig> = Orig & {
-  _id: string;
+  id: string;
   tipo_evento: TIPOS_EVENTO;
-};
-
-export type Destino = {
-  _id: string;
-  nombre: string;
-  deuda_activa?: Cajas;
 };
 
 export type EventoForm = EventoCreateForm & EventoAjusteForm;
@@ -99,7 +93,7 @@ export default function FormularioEvento({
   useEffect(() => {
     if (initialData) {
       resetForm();
-      setOriginalId(initialData._id ?? null);
+      setOriginalId(initialData.id ?? null);
       // show ajuste mode
       setTipoEvento(initialData.tipo_evento);
       setFormData({

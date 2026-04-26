@@ -74,7 +74,6 @@ export async function GET(request: NextRequest) {
             vehiculos: new Set([]),
           };
         }
-        console.log(provinciasRaw.data);
         for (const prov of provinciasRaw.data) {
           resultado[prov.nombre] = {
             almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
@@ -251,7 +250,8 @@ export async function GET(request: NextRequest) {
 
         if (error) throw new Error(error.message);
 
-        for (const centro of centrosRaw.data) { //.sort((a,b)=>a.nombre.localeCompare(b.nombre))
+        for (const centro of centrosRaw.data) {
+          //.sort((a,b)=>a.nombre.localeCompare(b.nombre))
           resultado[centro.nombre] = {
             almacenes: new Set([]),
             habilitado: centro.habilitado,
