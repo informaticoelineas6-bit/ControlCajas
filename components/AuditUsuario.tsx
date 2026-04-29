@@ -71,14 +71,14 @@ export default function AuditUsuario() {
   };
 
   const getCajasClass = (value: number) => {
-    if (value > 0) return "bg-blue-50";
+    if (value > 0) return "ring-2 ring-blue-400";
     return "";
   };
 
   const getRoturaClass = (value?: number) => {
     if (!value) return "";
-    if (value < 0) return "bg-emerald-200";
-    if (value > 0) return "bg-rose-200";
+    if (value < 0) return "ring-2 ring-emerald-400";
+    if (value > 0) return "ring-2 ring-rose-400";
     return "";
   };
 
@@ -151,7 +151,69 @@ export default function AuditUsuario() {
 
         {datos && !loading ? (
           <>
-            <div className="overflow-x-auto rounded-2xl border border-blue-100">
+            <div className="space-y-3 lg:hidden">
+              <article
+                key={datos.usuario.nombre}
+                className="rounded-[24px] rounded-2xl border border-blue-100 bg-blue-50 p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      Nombre
+                    </p>
+                    <h4 className="mt-1 text-base font-semibold text-slate-900">
+                      {datos.usuario.nombre ?? "-"}
+                    </h4>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <p className="text-slate-500">Rol</p>
+                    <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
+                      {datos.usuario.rol ?? "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-slate-500">Fecha inscripción</p>
+                    <p className="font-medium text-slate-700">
+                      {datos.usuario.created_at
+                        ? formatDate(datos.usuario.created_at)
+                        : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500">Estado</p>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                        datos.usuario.ajuste?.habilitado
+                          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                          : "bg-rose-50 text-rose-700 ring-rose-200"
+                      }`}
+                    >
+                      {datos.usuario.ajuste?.habilitado
+                        ? "Habilitado"
+                        : "Deshabilitado"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-slate-500">Autorizado por</p>
+                    <p className="font-medium text-slate-700">
+                      {datos.usuario.ajuste?.nombre ?? "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500">Fecha ajuste</p>
+                    <p className="font-medium text-slate-700">
+                      {datos.usuario.ajuste?.fechaHora
+                        ? formatDate(datos.usuario.ajuste.fechaHora)
+                        : "-"}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-blue-100 hidden lg:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-blue-50 text-blue-900">
                   <tr>
@@ -213,183 +275,358 @@ export default function AuditUsuario() {
             </div>
 
             {datos.usuario.rol === "informatico" ? (
-              <div className="overflow-x-auto rounded-2xl border border-slate-200">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-slate-600">
-                    <tr>
-                      <th className="px-5 py-4 text-left font-semibold">
-                        Fecha
-                      </th>
-                      <th className="px-5 py-4 text-left font-semibold">
-                        Tipo
-                      </th>
-                      <th className="px-5 py-4 text-left font-semibold">
-                        Acción
-                      </th>
-                      <th className="px-5 py-4 text-left font-semibold">
-                        Objeto
-                      </th>
-                      <th className="px-5 py-4 text-left font-semibold">
-                        (Cambios)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.map((item, index) => (
-                      <tr
+              <>
+                <div className="space-y-3 mt-8 lg:hidden">
+                  {!datos.logs || datos.logs.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                      Este usuario no tiene ediciones registradas.
+                    </div>
+                  ) : (
+                    datos.logs.map((item, index) => (
+                      <article
                         key={`${item.object_type}-${item.action}-${index}`}
-                        className="border-t border-slate-100 transition hover:bg-slate-100"
+                        className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
                       >
-                        <td className="px-5 py-4 font-medium text-slate-700">
-                          {formatDate(item.created_at)}
-                        </td>
-                        <td className="px-5 py-4 text-slate-600">
-                          {item.object_type}
-                        </td>
-                        <td className="px-5 py-4 text-slate-600">
-                          <span
-                            className={
-                              "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
-                              getActionClass(item.action)
-                            }
-                          >
-                            {item.action}
-                          </span>
-                        </td>
-                        {item.changes && (
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                              Fecha
+                            </p>
+                            <h4 className="mt-1 text-base font-semibold text-slate-900">
+                              {formatDate(item.created_at)}
+                            </h4>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                          <div>
+                            <p className="text-slate-500">Tipo</p>
+                            <span
+                              className={
+                                "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
+                                getActionClass(item.action)
+                              }
+                            >
+                              {item.action}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-slate-500">Acción</p>
+                            <span
+                              className={
+                                "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
+                                getActionClass(item.action)
+                              }
+                            >
+                              {item.action}
+                            </span>
+                          </div>
+                          {item.changes ? (
+                            <>
+                              <div>
+                                <p className="text-slate-500">Previo</p>
+                                <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                                  {JSON.stringify(item.changes.prev, null, 2)}
+                                </pre>
+                              </div>
+                              <div>
+                                <p className="text-slate-500">Cambios</p>
+                                <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                                  {JSON.stringify(item.changes.new, null, 2)}
+                                </pre>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="col-span-2">
+                              <p className="text-slate-500">Objeto</p>
+                              <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                                {JSON.stringify(item.snapshot, null, 2)}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
+
+                <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-slate-50 text-slate-600">
+                      <tr>
+                        <th className="px-5 py-4 text-left font-semibold">
+                          Fecha
+                        </th>
+                        <th className="px-5 py-4 text-left font-semibold">
+                          Tipo
+                        </th>
+                        <th className="px-5 py-4 text-left font-semibold">
+                          Acción
+                        </th>
+                        <th className="px-5 py-4 text-left font-semibold">
+                          Objeto
+                        </th>
+                        <th className="px-5 py-4 text-left font-semibold">
+                          (Cambios)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {logs.map((item, index) => (
+                        <tr
+                          key={`${item.object_type}-${item.action}-${index}`}
+                          className="border-t border-slate-100 transition hover:bg-slate-100"
+                        >
+                          <td className="px-5 py-4 font-medium text-slate-700">
+                            {formatDate(item.created_at)}
+                          </td>
                           <td className="px-5 py-4 text-slate-600">
+                            {item.object_type}
+                          </td>
+                          <td className="px-5 py-4 text-slate-600">
+                            <span
+                              className={
+                                "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
+                                getActionClass(item.action)
+                              }
+                            >
+                              {item.action}
+                            </span>
+                          </td>
+                          {item.changes && (
+                            <td className="px-5 py-4 text-slate-600">
+                              <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                                {JSON.stringify(item.changes.prev, null, 2)}
+                              </pre>
+                            </td>
+                          )}
+                          <td
+                            colSpan={item.changes ? 1 : 2}
+                            className="px-5 py-4 text-slate-600"
+                          >
                             <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
-                              {JSON.stringify(item.changes.prev, null, 2)}
+                              {JSON.stringify(
+                                item.changes?.new ?? item.snapshot,
+                                null,
+                                2,
+                              )}
                             </pre>
                           </td>
-                        )}
-                        <td
-                          colSpan={item.changes ? 1 : 2}
-                          className="px-5 py-4 text-slate-600"
-                        >
-                          <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
-                            {JSON.stringify(
-                              item.changes?.new ?? item.snapshot,
-                              null,
-                              2,
-                            )}
-                          </pre>
-                        </td>
-                      </tr>
-                    ))}
+                        </tr>
+                      ))}
 
-                    {logs.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={4}
-                          className="px-5 py-10 text-center text-slate-500"
-                        >
-                          Este usuario no tiene ediciones registradas.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="overflow-x-auto rounded-2xl border border-slate-200">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-slate-600">
-                    <tr>
-                      <th className="px-5 py-4 text-left font-semibold">
-                        Fecha
-                      </th>
-                      <th className="px-5 py-4 text-left font-semibold">
-                        Centro
-                      </th>
-                      <th className="px-5 py-4 text-left font-semibold">
-                        Evento
-                      </th>
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <th
-                          key={`cajas-${color}`}
-                          className="px-5 py-4 text-left font-semibold"
-                        >
-                          Cajas {color}
-                        </th>
-                      ))}
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <th
-                          key={`rotas-${color}`}
-                          className="px-5 py-4 text-left font-semibold"
-                        >
-                          Cajas rotas {color}
-                        </th>
-                      ))}
-                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                        <th
-                          key={`tapas-${color}`}
-                          className="px-5 py-4 text-left font-semibold"
-                        >
-                          Tapas rotas {color}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {eventos.map((item, index) => (
-                      <tr
-                        key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
-                        className="border-t border-slate-100 transition hover:bg-slate-100"
-                      >
-                        <td className="px-5 py-4 font-medium text-slate-700">
-                          {formatDate(item.fecha)}
-                        </td>
-                        <td className="px-5 py-4 text-slate-600">
-                          {item.centro_distribucion}
-                        </td>
-                        <td className="px-5 py-4 text-slate-600">
-                          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
-                            {item.tipo_evento}
-                          </span>
-                        </td>
-                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      {logs.length === 0 && (
+                        <tr>
                           <td
-                            key={`cajas-${item.fecha}-${color}`}
-                            className={`px-5 py-4 text-slate-600 ${getCajasClass(item.cajas[color])}`}
+                            colSpan={4}
+                            className="px-5 py-10 text-center text-slate-500"
                           >
-                            {item.cajas[color]}
+                            Este usuario no tiene ediciones registradas.
                           </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-3 mt-8 lg:hidden">
+                  {!datos.eventos || datos.eventos.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                      Este usuario no tiene eventos registrados.
+                    </div>
+                  ) : (
+                    datos.eventos.map((item, index) => (
+                      <article
+                        key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
+                        className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                              Fecha
+                            </p>
+                            <h4 className="mt-1 text-base font-semibold text-slate-900">
+                              {formatDate(item.fecha)}
+                            </h4>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                          <div>
+                            <p className="text-slate-500">Centro</p>
+                            <p className="font-medium text-slate-700">
+                              {item.centro_distribucion ?? "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-slate-500">Evento</p>
+                            <p className="font-medium text-slate-700">
+                              {item.tipo_evento ?? "-"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                          {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                            <div key={color}>
+                              <p className="text-slate-500 capitalize">
+                                {"Cajas " + color}
+                              </p>
+                              <p
+                                className={`font-medium text-slate-700 ${getCajasClass(item.cajas[color])}`}
+                              >
+                                {item.cajas[color] ?? "-"}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        {item.roturas && (
+                          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                            {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                              <div key={color}>
+                                <p className="text-slate-500 capitalize">
+                                  {"Cajas rotas " + color}
+                                </p>
+                                <p
+                                  className={`font-medium text-slate-700 ${getRoturaClass(item.roturas?.cajas[color])}`}
+                                >
+                                  {item.roturas?.cajas[color] ?? "-"}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {item.roturas && (
+                          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                            {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                              <div key={color}>
+                                <p className="text-slate-500 capitalize">
+                                  {"Tapas rotas " + color}
+                                </p>
+                                <p
+                                  className={`font-medium text-slate-700 ${getRoturaClass(item.roturas?.tapas[color])}`}
+                                >
+                                  {item.roturas?.tapas[color] ?? "-"}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </article>
+                    ))
+                  )}
+                </div>
+
+                <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-slate-50 text-slate-600">
+                      <tr>
+                        <th className="px-5 py-4 text-left font-semibold">
+                          Fecha
+                        </th>
+                        <th className="px-5 py-4 text-left font-semibold">
+                          Centro
+                        </th>
+                        <th className="px-5 py-4 text-left font-semibold">
+                          Evento
+                        </th>
+                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                          <th
+                            key={`cajas-${color}`}
+                            className="px-5 py-4 text-left font-semibold"
+                          >
+                            Cajas {color}
+                          </th>
                         ))}
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                          <td
-                            key={`cajas-rotas-${item.fecha}-${color}`}
-                            className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas?.cajas[color])}`}
+                          <th
+                            key={`rotas-${color}`}
+                            className="px-5 py-4 text-left font-semibold"
                           >
-                            {item.roturas?.cajas[color]}
-                          </td>
+                            Cajas rotas {color}
+                          </th>
                         ))}
                         {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                          <td
-                            key={`tapas-rotas-${item.fecha}-${color}`}
-                            className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas?.tapas[color])}`}
+                          <th
+                            key={`tapas-${color}`}
+                            className="px-5 py-4 text-left font-semibold"
                           >
-                            {item.roturas?.tapas[color]}
-                          </td>
+                            Tapas rotas {color}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-
-                    {eventos.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={
-                            3 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
-                          }
-                          className="px-5 py-10 text-center text-slate-500"
+                    </thead>
+                    <tbody>
+                      {eventos.map((item, index) => (
+                        <tr
+                          key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
+                          className="border-t border-slate-100 transition hover:bg-slate-100"
                         >
-                          Este usuario no tiene eventos registrados.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                          <td className="px-5 py-4 font-medium text-slate-700">
+                            {formatDate(item.fecha)}
+                          </td>
+                          <td className="px-5 py-4 text-slate-600">
+                            {item.centro_distribucion}
+                          </td>
+                          <td className="px-5 py-4 text-slate-600">
+                            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
+                              {item.tipo_evento}
+                            </span>
+                          </td>
+                          {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                            <td
+                              key={`cajas-${item.fecha}-${color}`}
+                              className="px-5 py-4 text-slate-600"
+                            >
+                              <span
+                                className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getCajasClass(item.cajas[color])}`}
+                              >
+                                {item.cajas[color] ?? "-"}
+                              </span>
+                            </td>
+                          ))}
+                          {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                            <td
+                              key={`cajas-rotas-${item.fecha}-${color}`}
+                              className="px-5 py-4 text-slate-600"
+                            >
+                              <span
+                                className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.cajas[color])}`}
+                              >
+                                {item.roturas?.cajas[color] ?? "-"}
+                              </span>
+                            </td>
+                          ))}
+                          {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                            <td
+                              key={`tapas-rotas-${item.fecha}-${color}`}
+                              className="px-5 py-4 text-slate-600"
+                            >
+                              <span
+                                className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.tapas[color])}`}
+                              >
+                                {item.roturas?.tapas[color] ?? "-"}
+                              </span>
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+
+                      {eventos.length === 0 && (
+                        <tr>
+                          <td
+                            colSpan={
+                              3 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
+                            }
+                            className="px-5 py-10 text-center text-slate-500"
+                          >
+                            Este usuario no tiene eventos registrados.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </>
         ) : (

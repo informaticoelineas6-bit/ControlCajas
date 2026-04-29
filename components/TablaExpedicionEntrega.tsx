@@ -118,151 +118,304 @@ export default function TablaExpedicionEntrega({
         {loading ? (
           <p className="p-6 text-sm text-slate-500">Cargando...</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500">
-                  <th
-                    colSpan={3}
-                    className="px-5 py-4 text-left font-semibold bg-slate-100"
+          <>
+            <div className="space-y-3 p-4 lg:hidden">
+              {datos.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                  No hay datos para esta fecha
+                </div>
+              ) : (
+                datos.map((item) => (
+                  <article
+                    key={item.centro_distribucion}
+                    className={`rounded-[24px] border p-4 shadow-sm ${
+                      item.alerta
+                        ? "border-rose-200 bg-rose-100"
+                        : "border-slate-200 bg-slate-50/70"
+                    }`}
                   >
-                    Centro de distribución
-                  </th>
-                  <th
-                    colSpan={3}
-                    className="px-5 py-4 text-center font-semibold text-emerald-700 bg-emerald-100"
-                  >
-                    Expedición
-                  </th>
-                  <th
-                    colSpan={3}
-                    className="px-5 py-4 text-center font-semibold text-teal-700 bg-teal-100"
-                  >
-                    Traspaso
-                  </th>
-                  <th
-                    colSpan={3}
-                    className="px-5 py-4 text-center font-semibold text-sky-700 bg-sky-100"
-                  >
-                    Entrega
-                  </th>
-                </tr>
-                <tr className="bg-slate-100 text-slate-500">
-                  <th className="px-5 py-3 text-left font-semibold">CD</th>
-                  <th className="px-5 py-3 text-left font-semibold">Almacén</th>
-                  <th className="px-5 py-3 text-left font-semibold">Chapa</th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Responsable
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Ajuste
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">Total</th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Responsable
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Ajuste
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">Total</th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Responsable
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">
-                    Ajuste
-                  </th>
-                  <th className="px-5 py-3 text-center font-semibold">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {datos.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={13}
-                      className="px-5 py-10 text-center text-slate-500"
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                          Centro
+                        </p>
+                        <h4 className="mt-1 text-base font-semibold text-slate-900">
+                          {item.centro_distribucion ?? "-"}
+                        </h4>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-slate-500">Almacén</p>
+                        <p className="font-medium text-slate-700">
+                          {item.almacen ?? "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500">Chapa</p>
+                        <p className="font-medium text-slate-700">
+                          {item.chapa ?? "-"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 rounded-xl bg-emerald-50 p-3">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                        Expedición
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
+                        <div className="md:col-span-2">
+                          <p className="text-slate-500">Responsable</p>
+                          <p className="font-medium text-slate-700">
+                            {item.expedicion?.nombre ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Ajuste</p>
+                          <p className="font-medium text-slate-700">
+                            {item.expedicion?.ajuste ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Cajas</p>
+                          <p className="font-medium text-slate-700">
+                            {CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                              const capitalize =
+                                color.charAt(0).toUpperCase() + color.slice(1);
+                              return `${capitalize}: ${item.expedicion?.cajas[color] ?? 0}`;
+                            }).join("\n") +
+                              "\nTotal: " +
+                              (item.expedicion?.cajas
+                                ? totalCajas(item.expedicion.cajas)
+                                : 0)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-2 rounded-xl bg-teal-50 p-3">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-teal-700">
+                        Traspaso
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
+                        <div className="md:col-span-2">
+                          <p className="text-slate-500">Responsable</p>
+                          <p className="font-medium text-slate-700">
+                            {item.traspaso?.nombre ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Ajuste</p>
+                          <p className="font-medium text-slate-700">
+                            {item.traspaso?.ajuste ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Cajas</p>
+                          <p className="font-medium text-slate-700">
+                            {CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                              const capitalize =
+                                color.charAt(0).toUpperCase() + color.slice(1);
+                              return `${capitalize}: ${item.traspaso?.cajas[color] ?? 0}`;
+                            }).join("\n") +
+                              "\nTotal: " +
+                              (item.traspaso?.cajas
+                                ? totalCajas(item.traspaso.cajas)
+                                : 0)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-2 rounded-xl bg-sky-50 p-3">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-sky-700">
+                        Entrega
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
+                        <div className="md:col-span-2">
+                          <p className="text-slate-500">Responsable</p>
+                          <p className="font-medium text-slate-700">
+                            {item.entrega?.nombre ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Ajuste</p>
+                          <p className="font-medium text-slate-700">
+                            {item.entrega?.ajuste ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Cajas</p>
+                          <p className="font-medium text-slate-700">
+                            {CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                              const capitalize =
+                                color.charAt(0).toUpperCase() + color.slice(1);
+                              return `${capitalize}: ${item.entrega?.cajas[color] ?? 0}`;
+                            }).join("\n") +
+                              "\nTotal: " +
+                              (item.entrega?.cajas
+                                ? totalCajas(item.entrega.cajas)
+                                : 0)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-500">
+                    <th
+                      colSpan={3}
+                      className="px-5 py-4 text-left font-semibold bg-slate-100"
                     >
-                      No hay datos para esta fecha
-                    </td>
+                      Centro de distribución
+                    </th>
+                    <th
+                      colSpan={3}
+                      className="px-5 py-4 text-center font-semibold text-emerald-700 bg-emerald-100"
+                    >
+                      Expedición
+                    </th>
+                    <th
+                      colSpan={3}
+                      className="px-5 py-4 text-center font-semibold text-teal-700 bg-teal-100"
+                    >
+                      Traspaso
+                    </th>
+                    <th
+                      colSpan={3}
+                      className="px-5 py-4 text-center font-semibold text-sky-700 bg-sky-100"
+                    >
+                      Entrega
+                    </th>
                   </tr>
-                ) : (
-                  datos.map((item) => (
-                    <tr
-                      key={item.centro_distribucion}
-                      className={`border-t border-slate-100 transition ${
-                        item.alerta
-                          ? "bg-rose-200 hover:bg-rose-100/70"
-                          : "hover:bg-slate-100"
-                      }`}
-                    >
-                      <td className="px-5 py-4 font-semibold text-slate-800">
-                        {item.centro_distribucion ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {item.almacen ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {item.chapa ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-600">
-                        {item.expedicion?.nombre ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-500">
-                        {item.expedicion?.ajuste ?? "-"}
-                      </td>
+                  <tr className="bg-slate-100 text-slate-500">
+                    <th className="px-5 py-3 text-left font-semibold">CD</th>
+                    <th className="px-5 py-3 text-left font-semibold">
+                      Almacén
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold">Chapa</th>
+                    <th className="px-5 py-3 text-center font-semibold">
+                      Responsable
+                    </th>
+                    <th className="px-5 py-3 text-center font-semibold">
+                      Ajuste
+                    </th>
+                    <th className="px-5 py-3 text-center font-semibold">
+                      Total
+                    </th>
+                    <th className="px-5 py-3 text-center font-semibold">
+                      Responsable
+                    </th>
+                    <th className="px-5 py-3 text-center font-semibold">
+                      Ajuste
+                    </th>
+                    <th className="px-5 py-3 text-center font-semibold">
+                      Total
+                    </th>
+                    <th className="px-5 py-3 text-center font-semibold">
+                      Responsable
+                    </th>
+                    <th className="px-5 py-3 text-center font-semibold">
+                      Ajuste
+                    </th>
+                    <th className="px-5 py-3 text-center font-semibold">
+                      Total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {datos.length === 0 ? (
+                    <tr>
                       <td
-                        title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                          const capitalize =
-                            color.charAt(0).toUpperCase() + color.slice(1);
-                          return `${capitalize}: ${item.expedicion?.cajas[color] ?? 0}`;
-                        }).join("\n")}
-                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        colSpan={13}
+                        className="px-5 py-10 text-center text-slate-500"
                       >
-                        {item.expedicion?.cajas
-                          ? totalCajas(item.expedicion?.cajas)
-                          : 0}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-600">
-                        {item.traspaso?.nombre ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-500">
-                        {item.traspaso?.ajuste ?? "-"}
-                      </td>
-                      <td
-                        title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                          const capitalize =
-                            color.charAt(0).toUpperCase() + color.slice(1);
-                          return `${capitalize}: ${item.traspaso?.cajas[color] ?? 0}`;
-                        }).join("\n")}
-                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
-                      >
-                        {item.traspaso?.cajas
-                          ? totalCajas(item.traspaso?.cajas)
-                          : 0}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-600">
-                        {item.entrega?.nombre ?? "-"}
-                      </td>
-                      <td className="px-5 py-4 text-center text-slate-500">
-                        {item.entrega?.ajuste ?? "-"}
-                      </td>
-                      <td
-                        title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                          const capitalize =
-                            color.charAt(0).toUpperCase() + color.slice(1);
-                          return `${capitalize}: ${item.entrega?.cajas[color] ?? 0}`;
-                        }).join("\n")}
-                        className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
-                      >
-                        {item.entrega?.cajas
-                          ? totalCajas(item.entrega?.cajas)
-                          : 0}
+                        No hay datos para esta fecha
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ) : (
+                    datos.map((item) => (
+                      <tr
+                        key={item.centro_distribucion}
+                        className={`border-t border-slate-100 transition ${
+                          item.alerta
+                            ? "from-rose-200 to-rose-50 hover:bg-rose-100/70"
+                            : "hover:bg-slate-100"
+                        }`}
+                      >
+                        <td className="px-5 py-4 font-semibold text-slate-800">
+                          {item.centro_distribucion ?? "-"}
+                        </td>
+                        <td className="px-5 py-4 text-slate-600">
+                          {item.almacen ?? "-"}
+                        </td>
+                        <td className="px-5 py-4 text-slate-600">
+                          {item.chapa ?? "-"}
+                        </td>
+                        <td className="px-5 py-4 text-center text-slate-600">
+                          {item.expedicion?.nombre ?? "-"}
+                        </td>
+                        <td className="px-5 py-4 text-center text-slate-500">
+                          {item.expedicion?.ajuste ?? "-"}
+                        </td>
+                        <td
+                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase() + color.slice(1);
+                            return `${capitalize}: ${item.expedicion?.cajas[color] ?? 0}`;
+                          }).join("\n")}
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        >
+                          {item.expedicion?.cajas
+                            ? totalCajas(item.expedicion?.cajas)
+                            : 0}
+                        </td>
+                        <td className="px-5 py-4 text-center text-slate-600">
+                          {item.traspaso?.nombre ?? "-"}
+                        </td>
+                        <td className="px-5 py-4 text-center text-slate-500">
+                          {item.traspaso?.ajuste ?? "-"}
+                        </td>
+                        <td
+                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase() + color.slice(1);
+                            return `${capitalize}: ${item.traspaso?.cajas[color] ?? 0}`;
+                          }).join("\n")}
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        >
+                          {item.traspaso?.cajas
+                            ? totalCajas(item.traspaso?.cajas)
+                            : 0}
+                        </td>
+                        <td className="px-5 py-4 text-center text-slate-600">
+                          {item.entrega?.nombre ?? "-"}
+                        </td>
+                        <td className="px-5 py-4 text-center text-slate-500">
+                          {item.entrega?.ajuste ?? "-"}
+                        </td>
+                        <td
+                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+                            const capitalize =
+                              color.charAt(0).toUpperCase() + color.slice(1);
+                            return `${capitalize}: ${item.entrega?.cajas[color] ?? 0}`;
+                          }).join("\n")}
+                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                        >
+                          {item.entrega?.cajas
+                            ? totalCajas(item.entrega?.cajas)
+                            : 0}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </section>

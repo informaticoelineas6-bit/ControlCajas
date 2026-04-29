@@ -70,14 +70,14 @@ export default function AuditCentro() {
   };
 
   const getAjusteDeudaClass = (value: number) => {
-    if (value > 0) return "bg-amber-200";
-    if (value < 0) return "bg-emerald-200";
+    if (value > 0) return "ring-2 ring-amber-400";
+    if (value < 0) return "ring-2 ring-emerald-400";
     return "";
   };
 
   const getRoturaClass = (value: number) => {
-    if (value < 0) return "bg-emerald-200";
-    if (value > 0) return "bg-rose-200";
+    if (value < 0) return "ring-2 ring-emerald-400";
+    if (value > 0) return "ring-2 ring-rose-400";
     return "";
   };
 
@@ -134,7 +134,81 @@ export default function AuditCentro() {
 
         {datos && !loading ? (
           <>
-            <div className="overflow-x-auto rounded-2xl border border-amber-100">
+            <div className="space-y-3 lg:hidden">
+              <article
+                key={datos.centro.nombre}
+                className="rounded-[24px] rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      Nombre
+                    </p>
+                    <h4 className="mt-1 text-base font-semibold text-slate-900">
+                      {datos.centro.nombre ?? "-"}
+                    </h4>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <div key={color}>
+                      <p className="text-slate-500 capitalize">
+                        {"Deuda " + color}
+                      </p>
+                      <p className="font-medium text-slate-700">
+                        {datos.centro.deuda?.[color] ?? "-"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <div key={color}>
+                      <p className="text-slate-500 capitalize">
+                        {"Cajas rotas " + color}
+                      </p>
+                      <p className="font-medium text-slate-700">
+                        {datos.centro.roturas.cajas[color] ?? "-"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                  {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                    <div key={color}>
+                      <p className="text-slate-500 capitalize">
+                        {"Tapas rotas " + color}
+                      </p>
+                      <p className="font-medium text-slate-700">
+                        {datos.centro.roturas.tapas[color] ?? "-"}
+                      </p>
+                    </div>
+                  ))}
+                  <div>
+                    <p className="text-slate-500">Estado</p>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                        datos.centro.ajuste?.habilitado
+                          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                          : "bg-rose-50 text-rose-700 ring-rose-200"
+                      }`}
+                    >
+                      {datos.centro.ajuste?.habilitado
+                        ? "Habilitado"
+                        : "Deshabilitado"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-slate-500">Editado por</p>
+                    <p className="font-medium text-slate-700">
+                      {datos.centro.ajuste?.nombre ?? "-"}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-amber-100 hidden lg:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-amber-50 text-amber-900">
                   <tr>
@@ -177,18 +251,18 @@ export default function AuditCentro() {
                     </td>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td key={`deuda-${color}`} className="px-5 py-4">
-                        {datos.centro.deuda[color]}
+                        {datos.centro.deuda[color] ?? "-"}
                       </td>
                     ))}
                     <td className="px-5 py-4">{datos.centro.rotacion}</td>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td key={`rotura-caja-${color}`} className="px-5 py-4">
-                        {datos.centro.roturas.cajas[color]}
+                        {datos.centro.roturas.cajas[color] ?? "-"}
                       </td>
                     ))}
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <td key={`rotura-tapa-${color}`} className="px-5 py-4">
-                        {datos.centro.roturas.tapas[color]}
+                        {datos.centro.roturas.tapas[color] ?? "-"}
                       </td>
                     ))}
                   </tr>
@@ -196,7 +270,75 @@ export default function AuditCentro() {
               </table>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+            <div className="space-y-3 mt-8 lg:hidden">
+              {datos.cierres.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                  No hay cierres asociados a este centro.
+                </div>
+              ) : (
+                datos.cierres.map((item) => (
+                  <article
+                    key={item.fecha}
+                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                          Fecha del cierre
+                        </p>
+                        <h4 className="mt-1 text-base font-semibold text-slate-900">
+                          {item.fecha ?? "-"}
+                        </h4>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="text-slate-500 capitalize">
+                            {"Ajuste deuda " + color}
+                          </p>
+                          <p
+                            className={`font-medium text-slate-700 ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
+                          >
+                            {item.ajuste_deuda[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="text-slate-500 capitalize">
+                            {"Cajas rotas " + color}
+                          </p>
+                          <p
+                            className={`font-medium text-slate-700 ${getRoturaClass(item.roturas.cajas[color])}`}
+                          >
+                            {item.roturas.cajas[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                        <div key={color}>
+                          <p className="text-slate-500 capitalize">
+                            {"Tapas rotas " + color}
+                          </p>
+                          <p
+                            className={`font-medium text-slate-700 ${getRoturaClass(item.roturas.tapas[color])}`}
+                          >
+                            {item.roturas.tapas[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
@@ -239,25 +381,37 @@ export default function AuditCentro() {
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={`cierre-ajuste-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
+                          className="px-5 py-4 text-slate-600"
                         >
-                          {item.ajuste_deuda[color]}
+                          <span
+                            className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
+                          >
+                            {item.ajuste_deuda[color] ?? "-"}
+                          </span>
                         </td>
                       ))}
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={`cierre-cajas-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas.cajas[color])}`}
+                          className="px-5 py-4 text-slate-600"
                         >
-                          {item.roturas.cajas[color]}
+                          <span
+                            className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
+                          >
+                            {item.roturas.cajas[color] ?? "-"}
+                          </span>
                         </td>
                       ))}
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <td
                           key={`cierre-tapas-${item.fecha}-${color}`}
-                          className={`px-5 py-4 text-slate-600 ${getRoturaClass(item.roturas.tapas[color])}`}
+                          className="px-5 py-4 text-slate-600"
                         >
-                          {item.roturas.tapas[color]}
+                          <span
+                            className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
+                          >
+                            {item.roturas.tapas[color] ?? "-"}
+                          </span>
                         </td>
                       ))}
                     </tr>

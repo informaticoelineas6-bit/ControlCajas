@@ -163,13 +163,13 @@ export default function TablaInformacion() {
   const rowTone = (estado: string) => {
     switch (estado) {
       case "Cumplida":
-        return "from-emerald-50 to-white";
+        return "from-emerald-300 to-emerald-100";
       case "Pendiente":
-        return "from-amber-50 to-white";
+        return "from-amber-300 to-amber-100";
       case "Retrasada":
-        return "from-rose-50 to-white";
+        return "from-rose-300 to-rose-100";
       default:
-        return "from-sky-50 to-white";
+        return "from-sky-300 to-sky-100";
     }
   };
 

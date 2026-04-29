@@ -389,7 +389,78 @@ export default function CierreDiario({
                 Almacenes - Ajuste de stock
               </h4>
             </div>
-            <div className="overflow-x-auto">
+            <div className="space-y-3 p-4 lg:hidden">
+              {cierre.cierre_almacen.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                  No hay datos
+                </div>
+              ) : (
+                cierre.cierre_almacen.map((item) => (
+                  <article
+                    key={item.almacen}
+                    className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      Almacén
+                    </p>
+                    <h4 className="mt-1 text-base font-semibold text-slate-900">
+                      {item.almacen}
+                    </h4>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="capitalize text-slate-500">
+                            Ajuste {color}
+                          </p>
+                          <p className="font-medium text-slate-700">
+                            {item.ajuste_stock[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                      <div>
+                        <p className="text-slate-500">Total</p>
+                        <p className="font-semibold text-slate-800">
+                          {totalCajas(item.ajuste_stock)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="capitalize text-slate-500">
+                            Cajas rotas {color}
+                          </p>
+                          <p className="font-medium text-slate-700">
+                            {item.roturas.cajas[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                        <div key={color}>
+                          <p className="capitalize text-slate-500">
+                            Tapas rotas {color}
+                          </p>
+                          <p className="font-medium text-slate-700">
+                            {item.roturas.tapas[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                      <div>
+                        <p className="capitalize text-slate-500">
+                          Total roturas
+                        </p>
+                        <p className="font-medium text-slate-700">
+                          {totalCajas(item.roturas.cajas) +
+                            totalCajas(item.roturas.tapas)}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+
+            <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-100 text-slate-500">
                   <tr>
@@ -439,7 +510,7 @@ export default function CierreDiario({
                             key={color}
                             className="px-5 py-4 text-center text-slate-700"
                           >
-                            {item.ajuste_stock[color]}
+                            {item.ajuste_stock[color] ?? "-"}
                           </td>
                         ))}
                         <td className="px-5 py-4 text-center font-semibold text-slate-800">
@@ -449,7 +520,7 @@ export default function CierreDiario({
                           title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
                             const capitalize =
                               color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.cajas[color]}`;
+                            return `${capitalize}: ${item.roturas.cajas[color] ?? "-"}`;
                           }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
@@ -459,7 +530,7 @@ export default function CierreDiario({
                           title={TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
                             const capitalize =
                               color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.tapas[color]}`;
+                            return `${capitalize}: ${item.roturas.tapas[color] ?? "-"}`;
                           }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
@@ -479,7 +550,78 @@ export default function CierreDiario({
                 Centros de distribución - Ajuste de deuda
               </h4>
             </div>
-            <div className="overflow-x-auto">
+            <div className="space-y-3 p-4 lg:hidden">
+              {cierre.cierre_cd.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                  No hay datos
+                </div>
+              ) : (
+                cierre.cierre_cd.map((item) => (
+                  <article
+                    key={item.centro_distribucion}
+                    className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      Centro
+                    </p>
+                    <h4 className="mt-1 text-base font-semibold text-slate-900">
+                      {item.centro_distribucion}
+                    </h4>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="capitalize text-slate-500">
+                            Ajuste {color}
+                          </p>
+                          <p className="font-medium text-slate-700">
+                            {item.ajuste_deuda[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                      <div>
+                        <p className="text-slate-500">Total</p>
+                        <p className="font-semibold text-slate-800">
+                          {totalCajas(item.ajuste_deuda)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="capitalize text-slate-500">
+                            Cajas rotas {color}
+                          </p>
+                          <p className="font-medium text-slate-700">
+                            {item.roturas.cajas[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                        <div key={color}>
+                          <p className="capitalize text-slate-500">
+                            Tapas rotas {color}
+                          </p>
+                          <p className="font-medium text-slate-700">
+                            {item.roturas.tapas[color] ?? "-"}
+                          </p>
+                        </div>
+                      ))}
+                      <div>
+                        <p className="capitalize text-slate-500">
+                          Total roturas
+                        </p>
+                        <p className="font-medium text-slate-700">
+                          {totalCajas(item.roturas.cajas) +
+                            totalCajas(item.roturas.tapas)}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+
+            <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full text-sm">
                 <thead className="bg-slate-100 text-slate-500">
                   <tr>
@@ -529,7 +671,7 @@ export default function CierreDiario({
                             key={color}
                             className="px-5 py-4 text-center text-slate-700"
                           >
-                            {item.ajuste_deuda[color]}
+                            {item.ajuste_deuda[color] ?? "-"}
                           </td>
                         ))}
                         <td className="px-5 py-4 text-center font-semibold text-slate-800">
@@ -539,7 +681,7 @@ export default function CierreDiario({
                           title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
                             const capitalize =
                               color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.cajas[color]}`;
+                            return `${capitalize}: ${item.roturas.cajas[color] ?? "-"}`;
                           }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
@@ -549,7 +691,7 @@ export default function CierreDiario({
                           title={TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
                             const capitalize =
                               color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.tapas[color]}`;
+                            return `${capitalize}: ${item.roturas.tapas[color] ?? "-"}`;
                           }).join("\n")}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
