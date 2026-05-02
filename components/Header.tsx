@@ -4,6 +4,8 @@ import { Usuario } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Alerta from "./Alerta";
+import { prettyName } from "@/lib/utils";
+import { LogOut, User } from "lucide-react";
 
 interface HeaderProps {
   usuario?: Usuario;
@@ -30,7 +32,7 @@ export default function Header({ usuario }: Readonly<HeaderProps>) {
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 shadow-inner ring-1 ring-white/10">
-            <span className="text-lg font-bold">CC</span>
+            <span className="text-lg font-bold select-none">CC</span>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.34em] text-sky-100/70">
@@ -45,19 +47,23 @@ export default function Header({ usuario }: Readonly<HeaderProps>) {
         {usuario && (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {usuario.rol === "informatico" && <Alerta usuario={usuario} />}
-            <div className="rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/10">
-              <p className="text-sm font-semibold text-white">
-                {usuario.nombre}
-              </p>
-              <p className="mt-1 text-xs capitalize text-sky-100/75">
-                {usuario.rol}
-              </p>
+            <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/10">
+              <User size={16} className="shrink-0 text-sky-100/70" />
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {prettyName(usuario.nombre)}
+                </p>
+                <p className="mt-1 text-xs capitalize text-sky-100/75">
+                  {usuario.rol}
+                </p>
+              </div>
             </div>
             <button
               onClick={handleLogout}
               disabled={loading}
-              className="rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(244,63,94,0.8)] transition hover:bg-rose-400 disabled:cursor-not-allowed disabled:bg-slate-500"
+              className="inline-flex items-center gap-2 rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(244,63,94,0.8)] transition hover:bg-rose-400 disabled:cursor-not-allowed disabled:bg-slate-500"
             >
+              <LogOut size={16} />
               {loading ? "Saliendo..." : "Salir"}
             </button>
           </div>

@@ -2,7 +2,7 @@ import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, LogAudit } from "@/lib/server";
 import { TABLAS, Usuario } from "@/lib/constants";
-import { usuarioCookie } from "@/lib/auth";
+import { hashPassword, usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,11 +67,16 @@ export async function PUT(request: NextRequest) {
 
     LogAudit(db, "UPDATE", data[0], "Usuario", usuario.nombre, body);
 
+    const hashedPassword = body.contrasena
+      ? await hashPassword(body.contrasena)
+      : undefined;
+
     const { error } = await db
       .from(TABLAS.USUARIO)
       .update({
         rol: body.rol,
         ajuste: body.ajuste,
+        contrasena: hashedPassword,
       })
       .eq("nombre", nombre);
 

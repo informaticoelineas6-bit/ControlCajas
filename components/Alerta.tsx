@@ -4,6 +4,7 @@ import { AlertaResponse } from "@/app/api/admin/alerts/route";
 import { frontendClient } from "@/lib/client";
 import { TABLAS, Usuario } from "@/lib/constants";
 import { useCallback, useEffect, useState } from "react";
+import { Bell } from "lucide-react";
 
 export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
   const [open, setOpen] = useState(false);
@@ -165,6 +166,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
         onClick={() => setOpen((prev) => !prev)}
         className={`inline-flex items-center gap-2 rounded-full border ${rowTone()} px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100`}
       >
+        <Bell size={15} />
         <span>{error || "Notificaciones"}</span>
         <span
           className={`rounded-full px-2 py-0.5 text-xs font-semibold ${rowToneLower()}`}

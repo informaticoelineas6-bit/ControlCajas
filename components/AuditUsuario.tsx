@@ -10,7 +10,7 @@ import {
   Usuario,
 } from "@/lib/constants";
 import type { EventoAudit, UsuarioAudit } from "@/app/api/audit/usuario/route";
-import { formatDate } from "@/lib/utils";
+import { formatDate, prettyName } from "@/lib/utils";
 
 export default function AuditUsuario() {
   const [nombre, setNombre] = useState("");
@@ -189,7 +189,7 @@ export default function AuditUsuario() {
                       Nombre
                     </p>
                     <h4 className="mt-1 text-base font-semibold text-slate-900">
-                      {datos.usuario.nombre ?? "-"}
+                      {prettyName(datos.usuario.nombre)}
                     </h4>
                   </div>
                 </div>
@@ -225,7 +225,9 @@ export default function AuditUsuario() {
                   <div>
                     <p className="text-slate-500">Autorizado por</p>
                     <p className="font-medium text-slate-700">
-                      {datos.usuario.ajuste?.nombre ?? "-"}
+                      {datos.usuario.ajuste?.nombre
+                        ? prettyName(datos.usuario.ajuste?.nombre)
+                        : "-"}
                     </p>
                   </div>
                   <div>
@@ -265,7 +267,7 @@ export default function AuditUsuario() {
                 <tbody>
                   <tr className="border-t border-blue-100 bg-white text-slate-700">
                     <td className="px-5 py-4 font-semibold text-slate-900">
-                      {datos.usuario.nombre}
+                      {prettyName(datos.usuario.nombre)}
                     </td>
                     <td className="px-5 py-4 capitalize">
                       {datos.usuario.rol}
@@ -289,7 +291,9 @@ export default function AuditUsuario() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      {datos.usuario.ajuste?.nombre ?? "-"}
+                      {datos.usuario.ajuste?.nombre
+                        ? prettyName(datos.usuario.ajuste.nombre)
+                        : "-"}
                     </td>
                     <td className="px-5 py-4">
                       {datos.usuario.ajuste?.fechaHora

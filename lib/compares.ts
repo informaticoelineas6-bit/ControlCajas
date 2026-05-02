@@ -15,6 +15,7 @@ import {
   appendNombre,
   applyAjuste,
   hasCajas,
+  prettyName,
   sameCajas,
   sumCajas,
 } from "./utils";
@@ -52,6 +53,10 @@ export async function getComparacionEntrega(
   const centrosExp = new Map<string, ItemComparacionEntrega>();
 
   for (const current of expediciones) {
+    current.nombre = prettyName(current.nombre);
+    if (current.ajuste) {
+      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+    }
     const centro = current.centro_distribucion;
     if (centrosExp.has(centro)) {
       const item = centrosExp.get(centro) as ItemComparacionEntrega;
@@ -81,6 +86,10 @@ export async function getComparacionEntrega(
   }
 
   for (const current of traspasos) {
+    current.nombre = prettyName(current.nombre);
+    if (current.ajuste) {
+      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+    }
     const centro = current.centro_distribucion;
     if (centrosExp.has(centro)) {
       const item = centrosExp.get(centro) as ItemComparacionEntrega;
@@ -111,6 +120,10 @@ export async function getComparacionEntrega(
   }
 
   for (const current of entregas) {
+    current.nombre = prettyName(current.nombre);
+    if (current.ajuste) {
+      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+    }
     const centro = current.centro_distribucion;
     if (centrosExp.has(centro)) {
       const item = centrosExp.get(centro) as ItemComparacionEntrega;
@@ -170,6 +183,10 @@ export async function getComparacionRecogida(
 
   for (const current of recogidas) {
     const centro = current.centro_distribucion;
+    current.nombre = prettyName(current.nombre);
+    if (current.ajuste) {
+      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+    }
     if (centrosRec.has(centro)) {
       const item = centrosRec.get(centro) as ItemComparacionRecogida;
       item.chapa = appendNombre(item.chapa, current.chapa);
@@ -213,6 +230,10 @@ export async function getComparacionRecogida(
 
   for (const current of devoluciones) {
     const centro = current.centro_distribucion;
+    current.nombre = prettyName(current.nombre);
+    if (current.ajuste) {
+      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+    }
     if (centrosRec.has(centro)) {
       const item = centrosRec.get(centro) as ItemComparacionRecogida;
       item.almacen = appendNombre(item.almacen, current.almacen);

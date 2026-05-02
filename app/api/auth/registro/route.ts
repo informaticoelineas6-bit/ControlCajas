@@ -1,4 +1,4 @@
-import { getErrorMessage } from "@/lib/utils";
+import { formatName, getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth";
 import { ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const { nombre: nombreRaw, contrasena, rol } = await request.json();
 
-    const nombre = nombreRaw.trim();
+    const nombre = formatName(nombreRaw);
 
     if (!nombre || !contrasena || !rol) {
       return NextResponse.json(

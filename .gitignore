@@ -37,3 +37,8 @@ next-env.d.ts
 
 # OpenNext
 .open-next
+
+# Claude skills
+.claude/
+.agents/
+.codex

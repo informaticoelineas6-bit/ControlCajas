@@ -12,7 +12,7 @@ import {
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
-import { AjusteStr, totalCajas } from "@/lib/utils";
+import { AjusteStr, prettyName, totalCajas } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaRecogida({
@@ -141,7 +141,7 @@ export default function TablaRecogida({
                       <div>
                         <p className="text-slate-500">Chofer</p>
                         <p className="font-medium text-slate-700">
-                          {item.nombre ?? "-"}
+                          {item.nombre ? prettyName(item.nombre) : "-"}
                         </p>
                       </div>
                       <div>
@@ -173,7 +173,7 @@ export default function TablaRecogida({
                       <div>
                         <p className="text-slate-500">Ajustado por</p>
                         <p className="font-medium text-slate-700">
-                          {item.ajuste ?? "-"}
+                          {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </p>
                       </div>
                     </div>
@@ -237,7 +237,7 @@ export default function TablaRecogida({
                           {item.centro_distribucion ?? "-"}
                         </td>
                         <td className="px-5 py-4 text-slate-600">
-                          {item.nombre ?? "-"}
+                          {item.nombre ? prettyName(item.nombre) : "-"}
                         </td>
                         <td className="px-5 py-4 text-slate-600">
                           {item.chapa ?? "-"}
@@ -271,7 +271,7 @@ export default function TablaRecogida({
                           {totalCajas(item.roturas.tapas)}
                         </td>
                         <td className="px-5 py-4 text-center text-slate-500">
-                          {item.ajuste ?? "-"}
+                          {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </td>
                         {usuario.rol === "informatico" && (
                           <td className="px-5 py-4 text-center">

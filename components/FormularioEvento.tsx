@@ -13,6 +13,7 @@ import {
 } from "@/lib/constants";
 import { totalCajas } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
+import { ArrowLeft, Save, RotateCcw, PackageOpen, Truck, Home, PackageMinus, Undo2 } from "lucide-react";
 
 // Verificar la tardanza de el warning/message.
 
@@ -528,9 +529,16 @@ export default function FormularioEvento({
                     onClick={() => handleSelectEvento(tipo)}
                     className="w-full m-2 rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(239,246,255,0.95))] px-5 py-5 text-left transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_22px_38px_-24px_rgba(59,130,246,0.55)]"
                   >
-                    <p className="text-lg font-semibold text-slate-900">
-                      {tipo}
-                    </p>
+                    <div className="mb-2 flex items-center gap-2 text-blue-500">
+                      {tipo === "Expedicion" && <PackageOpen size={20} />}
+                      {tipo === "Traspaso" && <Truck size={20} />}
+                      {tipo === "Entrega" && <Home size={20} />}
+                      {tipo === "Recogida" && <PackageMinus size={20} />}
+                      {tipo === "Devolucion" && <Undo2 size={20} />}
+                      <p className="text-lg font-semibold text-slate-900">
+                        {tipo}
+                      </p>
+                    </div>
                     <p className="mt-2 text-sm text-slate-600">
                       {tipo === "Expedicion" &&
                         "Expedición desde almacén hacia un centro de distribución."}
@@ -554,8 +562,9 @@ export default function FormularioEvento({
                   <button
                     type="button"
                     onClick={() => resetForm()}
-                    className="rounded-full bg-blue-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-blue-400 hover:text-slate-800"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-blue-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-blue-400 hover:text-slate-800"
                   >
+                    <ArrowLeft size={14} />
                     Cambiar tipo de evento
                   </button>
                 )}
@@ -791,16 +800,18 @@ export default function FormularioEvento({
                 <button
                   type="button"
                   onClick={clickReset}
-                  className="w-full rounded-[22px] bg-[linear-gradient(135deg,_#334155,_#475569)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  className="inline-flex items-center justify-center gap-2 w-full rounded-[22px] bg-[linear-gradient(135deg,_#334155,_#475569)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
                 >
+                  <RotateCcw size={16} />
                   Regresar
                 </button>
               ) : (
                 <button
                   type="submit"
                   disabled={!!(loading || submitted)}
-                  className="w-full rounded-[22px] bg-[linear-gradient(135deg,_#0f766e,_#059669)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  className="inline-flex items-center justify-center gap-2 w-full rounded-[22px] bg-[linear-gradient(135deg,_#0f766e,_#059669)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
                 >
+                  {!loading && <Save size={16} />}
                   {loading
                     ? "Cargando..."
                     : "Guardar" + (isAdjustment ? " Ajuste" : "")}

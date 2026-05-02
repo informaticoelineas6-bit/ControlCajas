@@ -197,3 +197,18 @@ export function getErrorMessage(error: unknown): string {
 
   return "Error en el servidor";
 }
+
+export function formatName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^\wáéíóú]+/gi, ".")
+    .replace(/^\.|\.$/g, "");
+}
+
+export function prettyName(name: string): string {
+  return name
+    .split(".")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}

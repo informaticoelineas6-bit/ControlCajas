@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Warehouse, Pencil, Plus, X, ToggleLeft, ToggleRight } from "lucide-react";
 import {
   Almacen,
   CAJAS_ARRAY,
@@ -13,6 +14,7 @@ import {
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
 import { frontendClient } from "@/lib/client";
+import { prettyName } from "@/lib/utils";
 
 export default function TablaAlmacenes({
   usuario,
@@ -317,7 +319,8 @@ export default function TablaAlmacenes({
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
               Inventario base
             </p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+            <h2 className="mt-2 flex items-center gap-2 text-2xl font-semibold text-slate-900">
+              <Warehouse size={22} className="text-emerald-600" />
               Almacenes
             </h2>
             <p className="mt-2 text-sm text-slate-600">
@@ -427,16 +430,18 @@ export default function TablaAlmacenes({
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(5,150,105,0.9)] transition hover:from-emerald-500 hover:to-teal-400 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(5,150,105,0.9)] transition hover:from-emerald-500 hover:to-teal-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
+                {!editingId && <Plus size={14} />}
                 {editingId ? "Guardar cambios" : "Agregar almacén"}
               </button>
               {editingId && (
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
                 >
+                  <X size={14} />
                   Cancelar
                 </button>
               )}
@@ -472,20 +477,22 @@ export default function TablaAlmacenes({
                         <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => startEdit(item)}
-                            className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                           >
+                            <Pencil size={12} />
                             Editar
                           </button>
                           <button
                             onClick={() =>
                               enableAlmacen(item, !item.ajuste?.habilitado)
                             }
-                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                               item.ajuste?.habilitado
                                 ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
+                            {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
                             {item.ajuste?.habilitado
                               ? "Deshabilitar"
                               : "Habilitar"}
@@ -531,7 +538,9 @@ export default function TablaAlmacenes({
                       <div>
                         <p className="text-slate-500">Editado por</p>
                         <p className="font-medium text-slate-700">
-                          {item.ajuste?.nombre ?? "-"}
+                          {item.ajuste?.nombre
+                            ? prettyName(item.ajuste?.nombre)
+                            : "-"}
                         </p>
                       </div>
                     </div>
@@ -614,15 +623,18 @@ export default function TablaAlmacenes({
                             : ""
                         }
                       >
-                        {item.ajuste?.nombre ?? "-"}
+                        {item.ajuste?.nombre
+                          ? prettyName(item.ajuste?.nombre)
+                          : "-"}
                       </td>
                       {usuario.rol === "informatico" && (
                         <td className="px-5 py-4 text-center">
                           <div className="flex justify-center gap-2">
                             <button
                               onClick={() => startEdit(item)}
-                              className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                              className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                             >
+                              <Pencil size={12} />
                               Editar
                             </button>
                             <button
@@ -630,12 +642,13 @@ export default function TablaAlmacenes({
                               onClick={() =>
                                 enableAlmacen(item, !item.ajuste?.habilitado)
                               }
-                              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                                 item.ajuste?.habilitado
                                   ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               }`}
                             >
+                              {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
                               {item.ajuste?.habilitado
                                 ? "Deshabilitar"
                                 : "Habilitar"}

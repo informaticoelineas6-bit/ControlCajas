@@ -29,6 +29,16 @@ import TablaProvincias from "@/components/TablaProvincias";
 import AuditAlmacen from "@/components/AuditAlmacen";
 import AuditCentro from "@/components/AuditCentro";
 import AuditUsuario from "@/components/AuditUsuario";
+import { prettyName } from "@/lib/utils";
+import {
+  Plus,
+  List,
+  Lock,
+  LayoutDashboard,
+  Settings,
+  Shield,
+  X,
+} from "lucide-react";
 
 type TabNames =
   | "new_eventos"
@@ -174,6 +184,15 @@ export default function Dashboard() {
 
   const contentCardClass =
     "rounded-[32px] border border-white/60 bg-white/78 p-5 shadow-[0_30px_80px_-46px_rgba(15,23,42,0.5)] backdrop-blur sm:p-8";
+
+  const tabIcons: Record<TabNames, React.ReactNode> = {
+    new_eventos: <Plus size={18} />,
+    mis_eventos: <List size={18} />,
+    cierre_eventos: <Lock size={18} />,
+    dashboard: <LayoutDashboard size={18} />,
+    administracion: <Settings size={18} />,
+    auditoria: <Shield size={18} />,
+  };
 
   const pageRender: Record<TabNames, React.JSX.Element> = {
     administracion: (
@@ -329,7 +348,7 @@ export default function Dashboard() {
                 Control de cajas
               </p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-                {usuario.nombre}
+                {prettyName(usuario.nombre)}
               </h2>
               <p className="mt-2 text-sm capitalize text-slate-300">
                 {usuario.rol}
@@ -350,9 +369,12 @@ export default function Dashboard() {
                         : "bg-white/0 text-slate-200 hover:bg-white/8 hover:text-white"
                     }`}
                   >
-                    <p className="text-base font-semibold">
-                      {pageTabs[item].title}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      {tabIcons[item]}
+                      <p className="text-base font-semibold">
+                        {pageTabs[item].title}
+                      </p>
+                    </div>
                     <p
                       className={`mt-1 text-sm ${
                         isActive ? "text-blue-50" : "text-slate-400"
@@ -392,8 +414,9 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={() => setAdjustingEvent(null)}
-                className="rounded-full bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
               >
+                <X size={14} />
                 Cerrar
               </button>
             </div>

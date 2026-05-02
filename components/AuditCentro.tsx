@@ -9,7 +9,7 @@ import {
   TAPAS_ARRAY,
 } from "@/lib/constants";
 import type { CentroAudit } from "@/app/api/audit/centro/route";
-import { formatDate } from "@/lib/utils";
+import { formatDate, prettyName } from "@/lib/utils";
 
 export default function AuditCentro() {
   const [nombre, setNombre] = useState("");
@@ -228,7 +228,9 @@ export default function AuditCentro() {
                   <div>
                     <p className="text-slate-500">Editado por</p>
                     <p className="font-medium text-slate-700">
-                      {datos.centro.ajuste?.nombre ?? "-"}
+                      {datos.centro.ajuste?.nombre
+                        ? prettyName(datos.centro.ajuste?.nombre)
+                        : "-"}
                     </p>
                   </div>
                 </div>

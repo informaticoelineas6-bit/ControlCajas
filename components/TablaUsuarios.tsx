@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Eye, EyeOff, Users, Pencil, X, ToggleLeft, ToggleRight } from "lucide-react";
 import { ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
 import { frontendClient } from "@/lib/client";
+import { prettyName } from "@/lib/utils";
 
 export default function TablaUsuarios({
   usuario,
@@ -15,10 +17,14 @@ export default function TablaUsuarios({
   const [form, setForm] = useState<Usuario>({
     nombre: "",
     rol: "chofer",
+    contrasena: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [passwordChange, setPasswordChange] = useState<boolean>(false);
+  const [confirmarContrasena, setConfirmarContrasena] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -68,8 +74,12 @@ export default function TablaUsuarios({
     setForm({
       nombre: "",
       rol: "chofer",
+      contrasena: "",
     });
     setEditingId(null);
+    setPasswordChange(false);
+    setConfirmarContrasena("");
+    setShowPassword(false);
     setError("");
   };
 
@@ -84,6 +94,20 @@ export default function TablaUsuarios({
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
+    if (passwordChange) {
+      if (form.contrasena && form.contrasena.length < 6) {
+        setError("La contraseña debe tener al menos 6 caracteres");
+        setLoading(false);
+        return;
+      }
+
+      if (form.contrasena !== confirmarContrasena) {
+        setError("Las contraseñas no coinciden");
+        setLoading(false);
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       if (!editingId) {
@@ -96,6 +120,7 @@ export default function TablaUsuarios({
       const body: Usuario = {
         nombre: editingId,
         rol: form.rol,
+        contrasena: passwordChange ? form.contrasena : undefined,
         ajuste: {
           nombre: usuario.nombre,
           fechaHora: new Date().toISOString(),
@@ -121,6 +146,7 @@ export default function TablaUsuarios({
   };
 
   const startEdit = (usuario: Usuario) => {
+    resetForm();
     setForm(usuario);
     setEditingId(usuario.nombre ?? null);
   };
@@ -181,7 +207,8 @@ export default function TablaUsuarios({
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
               Acceso
             </p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+            <h2 className="mt-2 flex items-center gap-2 text-2xl font-semibold text-slate-900">
+              <Users size={22} className="text-violet-600" />
               Usuarios
             </h2>
             <p className="mt-2 text-sm text-slate-600">
@@ -243,22 +270,91 @@ export default function TablaUsuarios({
                   ))}
                 </select>
               </div>
+              <div>
+                <label
+                  htmlFor={"contrasena"}
+                  className="flex items-center gap-2 mb-2 text-sm font-medium text-slate-600"
+                >
+                  <input
+                    id={"passwordChange"}
+                    name={`passwordChange`}
+                    type="checkbox"
+                    checked={passwordChange}
+                    onChange={(e) => setPasswordChange(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
+                  />
+                  Cambiar contraseña
+                </label>
+                <div className="relative">
+                  <input
+                    id="contrasena"
+                    type={showPassword ? "text" : "password"}
+                    name="contrasena"
+                    disabled={!passwordChange}
+                    value={form.contrasena ?? ""}
+                    onChange={handleInputChange}
+                    required={passwordChange}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-10 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    disabled={!passwordChange}
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label
+                  htmlFor="confirmarContrasena"
+                  className="mb-2 block text-sm font-medium text-slate-600"
+                >
+                  Confirmar contraseña
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirmarContrasena"
+                    type={showPassword ? "text" : "password"}
+                    name="confirmarContrasena"
+                    disabled={!passwordChange}
+                    value={confirmarContrasena}
+                    onChange={(e) => setConfirmarContrasena(e.target.value)}
+                    required={passwordChange}
+                    placeholder="Repite la contraseña"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-10 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    disabled={!passwordChange}
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <button
                 type="submit"
                 disabled={submitting || !editingId}
-                className="rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {"Guardar"}
+                Guardar
               </button>
               {editingId && (
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
                 >
+                  <X size={14} />
                   Cancelar
                 </button>
               )}
@@ -287,27 +383,29 @@ export default function TablaUsuarios({
                           Nombre
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
-                          {item.nombre ?? "-"}
+                          {prettyName(item.nombre)}
                         </h4>
                       </div>
                       {usuario.rol === "informatico" && (
                         <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => startEdit(item)}
-                            className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                           >
+                            <Pencil size={12} />
                             Editar
                           </button>
                           <button
                             onClick={() =>
                               enableUsuario(item, !item.ajuste?.habilitado)
                             }
-                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                               item.ajuste?.habilitado
                                 ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
+                            {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
                             {item.ajuste?.habilitado
                               ? "Deshabilitar"
                               : "Habilitar"}
@@ -349,7 +447,9 @@ export default function TablaUsuarios({
                       <div>
                         <p className="text-slate-500">Autorizado por</p>
                         <p className="font-medium text-slate-700">
-                          {item.ajuste?.nombre ?? "-"}
+                          {item.ajuste?.nombre
+                            ? prettyName(item.ajuste?.nombre)
+                            : "-"}
                         </p>
                       </div>
                     </div>
@@ -386,7 +486,7 @@ export default function TablaUsuarios({
                       className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
                       <td className="px-5 py-4 font-semibold text-slate-800">
-                        {item.nombre ?? "-"}
+                        {prettyName(item.nombre)}
                       </td>
                       <td className="px-5 py-4">
                         <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
@@ -421,7 +521,9 @@ export default function TablaUsuarios({
                         }
                         className="px-5 py-4 text-slate-500 hover:bg-slate-300"
                       >
-                        {item.ajuste?.nombre ?? "-"}
+                        {item.ajuste?.nombre
+                          ? prettyName(item.ajuste?.nombre)
+                          : "-"}
                       </td>
                       {usuario.rol === "informatico" && (
                         <td className="px-5 py-4 text-center">
@@ -431,20 +533,22 @@ export default function TablaUsuarios({
                               onClick={() =>
                                 enableUsuario(item, !item.ajuste?.habilitado)
                               }
-                              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                                 item.ajuste?.habilitado
                                   ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               }`}
                             >
+                              {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
                               {item.ajuste?.habilitado
                                 ? "Deshabilitar"
                                 : "Habilitar"}
                             </button>
                             <button
                               onClick={() => startEdit(item)}
-                              className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                              className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                             >
+                              <Pencil size={12} />
                               Editar
                             </button>
                             <ConfirmDeleteButton
