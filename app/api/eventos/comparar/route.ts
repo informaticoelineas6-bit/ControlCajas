@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import {
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error comparing events:", error);
     return NextResponse.json(
-      { error: "Error al comparar eventos" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

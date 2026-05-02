@@ -30,14 +30,13 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
           signal,
         });
         const body = await res.json();
-        if (!res.ok) {
+        if (res.ok) {
+          setData(body);
+        } else {
           setError(body.error || "Error al cargar alertas");
-          return;
         }
-        setData(body);
-        setError("");
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") {
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
         setError("Error al cargar alertas");

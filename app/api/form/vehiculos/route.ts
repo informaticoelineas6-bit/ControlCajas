@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { TABLAS, Vehiculo } from "@/lib/constants";
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching vehiculos:", error);
     return NextResponse.json(
-      { error: "Error al obtener vehículos" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

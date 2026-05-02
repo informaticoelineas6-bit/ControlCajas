@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { usuarioCookie } from "@/lib/auth";
 
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Auth error:", error);
     return NextResponse.json(
-      { error: "Error en el servidor" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

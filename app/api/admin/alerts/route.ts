@@ -7,7 +7,7 @@ import {
 } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
-import { sameCajas } from "@/lib/utils";
+import { getErrorMessage, sameCajas } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import { getComparacionEntrega, getComparacionRecogida } from "@/lib/compares";
 
@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error obteniendo alertas:", error);
     return NextResponse.json(
-      { error: "Error al obtener alertas" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

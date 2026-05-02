@@ -240,12 +240,12 @@ export default function CierreDiario({
         } else {
           setError(dataCierre.error || "Error al cargar cierre");
         }
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") {
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
         setError("Error al cargar datos");
-        console.error(err);
+        console.error(error);
       } finally {
         if (!signal.aborted) {
           setLoading(false);
@@ -322,9 +322,9 @@ export default function CierreDiario({
         const errData = await response.json();
         setError(errData.error || "Error al crear cierre");
       }
-    } catch (err) {
+    } catch (error) {
       setError("Error al crear cierre");
-      console.error(err);
+      console.error(error);
     } finally {
       setLoading(false);
     }

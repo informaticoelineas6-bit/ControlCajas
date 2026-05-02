@@ -18,43 +18,65 @@ export default function AuditCentro() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchDatos = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    setDatos(undefined);
+  const fetchDatos = useCallback(
+    async (signal: AbortSignal) => {
+      setLoading(true);
+      setError("");
+      setDatos(undefined);
 
-    try {
-      const res = await fetch(`/api/audit/centro?nombre=${nombre}`);
-      const data = await res.json();
+      try {
+        const res = await fetch(`/api/audit/centro?nombre=${nombre}`, {
+          signal,
+        });
+        const data = await res.json();
 
-      if (res.ok) {
-        setDatos(data);
-      } else {
-        setError(data.error || "Error al cargar la auditoría");
+        if (res.ok) {
+          setDatos(data);
+        } else {
+          setError(data.error || "Error al cargar la auditoría");
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setError("Error de conexión con el servidor");
+      } finally {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
       }
-    } catch {
-      setError("Error en el servidor");
-    } finally {
-      setLoading(false);
-    }
-  }, [nombre]);
+    },
+    [nombre],
+  );
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     if (centros.some((item) => item.nombre === nombre)) {
-      fetchDatos();
+      fetchDatos(abortController.signal);
     }
+
+    return () => {
+      abortController.abort();
+    };
   }, [centros, fetchDatos, nombre]);
 
   useEffect(() => {
-    fetchCentros();
+    const abortController = new AbortController();
+
+    fetchCentros(abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
-  const fetchCentros = async () => {
+  const fetchCentros = async (signal: AbortSignal) => {
     setLoading(true);
     setError("");
 
     try {
-      const res = await fetch("/api/form/centros");
+      const res = await fetch("/api/form/centros", { signal });
       const data = await res.json();
 
       if (res.ok) {
@@ -62,10 +84,15 @@ export default function AuditCentro() {
       } else {
         setError(data.error || "Error al cargar centros");
       }
-    } catch {
-      setError("Error en el servidor");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+      setError("Error de conexión con el servidor");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 

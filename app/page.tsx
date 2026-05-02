@@ -40,9 +40,9 @@ export default function Home() {
       } else {
         setError(data.error || "Error en el login");
       }
-    } catch (err) {
-      setError("Error en el servidor");
-      console.error(err);
+    } catch (error) {
+      setError("Error de conexión con el servidor");
+      console.error(error);
     } finally {
       setLoading(false);
     }

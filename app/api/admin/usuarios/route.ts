@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, LogAudit } from "@/lib/server";
 import { TABLAS, Usuario } from "@/lib/constants";
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching usuarios:", error);
     return NextResponse.json(
-      { error: "Error al obtener usuarios" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -83,7 +84,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("Error actualizando usuario:", error);
     return NextResponse.json(
-      { error: "Error al actualizar usuario" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -140,7 +141,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error eliminando usuario:", error);
     return NextResponse.json(
-      { error: "Error al eliminar usuario" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

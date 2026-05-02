@@ -77,7 +77,7 @@ export default function TablaAlmacenes({
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
-      setError("Error en el servidor");
+      setError("Error de conexión con el servidor");
     } finally {
       if (!signal.aborted) {
         setLoading(false);
@@ -245,7 +245,7 @@ export default function TablaAlmacenes({
         setError(data.error || "Error en la operación");
       }
     } catch {
-      setError("Error en el servidor");
+      setError("Error de conexión con el servidor");
     } finally {
       setSubmitting(false);
     }
@@ -281,7 +281,7 @@ export default function TablaAlmacenes({
         setError(data.error || "Error habilitando almacén");
       }
     } catch {
-      setError("Error en el servidor");
+      setError("Error de conexión con el servidor");
     } finally {
       setSubmitting(false);
     }
@@ -303,7 +303,7 @@ export default function TablaAlmacenes({
         setError(data.error || "Error al eliminar almacén");
       }
     } catch {
-      setError("Error en el servidor");
+      setError("Error de conexión con el servidor");
     } finally {
       setDeletingId(null);
     }

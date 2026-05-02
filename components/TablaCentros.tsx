@@ -76,7 +76,7 @@ export default function TablaCentros({
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
-      setError("Error en el servidor");
+      setError("Error de conexión con el servidor");
     } finally {
       if (!signal.aborted) {
         setLoading(false);
@@ -243,7 +243,7 @@ export default function TablaCentros({
         setError(data.error || "Error en la operación");
       }
     } catch {
-      setError("Error en el servidor");
+      setError("Error de conexión con el servidor");
     } finally {
       setSubmitting(false);
     }
@@ -283,7 +283,7 @@ export default function TablaCentros({
         setError(data.error || "Error habilitando centro");
       }
     } catch {
-      setError("Error en el servidor");
+      setError("Error de conexión con el servidor");
     } finally {
       setSubmitting(false);
     }
@@ -305,7 +305,7 @@ export default function TablaCentros({
         setError(data.error || "Error al eliminar centro");
       }
     } catch {
-      setError("Error en el servidor");
+      setError("Error de conexión con el servidor");
     } finally {
       setDeletingId(null);
     }

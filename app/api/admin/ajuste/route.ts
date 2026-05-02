@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
@@ -52,7 +53,10 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error ajustando objeto:", error);
-    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
+    return NextResponse.json(
+      { error: getErrorMessage(error) },
+      { status: 500 },
+    );
   }
 }
 

@@ -410,7 +410,7 @@ export default function FormularioEvento({
         setMensaje(data.error || "Error al procesar");
       }
     } catch (error) {
-      setMensaje("Error en el servidor");
+      setMensaje("Error de conexión con el servidor");
       console.error(error);
     } finally {
       setLoading(false);

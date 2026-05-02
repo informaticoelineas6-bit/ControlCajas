@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, LogAudit } from "@/lib/server";
 import { Provincia, TABLAS } from "@/lib/constants";
@@ -19,9 +20,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching almacenes:", error);
+    console.error("Error fetching provincias:", error);
     return NextResponse.json(
-      { error: "Error al obtener almacenes" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error insertando provincia:", error);
     return NextResponse.json(
-      { error: "Error al crear provincia" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -135,7 +136,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("Error actualizando provincia:", error);
     return NextResponse.json(
-      { error: "Error al actualizar provincia" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -185,7 +186,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error eliminando provincia:", error);
     return NextResponse.json(
-      { error: "Error al eliminar provincia" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

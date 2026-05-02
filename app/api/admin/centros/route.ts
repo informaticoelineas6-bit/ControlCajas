@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, LogAudit } from "@/lib/server";
 import { CentroDistribucion, TABLAS } from "@/lib/constants";
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching centros:", error);
     return NextResponse.json(
-      { error: "Error al obtener centros" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error insertando centro:", error);
     return NextResponse.json(
-      { error: "Error al crear centro" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -143,7 +144,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("Error actualizando centro:", error);
     return NextResponse.json(
-      { error: "Error al actualizar centro" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -193,7 +194,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error eliminando centro:", error);
     return NextResponse.json(
-      { error: "Error al eliminar centro" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

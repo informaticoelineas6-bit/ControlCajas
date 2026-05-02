@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { TABLAS, Usuario } from "@/lib/constants";
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching usuarios:", error);
     return NextResponse.json(
-      { error: "Error al obtener usuarios" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

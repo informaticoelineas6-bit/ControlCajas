@@ -47,7 +47,7 @@ export default function TablaRecogida({
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
-        setError("Error en el servidor");
+        setError("Error de conexión con el servidor");
       } finally {
         if (!signal.aborted) {
           setLoading(false);

@@ -162,3 +162,38 @@ export type DeudaAct<Centro> = Centro & {
 
 //   return { ...centro, deuda_activa };
 // }
+
+export function getErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) return "Error en el servidor";
+
+  const errorPatterns = [
+    // Errores de conexión (Timeout, Network, etc.)
+    {
+      pattern: /fetch|network|timeout|timed out/i,
+      message: "Error conectando a la base de datos",
+    },
+    // Permisos / Row Level Security
+    {
+      pattern: /permission denied|row-level security/i,
+      message: "Acceso no autorizado a la base de datos",
+    },
+    // Rate limiting
+    {
+      pattern: /too many requests|rate limit/i,
+      message: "Demasiadas solicitudes",
+    },
+    // Autenticación de API / JWT
+    {
+      pattern: /invalid api key|no api key|jwt|signature verification/i,
+      message: "Error de autenticación a la base de datos",
+    },
+  ];
+
+  for (const { pattern, message } of errorPatterns) {
+    if (pattern.test(error.message)) {
+      return message;
+    }
+  }
+
+  return "Error en el servidor";
+}

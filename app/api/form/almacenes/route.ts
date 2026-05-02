@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { Almacen, TABLAS } from "@/lib/constants";
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching almacenes:", error);
     return NextResponse.json(
-      { error: "Error al obtener almacenes" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

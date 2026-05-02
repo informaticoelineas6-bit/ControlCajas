@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { comparePassword } from "@/lib/auth";
 import { TABLAS, Usuario } from "@/lib/constants";
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
-      { error: "Error en el servidor" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

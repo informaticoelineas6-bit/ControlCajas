@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import {
@@ -199,7 +200,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating event:", error);
     return NextResponse.json(
-      { error: "Error al crear el evento" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

@@ -18,43 +18,65 @@ export default function AuditAlmacen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchDatos = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    setDatos(undefined);
+  const fetchDatos = useCallback(
+    async (signal: AbortSignal) => {
+      setLoading(true);
+      setError("");
+      setDatos(undefined);
 
-    try {
-      const res = await fetch(`/api/audit/almacen?nombre=${nombre}`);
-      const data = await res.json();
+      try {
+        const res = await fetch(`/api/audit/almacen?nombre=${nombre}`, {
+          signal,
+        });
+        const data = await res.json();
 
-      if (res.ok) {
-        setDatos(data);
-      } else {
-        setError(data.error || "Error al cargar la auditoría");
+        if (res.ok) {
+          setDatos(data);
+        } else {
+          setError(data.error || "Error al cargar la auditoría");
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setError("Error de conexión con el servidor");
+      } finally {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
       }
-    } catch {
-      setError("Error en el servidor");
-    } finally {
-      setLoading(false);
-    }
-  }, [nombre]);
+    },
+    [nombre],
+  );
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     if (almacenes.some((item) => item.nombre === nombre)) {
-      fetchDatos();
+      fetchDatos(abortController.signal);
     }
+
+    return () => {
+      abortController.abort();
+    };
   }, [almacenes, fetchDatos, nombre]);
 
   useEffect(() => {
-    fetchAlmacenes();
+    const abortController = new AbortController();
+
+    fetchAlmacenes(abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
-  const fetchAlmacenes = async () => {
+  const fetchAlmacenes = async (signal: AbortSignal) => {
     setLoading(true);
     setError("");
 
     try {
-      const res = await fetch("/api/form/almacenes");
+      const res = await fetch("/api/form/almacenes", { signal });
       const data = await res.json();
 
       if (res.ok) {
@@ -62,10 +84,15 @@ export default function AuditAlmacen() {
       } else {
         setError(data.error || "Error al cargar almacenes");
       }
-    } catch {
-      setError("Error en el servidor");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+      setError("Error de conexión con el servidor");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 

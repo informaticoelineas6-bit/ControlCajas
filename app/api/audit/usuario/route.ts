@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import {
   AuditLog,
   Cajas,
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error al obtener datos:", error);
     return NextResponse.json(
-      { error: "Error al obtener datos" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

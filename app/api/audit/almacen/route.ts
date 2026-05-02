@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { Almacen, Cajas, CajasRoturas } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error al obtener datos:", error);
     return NextResponse.json(
-      { error: "Error al obtener datos" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

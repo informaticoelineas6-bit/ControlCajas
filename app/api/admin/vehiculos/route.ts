@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, LogAudit } from "@/lib/server";
 import { TABLAS, Vehiculo } from "@/lib/constants";
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching vehiculos:", error);
     return NextResponse.json(
-      { error: "Error al obtener vehículos" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error insertando vehiculo:", error);
     return NextResponse.json(
-      { error: "Error al crear vehículo" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -121,7 +122,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error("Error actualizando vehiculo:", error);
     return NextResponse.json(
-      { error: "Error al actualizar vehículo" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -171,7 +172,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error eliminando vehiculo:", error);
     return NextResponse.json(
-      { error: "Error al eliminar vehículo" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

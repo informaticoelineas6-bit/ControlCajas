@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
@@ -53,8 +54,11 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Evento actualizado exitosamente.",
     });
-  } catch (err) {
-    console.error("Error adjusting event:", err);
-    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
+  } catch (error) {
+    console.error("Error adjusting event:", error);
+    return NextResponse.json(
+      { error: getErrorMessage(error) },
+      { status: 500 },
+    );
   }
 }

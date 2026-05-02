@@ -1,7 +1,16 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 export async function POST() {
-  const response = NextResponse.json({ success: true });
-  response.cookies.delete("usuario");
-  return response;
+  try {
+    const response = NextResponse.json({ success: true });
+    response.cookies.delete("usuario");
+    return response;
+  } catch (error) {
+    console.error("Logout error:", error);
+    return NextResponse.json(
+      { error: getErrorMessage(error) },
+      { status: 500 },
+    );
+  }
 }

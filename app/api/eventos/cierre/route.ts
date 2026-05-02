@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { Cierre, TABLAS } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error al obtener cierre:", error);
     return NextResponse.json(
-      { error: "Error al obtener cierre" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error al crear cierre:", error);
     return NextResponse.json(
-      { error: "Error al crear cierre" },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

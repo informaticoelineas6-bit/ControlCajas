@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
@@ -48,8 +49,11 @@ export async function GET(request: NextRequest) {
       ...data[0],
       tipo: tipo_evento,
     });
-  } catch (err) {
-    console.error("Error fetching event detail:", err);
-    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
+  } catch (error) {
+    console.error("Error fetching event detail:", error);
+    return NextResponse.json(
+      { error: getErrorMessage(error) },
+      { status: 500 },
+    );
   }
 }
