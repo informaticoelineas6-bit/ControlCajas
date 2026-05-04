@@ -30,9 +30,11 @@ import { SupabaseClient } from "@supabase/supabase-js";
 async function buildMessage(
   db: SupabaseClient,
   tipoEvento: TIPOS_EVENTO,
+  cajasActuales: Cajas,
   fecha: string,
   centro_distribucion: string,
-  cajasActuales: Cajas,
+  almacen?: string,
+  provincia?: string,
 ): Promise<string | null> {
   const referenceByTipo: Record<string, { collection: string; label: string }> =
     {
@@ -46,18 +48,26 @@ async function buildMessage(
     return null;
   }
 
-  const referenciaEventos = await db
+  let query = db
     .from(ref.collection)
     .select("*")
     .eq("fecha", fecha)
     .eq("centro_distribucion", centro_distribucion);
 
-  if (referenciaEventos.error)
-    return `Evento creado exitosamente.\nNo se pudo comprobar la cantidad de cajas (${referenciaEventos.error.message}).`;
+  if (almacen) {
+    query = query.eq("almacen", almacen);
+  }
 
-  const eventos = referenciaEventos.data
-    .map(applyAjuste)
-    .filter(hasCajas) as AjusteStr<Evento>[];
+  if (provincia) {
+    query = query.eq("provincia", provincia);
+  }
+
+  const { data, error } = await query;
+
+  if (error)
+    return `Evento creado exitosamente.\nNo se pudo comprobar la cantidad de cajas (${error.message}).`;
+
+  const eventos = data.map(applyAjuste).filter(hasCajas) as AjusteStr<Evento>[];
 
   const referenciaTotal: Cajas = eventos.reduce(
     (acc: Cajas, item: AjusteStr<Evento>) => sumCajas(acc, item.cajas) as Cajas,
@@ -185,9 +195,11 @@ export async function POST(request: NextRequest) {
         // TODO: Optimizar mediante una función SQL.
         db,
         tipo_evento,
-        documentoBase.fecha,
-        centro_distribucion,
         cajas,
+        documentoBase.fecha,
+        centro_real,
+        almacen,
+        provincia,
       )) ?? "Evento creado exitosamente.";
 
     return NextResponse.json(
