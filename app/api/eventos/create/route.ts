@@ -54,12 +54,14 @@ async function buildMessage(
     .eq("fecha", fecha)
     .eq("centro_distribucion", centro_distribucion);
 
-  if (almacen) {
-    query = query.eq("almacen", almacen);
-  }
+  if (tipoEvento !== "Devolucion") {
+    if (almacen) {
+      query = query.eq("almacen", almacen);
+    }
 
-  if (provincia) {
-    query = query.eq("provincia", provincia);
+    if (provincia) {
+      query = query.eq("provincia", provincia);
+    }
   }
 
   const { data, error } = await query;
