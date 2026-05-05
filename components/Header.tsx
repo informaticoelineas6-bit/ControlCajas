@@ -19,7 +19,7 @@ export default function Header({ usuario }: Readonly<HeaderProps>) {
     setLoading(true);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/");
+      router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
     } finally {

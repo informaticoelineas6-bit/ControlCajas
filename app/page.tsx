@@ -1,142 +1,328 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import Header from "@/components/Header";
+import TablaExpedicionEntrega from "@/components/TablaExpedicionEntrega";
+import TablaRecogidaDevolucion from "@/components/TablaRecogidaDevolucion";
+import TablaExpedicion from "@/components/TablaExpedicion";
+import TablaEntrega from "@/components/TablaEntrega";
+import TablaDevolucion from "@/components/TablaDevolucion";
+import TablaRecogida from "@/components/TablaRecogida";
+import TablaVehiculos from "@/components/TablaVehiculos";
+import TablaAlmacenes from "@/components/TablaAlmacenes";
+import TablaCentros from "@/components/TablaCentros";
+import {
+  Evento,
+  ItemComparacionEntrega,
+  ItemComparacionRecogida,
+  ROLES,
+  TIPOS_EVENTO,
+  Usuario,
+} from "@/lib/constants";
+import CierreDiario from "@/components/CierreDiario";
+import TablaUsuarios from "@/components/TablaUsuarios";
+import TablaInformacion from "@/components/TablaInformacion";
+import TablaTraspaso from "@/components/TablaTraspaso";
+import FormularioEvento, { AjusteProp } from "@/components/FormularioEvento";
+import TablaProvincias from "@/components/TablaProvincias";
+import AuditAlmacen from "@/components/AuditAlmacen";
+import AuditCentro from "@/components/AuditCentro";
+import AuditUsuario from "@/components/AuditUsuario";
+import { X } from "lucide-react";
+import Sidebar from "@/components/Sidebar";
 
-export default function Home() {
+export type TabNames =
+  | "new_eventos"
+  | "mis_eventos"
+  | "cierre_eventos"
+  | "dashboard"
+  | "administracion"
+  | "auditoria";
+
+const pageAccess: Record<ROLES, TabNames[]> = {
+  almacenero: ["new_eventos", "mis_eventos"],
+  auditor: ["dashboard", "auditoria", "cierre_eventos", "administracion"],
+  chofer: ["new_eventos", "mis_eventos"],
+  expedidor: ["new_eventos", "mis_eventos"],
+  informatico: [
+    "administracion",
+    "cierre_eventos",
+    "mis_eventos",
+    "dashboard",
+    "auditoria",
+  ],
+};
+
+export default function Dashboard() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    nombre: "",
-    contrasena: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [activeTab, setActiveTab] = useState<TabNames>("mis_eventos");
+  const [loading, setLoading] = useState(true);
+  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const [adjustingEvent, setAdjustingEvent] =
+    useState<AjusteProp<Evento> | null>(null);
+  const [expedicionEntregaData, setExpedicionEntregaData] = useState<
+    ItemComparacionEntrega[]
+  >([]);
+  const [recogidaDevolucionData, setRecogidaDevolucionData] = useState<
+    ItemComparacionRecogida[]
+  >([]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  useEffect(() => {
+    const fetchUsuario = async () => {
+      try {
+        const response = await fetch("/api/auth/me");
+        const data = await response.json();
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+        if (response.ok && data.usuario) {
+          setUsuario(data.usuario);
+        } else {
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        router.push("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchUsuario();
+  }, [router]);
+
+  useEffect(() => {
+    if (usuario) {
+      setActiveTab(pageAccess[usuario.rol][0]);
+    } else return;
+  }, [usuario]);
+
+  if (loading || !usuario) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-100">
+        <p className="text-slate-600">Cargando...</p>
+      </div>
+    );
+  }
+
+  const handleAjustarClick = async (
+    tipoEvento: TIPOS_EVENTO,
+    eventoId: number,
+  ) => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        router.push("/dashboard");
-      } else {
-        setError(data.error || "Error en el login");
+      const res = await fetch(
+        `/api/eventos/get?tipo=${tipoEvento}&id=${eventoId}`,
+      );
+      const evento: AjusteProp<Evento> = await res.json();
+      if (res.ok) {
+        setAdjustingEvent({ ...evento, tipo_evento: tipoEvento });
       }
     } catch (error) {
-      setError("Error de conexión con el servidor");
-      console.error(error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching event:", error);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-400 to-sky-800 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
-        <h1 className="text-4xl font-bold text-center text-gray-800 mb-2">
-          ControlCajas
-        </h1>
-        <p className="text-center text-gray-600 mb-8">
-          Sistema de gestión de cajas
-        </p>
+  const contentCardClass =
+    "rounded-[32px] border border-white/60 bg-white/78 p-5 shadow-[0_30px_80px_-46px_rgba(15,23,42,0.5)] backdrop-blur sm:p-8";
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="nombre"
-              className="block text-gray-700 font-semibold mb-2"
-            >
-              Nombre
-            </label>
-            <input
-              id="nombre"
-              type="text"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleInputChange}
-              required
-              placeholder="Ingresa tu nombre de usuario"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-gray-700 font-semibold mb-2"
-            >
-              Contraseña
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                name="contrasena"
-                value={formData.contrasena}
-                onChange={handleInputChange}
-                required
-                placeholder="Ingresa tu contraseña"
-                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
-          >
-            {!loading && <LogIn size={16} />}
-            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            ¿No tienes cuenta?{" "}
-            <Link
-              href="/registro"
-              className="text-blue-600 hover:text-blue-700 font-semibold"
-            >
-              Regístrate aquí
-            </Link>
-          </p>
+  const pageRender: Record<TabNames, React.JSX.Element> = {
+    administracion: (
+      <div className={contentCardClass}>
+        <div className="space-y-8">
+          <TablaVehiculos usuario={usuario} />
+          <TablaAlmacenes usuario={usuario} />
+          <TablaCentros usuario={usuario} />
+          <TablaProvincias usuario={usuario} />
+          <TablaUsuarios usuario={usuario} />
         </div>
       </div>
-    </div>
+    ),
+    cierre_eventos: (
+      <div className={contentCardClass}>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Comparación
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold text-slate-900">
+              Cuadre entre eventos
+            </h3>
+          </div>
+          <div>
+            <label
+              htmlFor="fechaRenderCruce"
+              className="mb-2 block text-sm font-medium text-slate-600"
+            >
+              Fecha
+            </label>
+            <input
+              id="fechaRenderCruce"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+        <div className="space-y-8">
+          <TablaExpedicionEntrega
+            fecha={fecha}
+            datos={expedicionEntregaData}
+            setDatos={setExpedicionEntregaData}
+          />
+          <TablaRecogidaDevolucion
+            fecha={fecha}
+            datos={recogidaDevolucionData}
+            setDatos={setRecogidaDevolucionData}
+          />
+          <CierreDiario
+            fecha={fecha}
+            usuario={usuario}
+            expedicionEntregaData={expedicionEntregaData}
+            recogidaDevolucionData={recogidaDevolucionData}
+          />
+        </div>
+      </div>
+    ),
+    dashboard: <TablaInformacion />,
+    mis_eventos: (
+      <div className={contentCardClass}>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Filtro principal
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold text-slate-900">
+              Movimientos por fecha
+            </h3>
+          </div>
+          <div>
+            <label
+              htmlFor="fechaRender"
+              className="mb-2 block text-sm font-medium text-slate-600"
+            >
+              Fecha
+            </label>
+            <input
+              id="fechaRender"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+        <div className="space-y-8">
+          {(usuario?.rol === "informatico" || usuario?.rol === "expedidor") && (
+            <TablaExpedicion
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+          {(usuario?.rol === "informatico" || usuario?.rol === "chofer") && (
+            <TablaTraspaso
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+          {(usuario?.rol === "informatico" || usuario?.rol === "chofer") && (
+            <TablaEntrega
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+          {(usuario?.rol === "informatico" || usuario?.rol === "chofer") && (
+            <TablaRecogida
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+          {(usuario?.rol === "informatico" ||
+            usuario?.rol === "almacenero") && (
+            <TablaDevolucion
+              usuario={usuario}
+              fecha={fecha}
+              onAjustar={handleAjustarClick}
+            />
+          )}
+        </div>
+      </div>
+    ),
+    new_eventos: (
+      <div className={contentCardClass}>
+        <FormularioEvento usuario={usuario} />
+      </div>
+    ),
+    auditoria: (
+      <div className={contentCardClass}>
+        <div className="space-y-8">
+          <AuditAlmacen />
+          <AuditCentro />
+          <AuditUsuario />
+        </div>
+      </div>
+    ),
+  };
+
+  return (
+    <>
+      <div className="flex min-h-screen flex-col xl:h-screen">
+        <Header usuario={usuario} />
+        <div className="flex flex-1 flex-col gap-6 bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.18),_transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_48%,_#f8fafc_100%)] px-4 py-6 sm:px-6 lg:px-8 lg:py-10 xl:flex-row xl:overflow-hidden">
+          <Sidebar
+            usuario={usuario}
+            activeTab={activeTab}
+            pageAccess={pageAccess}
+            onTabChange={setActiveTab}
+          />
+
+          <main className="min-w-0 flex-1 space-y-6 overflow-x-auto xl:overflow-y-auto">
+            {pageAccess[usuario.rol].includes(activeTab) ? (
+              pageRender[activeTab]
+            ) : (
+              <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
+                No tiene acceso a esta información.
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+
+      {adjustingEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[30px] border border-white/60 bg-white shadow-[0_30px_80px_-38px_rgba(15,23,42,0.7)]">
+            <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
+                  Ajuste manual
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+                  Ajustar evento
+                </h2>
+              </div>
+              <button
+                onClick={() => setAdjustingEvent(null)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+              >
+                <X size={14} />
+                Cerrar
+              </button>
+            </div>
+            <div className="p-6">
+              <FormularioEvento
+                usuario={usuario}
+                initialData={adjustingEvent}
+                isAdjustment={true}
+                onAdjustmentSaved={() => setAdjustingEvent(null)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

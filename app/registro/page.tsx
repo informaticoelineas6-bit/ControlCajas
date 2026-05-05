@@ -68,7 +68,7 @@ export default function Registro() {
   };
 
   const redirectLogin = () => {
-    router.push("/");
+    router.push("/login");
   };
 
   return (

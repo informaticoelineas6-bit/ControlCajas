@@ -1,6 +1,6 @@
 "use client";
 
-import { TabNames } from "@/app/dashboard/page";
+import { TabNames } from "@/app/page";
 import { ROLES, Usuario } from "@/lib/constants";
 import { prettyName } from "@/lib/utils";
 import {
