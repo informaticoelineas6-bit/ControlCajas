@@ -1,6 +1,7 @@
 "use client";
 
-import { TabNames } from "@/app/page";
+import { usePathname, useRouter } from "next/navigation";
+import { TabNames } from "@/app/(app)/tabs";
 import { ROLES, Usuario } from "@/lib/constants";
 import { prettyName } from "@/lib/utils";
 import {
@@ -71,17 +72,15 @@ const pageTabs: Record<TabNames, DashboardTab> = {
   },
 };
 
-export default function Sidebar({
-  usuario,
-  activeTab,
-  pageAccess,
-  onTabChange,
-}: {
+interface SidebarProps {
   usuario: Usuario;
-  activeTab: TabNames;
   pageAccess: Record<ROLES, TabNames[]>;
-  onTabChange: (tab: TabNames) => void;
-}) {
+}
+
+export default function Sidebar({ usuario, pageAccess }: SidebarProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
   return (
     <aside className="rounded-[34px] bg-[linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(15,23,42,0.92))] p-5 text-white shadow-[0_30px_90px_-42px_rgba(15,23,42,0.95)] xl:w-[260px] xl:shrink-0 xl:overflow-y-auto">
       <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
@@ -96,12 +95,12 @@ export default function Sidebar({
 
       <nav className="mt-6 space-y-2">
         {pageAccess[usuario.rol].map((item) => {
-          const isActive = activeTab === item;
+          const isActive = pathname === `/${item}`;
           return (
             <button
               key={item}
               title={pageTabs[item].helper}
-              onClick={() => onTabChange(item)}
+              onClick={() => router.push(`/${item}`)}
               className={`w-full rounded-[22px] px-4 py-4 text-left transition ${
                 isActive
                   ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_18px_35px_-18px_rgba(59,130,246,0.9)]"
