@@ -29,31 +29,16 @@ import TablaProvincias from "@/components/TablaProvincias";
 import AuditAlmacen from "@/components/AuditAlmacen";
 import AuditCentro from "@/components/AuditCentro";
 import AuditUsuario from "@/components/AuditUsuario";
-import { prettyName } from "@/lib/utils";
-import {
-  Plus,
-  List,
-  Lock,
-  LayoutDashboard,
-  Settings,
-  Shield,
-  X,
-} from "lucide-react";
+import { X } from "lucide-react";
+import Sidebar from "@/components/Sidebar";
 
-type TabNames =
+export type TabNames =
   | "new_eventos"
   | "mis_eventos"
   | "cierre_eventos"
   | "dashboard"
   | "administracion"
   | "auditoria";
-
-interface DashboardTab {
-  key: TabNames;
-  title: string;
-  helper: string;
-  description: string;
-}
 
 const pageAccess: Record<ROLES, TabNames[]> = {
   almacenero: ["new_eventos", "mis_eventos"],
@@ -137,62 +122,8 @@ export default function Dashboard() {
     }
   };
 
-  const pageTabs: Record<TabNames, DashboardTab> = {
-    administracion: {
-      key: "administracion",
-      title: "Administración",
-      description: "Administración de datos",
-      helper:
-        "Crea y actualiza vehículos, almacenes, centros y autoriza la entrada de nuevos usuarios",
-    },
-    cierre_eventos: {
-      key: "cierre_eventos",
-      title: "Cierre diario",
-      description: "Validación y cierre diario",
-      helper:
-        "Valida los movimientos del día y dale un cierre a los eventos para actualizar las deudas de forma acorde",
-    },
-    dashboard: {
-      key: "dashboard",
-      title: "Tablero general",
-      description: "Información general",
-      helper:
-        "Indicadores de deuda, stock, roturas y otras estadísticas para seguimiento central",
-    },
-    mis_eventos: {
-      key: "mis_eventos",
-      description: "Movimientos diarios e históricos",
-      helper:
-        "Permite visualizar un listado de los eventos de cada día y su ajuste de ser necesario",
-      title: "Listado de eventos",
-    },
-    new_eventos: {
-      key: "new_eventos",
-      description: "Registro de nuevos eventos",
-      helper:
-        "Registra expediciones, traspasos, entregas, recogidas o devoluciones de cajas",
-      title: "Nuevos eventos",
-    },
-    auditoria: {
-      key: "auditoria",
-      description: "Análisis histórico",
-      helper:
-        "Permite analizar los aportes y el comportamiento de un almacén, centro o usuario a lo largo del tiempo",
-      title: "Auditoría",
-    },
-  };
-
   const contentCardClass =
     "rounded-[32px] border border-white/60 bg-white/78 p-5 shadow-[0_30px_80px_-46px_rgba(15,23,42,0.5)] backdrop-blur sm:p-8";
-
-  const tabIcons: Record<TabNames, React.ReactNode> = {
-    new_eventos: <Plus size={18} />,
-    mis_eventos: <List size={18} />,
-    cierre_eventos: <Lock size={18} />,
-    dashboard: <LayoutDashboard size={18} />,
-    administracion: <Settings size={18} />,
-    auditoria: <Shield size={18} />,
-  };
 
   const pageRender: Record<TabNames, React.JSX.Element> = {
     administracion: (
@@ -342,51 +273,12 @@ export default function Dashboard() {
       <div className="flex min-h-screen flex-col xl:h-screen">
         <Header usuario={usuario} />
         <div className="flex flex-1 flex-col gap-6 bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.18),_transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_48%,_#f8fafc_100%)] px-4 py-6 sm:px-6 lg:px-8 lg:py-10 xl:flex-row xl:overflow-hidden">
-          <aside className="rounded-[34px] bg-[linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(15,23,42,0.92))] p-5 text-white shadow-[0_30px_90px_-42px_rgba(15,23,42,0.95)] xl:w-[260px] xl:shrink-0 xl:overflow-y-auto">
-            <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.34em] text-sky-200/80">
-                Control de cajas
-              </p>
-              <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-                {prettyName(usuario.nombre)}
-              </h2>
-              <p className="mt-2 text-sm capitalize text-slate-300">
-                {usuario.rol}
-              </p>
-            </div>
-
-            <nav className="mt-6 space-y-2">
-              {pageAccess[usuario.rol].map((item) => {
-                const isActive = activeTab === item;
-                return (
-                  <button
-                    key={item}
-                    title={pageTabs[item].helper}
-                    onClick={() => setActiveTab(item)}
-                    className={`w-full rounded-[22px] px-4 py-4 text-left transition ${
-                      isActive
-                        ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_18px_35px_-18px_rgba(59,130,246,0.9)]"
-                        : "bg-white/0 text-slate-200 hover:bg-white/8 hover:text-white"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {tabIcons[item]}
-                      <p className="text-base font-semibold">
-                        {pageTabs[item].title}
-                      </p>
-                    </div>
-                    <p
-                      className={`mt-1 text-sm ${
-                        isActive ? "text-blue-50" : "text-slate-400"
-                      }`}
-                    >
-                      {pageTabs[item].description}
-                    </p>
-                  </button>
-                );
-              })}
-            </nav>
-          </aside>
+          <Sidebar
+            usuario={usuario}
+            activeTab={activeTab}
+            pageAccess={pageAccess}
+            onTabChange={setActiveTab}
+          />
 
           <main className="min-w-0 flex-1 space-y-6 overflow-x-auto xl:overflow-y-auto">
             {pageAccess[usuario.rol].includes(activeTab) ? (
