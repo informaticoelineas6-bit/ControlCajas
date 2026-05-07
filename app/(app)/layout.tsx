@@ -51,11 +51,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <UserProvider usuario={usuario}>
-      <div className="flex min-h-screen flex-col xl:h-screen">
+      <div className="flex min-h-screen flex-col md:h-screen">
         <Header usuario={usuario} />
-        <div className="flex flex-1 flex-col gap-6 bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.18),_transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_48%,_#f8fafc_100%)] px-4 py-6 sm:px-6 lg:px-8 lg:py-10 xl:flex-row xl:overflow-hidden">
+        <div className="flex flex-1 flex-col gap-3 bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.18),_transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_48%,_#f8fafc_100%)] px-2 py-4 sm:px-4 lg:px-8 lg:py-10 md:flex-row md:overflow-hidden">
           <Sidebar usuario={usuario} pageAccess={pageAccess} />
-          <main className="min-w-0 flex-1 space-y-6 overflow-x-auto xl:overflow-y-auto">
+          <main className="min-w-0 flex-1 space-y-6 overflow-x-auto md:overflow-y-auto">
             {children}
           </main>
         </div>

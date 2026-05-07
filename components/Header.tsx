@@ -28,11 +28,11 @@ export default function Header({ usuario }: Readonly<HeaderProps>) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[linear-gradient(120deg,_rgba(15,23,42,0.98),_rgba(30,41,59,0.94),_rgba(14,165,233,0.88))] text-white shadow-[0_20px_60px_-35px_rgba(15,23,42,0.95)] backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+    <header className="md:sticky top-0 z-40 border-b border-white/10 bg-[linear-gradient(120deg,_rgba(15,23,42,0.98),_rgba(30,41,59,0.94),_rgba(14,165,233,0.88))] text-white shadow-[0_20px_60px_-35px_rgba(15,23,42,0.95)] backdrop-blur">
+      <div className="mx-auto flex max-w-7xl sm:gap-4 px-4 py-4 sm:px-6 items-center lg:justify-between lg:px-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 shadow-inner ring-1 ring-white/10">
-            <span className="text-lg font-bold select-none">CC</span>
+          <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 shadow-inner ring-1 ring-white/10">
+            <span className="text-2xl font-bold select-none">CC</span>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.34em] text-sky-100/70">
@@ -45,7 +45,7 @@ export default function Header({ usuario }: Readonly<HeaderProps>) {
         </div>
 
         {usuario && (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
             {usuario.rol === "informatico" && <Alerta usuario={usuario} />}
             <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/10">
               <User size={16} className="shrink-0 text-sky-100/70" />

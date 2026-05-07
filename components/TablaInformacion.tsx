@@ -237,7 +237,7 @@ export default function TablaInformacion() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 grid-cols-2 xl:grid-cols-3">
             <MetricCard
               eyebrow="Deuda total CDs"
               value={totalCajas(data.deudaTotal)}

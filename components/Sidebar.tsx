@@ -80,50 +80,79 @@ interface SidebarProps {
 export default function Sidebar({ usuario, pageAccess }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const tabs = pageAccess[usuario.rol];
 
   return (
-    <aside className="rounded-[34px] bg-[linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(15,23,42,0.92))] p-5 text-white shadow-[0_30px_90px_-42px_rgba(15,23,42,0.95)] xl:w-[260px] xl:shrink-0 xl:overflow-y-auto">
-      <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.34em] text-sky-200/80">
-          Control de cajas
-        </p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-          {prettyName(usuario.nombre)}
-        </h2>
-        <p className="mt-2 text-sm capitalize text-slate-300">{usuario.rol}</p>
-      </div>
+    <>
+      {/* Desktop: full vertical sidebar — hidden below md */}
+      <aside className="md:flex md:flex-col rounded-[34px] bg-[linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(15,23,42,0.92))] p-2 lg:p-5 text-white shadow-[0_30px_90px_-42px_rgba(15,23,42,0.95)] md:w-[260px] md:shrink-0 md:overflow-y-auto">
+        <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.34em] text-sky-200/80">
+            Control de cajas
+          </p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+            {prettyName(usuario.nombre)}
+          </h2>
+          <p className="mt-2 text-sm capitalize text-slate-300">
+            {usuario.rol}
+          </p>
+        </div>
 
-      <nav className="mt-6 space-y-2">
-        {pageAccess[usuario.rol].map((item) => {
-          const isActive = pathname === `/${item}`;
-          return (
-            <button
-              key={item}
-              title={pageTabs[item].helper}
-              onClick={() => router.push(`/${item}`)}
-              className={`w-full rounded-[22px] px-4 py-4 text-left transition ${
-                isActive
-                  ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_18px_35px_-18px_rgba(59,130,246,0.9)]"
-                  : "bg-white/0 text-slate-200 hover:bg-white/8 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {pageTabs[item].icons}
-                <p className="text-base font-semibold">
-                  {pageTabs[item].title}
-                </p>
-              </div>
-              <p
-                className={`mt-1 text-sm ${
-                  isActive ? "text-blue-50" : "text-slate-400"
+        <nav className="mt-6 space-y-2">
+          {tabs.map((item) => {
+            const isActive = pathname === `/${item}`;
+            return (
+              <button
+                key={item}
+                title={pageTabs[item].helper}
+                onClick={() => router.push(`/${item}`)}
+                className={`w-full rounded-[22px] px-4 py-4 text-left transition ${
+                  isActive
+                    ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_18px_35px_-18px_rgba(59,130,246,0.9)]"
+                    : "bg-white/0 text-slate-200 hover:bg-white/8 hover:text-white"
                 }`}
               >
-                {pageTabs[item].description}
-              </p>
-            </button>
-          );
-        })}
-      </nav>
-    </aside>
+                <div className="flex items-center gap-2">
+                  {pageTabs[item].icons}
+                  <p className="text-base font-semibold">
+                    {pageTabs[item].title}
+                  </p>
+                </div>
+                <p
+                  className={`mt-1 text-sm ${
+                    isActive ? "text-blue-50" : "text-slate-400"
+                  }`}
+                >
+                  {pageTabs[item].description}
+                </p>
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Mobile: compact sticky icon navbar — hidden at md+ */}
+      <div className="sticky top-0 z-30 p-2 md:hidden bg-slate-50/90 backdrop-blur-sm">
+        <nav className="flex items-center justify-around rounded-[28px] bg-[linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(15,23,42,0.92))] py-2 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.5)]">
+          {tabs.map((item) => {
+            const isActive = pathname === `/${item}`;
+            return (
+              <button
+                key={item}
+                title={pageTabs[item].title}
+                onClick={() => router.push(`/${item}`)}
+                className={`rounded-[18px] p-3 transition-all ${
+                  isActive
+                    ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_8px_20px_-8px_rgba(59,130,246,0.8)]"
+                    : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {pageTabs[item].icons}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+    </>
   );
 }
