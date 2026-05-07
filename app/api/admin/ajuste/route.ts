@@ -3,10 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
 import {
-  AjusteObjetos,
   getObjectTable,
+  ObjetoAjusteForm,
   OBJETOS_ARRAY,
-  TIPOS_OBJETOS,
 } from "@/lib/constants";
 
 export async function PUT(request: NextRequest) {
@@ -58,9 +57,4 @@ export async function PUT(request: NextRequest) {
       { status: 500 },
     );
   }
-}
-
-export interface ObjetoAjusteForm {
-  tipo_objeto?: TIPOS_OBJETOS;
-  ajuste: AjusteObjetos;
 }

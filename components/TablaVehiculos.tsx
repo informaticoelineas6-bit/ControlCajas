@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Truck, Pencil, Plus, X, ToggleLeft, ToggleRight } from "lucide-react";
 import { TABLAS, Usuario, Vehiculo } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
-import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
+import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { prettyName } from "@/lib/utils";
 
@@ -339,7 +339,11 @@ export default function TablaVehiculos({
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
-                            {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
+                            {item.ajuste?.habilitado ? (
+                              <ToggleLeft size={12} />
+                            ) : (
+                              <ToggleRight size={12} />
+                            )}
                             {item.ajuste?.habilitado
                               ? "Deshabilitar"
                               : "Habilitar"}
@@ -393,7 +397,9 @@ export default function TablaVehiculos({
                       <div>
                         <p className="text-slate-500">Editado por</p>
                         <p className="font-medium text-slate-700">
-                          {item.ajuste?.nombre ? prettyName(item.ajuste?.nombre) : "-"}
+                          {item.ajuste?.nombre
+                            ? prettyName(item.ajuste?.nombre)
+                            : "-"}
                         </p>
                       </div>
                     </div>
@@ -475,7 +481,9 @@ export default function TablaVehiculos({
                         }
                         className="px-5 py-4 text-slate-500 hover:bg-slate-300"
                       >
-                        {item.ajuste?.nombre ? prettyName(item.ajuste?.nombre) : "-"}
+                        {item.ajuste?.nombre
+                          ? prettyName(item.ajuste?.nombre)
+                          : "-"}
                       </td>
                       {usuario.rol === "informatico" && (
                         <td className="px-5 py-4 text-center">
@@ -498,7 +506,11 @@ export default function TablaVehiculos({
                                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               }`}
                             >
-                              {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
+                              {item.ajuste?.habilitado ? (
+                                <ToggleLeft size={12} />
+                              ) : (
+                                <ToggleRight size={12} />
+                              )}
                               {item.ajuste?.habilitado
                                 ? "Deshabilitar"
                                 : "Habilitar"}

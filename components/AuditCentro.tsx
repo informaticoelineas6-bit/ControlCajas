@@ -8,7 +8,7 @@ import {
   COLORES_TAPAS,
   TAPAS_ARRAY,
 } from "@/lib/constants";
-import type { CentroAudit } from "@/app/api/audit/centro/route";
+import type { CentroAudit } from "@/lib/constants";
 import { formatDate, prettyName } from "@/lib/utils";
 
 export default function AuditCentro() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { EventoResponse } from "@/app/api/form/eventos/route";
+import { EventoResponse } from "@/lib/constants";
 import {
   CAJAS_ARRAY,
   CajasHabilitadas,
@@ -10,6 +10,8 @@ import {
   Tapas,
   COLORES_CAJAS,
   CajasRoturas,
+  EventoCreateForm,
+  EventoAjusteForm,
 } from "@/lib/constants";
 import { totalCajas } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
@@ -23,26 +25,6 @@ import {
   PackageMinus,
   Undo2,
 } from "lucide-react";
-
-// Verificar la tardanza de el warning/message.
-
-export interface EventoCreateForm extends CajasRoturas {
-  almacen?: string;
-  centro_distribucion?: string;
-  chapa?: string;
-  cajas: Cajas;
-}
-
-export interface EventoAjusteForm {
-  tipo_evento?: TIPOS_EVENTO;
-  ajuste:
-    | {
-        cajas: Cajas;
-      }
-    | ({
-        cajas: Cajas;
-      } & CajasRoturas);
-}
 
 export type AjusteProp<Orig> = Orig & {
   id: string;

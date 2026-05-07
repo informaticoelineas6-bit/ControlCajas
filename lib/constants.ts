@@ -241,3 +241,110 @@ export interface AuditLog {
   snapshot: object;
   changes?: { prev: object; new: object };
 }
+
+export interface ObjetoAjusteForm {
+  tipo_objeto?: TIPOS_OBJETOS;
+  ajuste: AjusteObjetos;
+}
+
+export interface AlertaResponse {
+  total: number;
+  usuarios_recientes: number;
+  inconsistencias_expedicion_entrega: EventAlerta[];
+  inconsistencias_devolucion_recogida: EventAlerta[];
+  cierre_pendiente: boolean;
+}
+
+export interface EventAlerta {
+  tipo: string;
+  nombre: string;
+  detalle: string;
+}
+
+export interface DashboardData {
+  dashboardData: DashboardRow[];
+  movementToday: number;
+  enviosHoy: number;
+  recogidasHoy: number;
+  rotasHoy: number;
+  deudaTotal: Cajas;
+  stockTotal: Cajas;
+  roturaTotal: number;
+  roturaActual: number;
+}
+
+export interface DashboardRow {
+  nombre: string;
+  deuda: Cajas;
+  deuda_activa: Cajas;
+  rotacion: number;
+  fechaRot: string | null;
+  estadoRot:
+    | "Pendiente"
+    | "Retrasada"
+    | "En tiempo"
+    | "Cumplida"
+    | "Desconocido";
+  roturasTotal: number;
+}
+
+export interface AlmacenAudit {
+  almacen: Almacen;
+  cierres: ({
+    fecha: string;
+    ajuste_stock: Cajas;
+  } & CajasRoturas)[];
+}
+
+export interface CentroAudit {
+  centro: CentroDistribucion;
+  cierres: ({
+    fecha: string;
+    ajuste_deuda: Cajas;
+  } & CajasRoturas)[];
+}
+
+export interface UsuarioAudit {
+  usuario: Created<Usuario>;
+  eventos?: EventoAudit[];
+  logs?: AuditLog[];
+}
+
+export interface EventoAudit {
+  fecha: string;
+  centro_distribucion: string;
+  tipo_evento: TIPOS_EVENTO;
+  cajas: Cajas;
+  roturas?: {
+    cajas: Cajas;
+    tapas: Tapas;
+  };
+}
+
+export interface EventoCreateForm extends CajasRoturas {
+  almacen?: string;
+  centro_distribucion?: string;
+  chapa?: string;
+  cajas: Cajas;
+}
+
+export interface EventoAjusteForm {
+  tipo_evento?: TIPOS_EVENTO;
+  ajuste:
+    | {
+        cajas: Cajas;
+      }
+    | ({
+        cajas: Cajas;
+      } & CajasRoturas);
+}
+
+export type EventoResponse = Record<
+  string,
+  {
+    almacenes: string[];
+    vehiculos: Vehiculo[];
+    habilitado: CajasHabilitadas;
+    deuda_activa?: Cajas;
+  }
+>;

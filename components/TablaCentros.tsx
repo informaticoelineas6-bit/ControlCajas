@@ -12,7 +12,7 @@ import {
   Usuario,
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
-import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
+import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { prettyName } from "@/lib/utils";
 
@@ -513,7 +513,11 @@ export default function TablaCentros({
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
-                            {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
+                            {item.ajuste?.habilitado ? (
+                              <ToggleLeft size={12} />
+                            ) : (
+                              <ToggleRight size={12} />
+                            )}
                             {item.ajuste?.habilitado
                               ? "Deshabilitar"
                               : "Habilitar"}
@@ -684,7 +688,11 @@ export default function TablaCentros({
                                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               }`}
                             >
-                              {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
+                              {item.ajuste?.habilitado ? (
+                                <ToggleLeft size={12} />
+                              ) : (
+                                <ToggleRight size={12} />
+                              )}
                               {item.ajuste?.habilitado
                                 ? "Deshabilitar"
                                 : "Habilitar"}

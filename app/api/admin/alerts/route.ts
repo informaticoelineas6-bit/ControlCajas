@@ -1,5 +1,7 @@
 import {
+  AlertaResponse,
   Cajas,
+  EventAlerta,
   ItemComparacionEntrega,
   ItemComparacionRecogida,
   TABLAS,
@@ -173,18 +175,4 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
-}
-
-export interface EventAlerta {
-  tipo: string;
-  nombre: string;
-  detalle: string;
-}
-
-export interface AlertaResponse {
-  total: number;
-  usuarios_recientes: number;
-  inconsistencias_expedicion_entrega: EventAlerta[];
-  inconsistencias_devolucion_recogida: EventAlerta[];
-  cierre_pendiente: boolean;
 }

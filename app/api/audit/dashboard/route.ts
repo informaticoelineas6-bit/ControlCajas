@@ -11,6 +11,8 @@ import {
   Expedicion,
   Recogida,
   Traspaso,
+  DashboardData,
+  DashboardRow,
 } from "@/lib/constants";
 import {
   AjusteStr,
@@ -234,31 +236,4 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
-}
-
-export interface DashboardData {
-  dashboardData: DashboardRow[];
-  movementToday: number;
-  enviosHoy: number;
-  recogidasHoy: number;
-  rotasHoy: number;
-  deudaTotal: Cajas;
-  stockTotal: Cajas;
-  roturaTotal: number;
-  roturaActual: number;
-}
-
-export interface DashboardRow {
-  nombre: string;
-  deuda: Cajas;
-  deuda_activa: Cajas;
-  rotacion: number;
-  fechaRot: string | null;
-  estadoRot:
-    | "Pendiente"
-    | "Retrasada"
-    | "En tiempo"
-    | "Cumplida"
-    | "Desconocido";
-  roturasTotal: number;
 }

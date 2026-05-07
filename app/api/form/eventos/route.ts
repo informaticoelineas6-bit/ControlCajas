@@ -6,6 +6,7 @@ import {
   Cajas,
   CajasHabilitadas,
   CentroDistribucion,
+  EventoResponse,
   EVENTOS_ARRAY,
   Expedicion,
   Provincia,
@@ -331,16 +332,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-export type EventoResponse = Record<
-  string,
-  {
-    almacenes: string[];
-    vehiculos: Vehiculo[];
-    habilitado: CajasHabilitadas;
-    deuda_activa?: Cajas;
-  }
->;
 
 export type EventoBuilder = Record<
   string,

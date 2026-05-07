@@ -8,7 +8,7 @@ import {
   COLORES_TAPAS,
   TAPAS_ARRAY,
 } from "@/lib/constants";
-import type { AlmacenAudit } from "@/app/api/audit/almacen/route";
+import type { AlmacenAudit } from "@/lib/constants";
 import { formatDate, prettyName } from "@/lib/utils";
 
 export default function AuditAlmacen() {
@@ -228,7 +228,9 @@ export default function AuditAlmacen() {
                   <div>
                     <p className="text-slate-500">Editado por</p>
                     <p className="font-medium text-slate-700">
-                      {datos.almacen.ajuste?.nombre ? prettyName(datos.almacen.ajuste?.nombre) : "-"}
+                      {datos.almacen.ajuste?.nombre
+                        ? prettyName(datos.almacen.ajuste?.nombre)
+                        : "-"}
                     </p>
                   </div>
                 </div>

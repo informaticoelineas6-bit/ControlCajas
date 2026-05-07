@@ -2,7 +2,7 @@ import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
-import { EventoAjusteForm } from "@/components/FormularioEvento";
+import { EventoAjusteForm } from "@/lib/constants";
 import { EVENTOS_ARRAY, getEventTable } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {

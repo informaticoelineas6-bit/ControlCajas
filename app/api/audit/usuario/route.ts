@@ -1,7 +1,5 @@
 import { getErrorMessage } from "@/lib/utils";
 import {
-  AuditLog,
-  Cajas,
   Created,
   Devolucion,
   Entrega,
@@ -10,10 +8,9 @@ import {
   Expedicion,
   Recogida,
   TABLAS,
-  Tapas,
-  TIPOS_EVENTO,
   Traspaso,
   Usuario,
+  UsuarioAudit,
 } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/server";
 import { AjusteStr, applyAjuste, hasCajas } from "@/lib/utils";
@@ -171,21 +168,4 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
-}
-
-export interface UsuarioAudit {
-  usuario: Created<Usuario>;
-  eventos?: EventoAudit[];
-  logs?: AuditLog[];
-}
-
-export interface EventoAudit {
-  fecha: string;
-  centro_distribucion: string;
-  tipo_evento: TIPOS_EVENTO;
-  cajas: Cajas;
-  roturas?: {
-    cajas: Cajas;
-    tapas: Tapas;
-  };
 }

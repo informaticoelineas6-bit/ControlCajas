@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardData } from "@/app/api/audit/dashboard/route";
+import { DashboardData } from "@/lib/constants";
 import { formatDate, totalCajas } from "@/lib/utils";
 import { frontendClient } from "@/lib/client";
 import { TABLAS } from "@/lib/constants";

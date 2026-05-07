@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, Users, Pencil, X, ToggleLeft, ToggleRight } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Users,
+  Pencil,
+  X,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import { ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
-import { ObjetoAjusteForm } from "@/app/api/admin/ajuste/route";
+import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { prettyName } from "@/lib/utils";
 
@@ -405,7 +413,11 @@ export default function TablaUsuarios({
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
-                            {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
+                            {item.ajuste?.habilitado ? (
+                              <ToggleLeft size={12} />
+                            ) : (
+                              <ToggleRight size={12} />
+                            )}
                             {item.ajuste?.habilitado
                               ? "Deshabilitar"
                               : "Habilitar"}
@@ -539,7 +551,11 @@ export default function TablaUsuarios({
                                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               }`}
                             >
-                              {item.ajuste?.habilitado ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
+                              {item.ajuste?.habilitado ? (
+                                <ToggleLeft size={12} />
+                              ) : (
+                                <ToggleRight size={12} />
+                              )}
                               {item.ajuste?.habilitado
                                 ? "Deshabilitar"
                                 : "Habilitar"}

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertaResponse } from "@/app/api/admin/alerts/route";
+import { AlertaResponse } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { TABLAS, Usuario } from "@/lib/constants";
 import { useCallback, useEffect, useState } from "react";

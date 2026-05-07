@@ -24,7 +24,7 @@ import {
   sumCajas,
 } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
-import { EventoCreateForm } from "@/components/FormularioEvento";
+import { EventoCreateForm } from "@/lib/constants";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 async function buildMessage(

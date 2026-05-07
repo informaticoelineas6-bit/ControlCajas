@@ -1,8 +1,8 @@
 import { getErrorMessage } from "@/lib/utils";
-import { Cajas, CajasRoturas, CentroDistribucion } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
+import { CentroAudit } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw new Error(error.message);
 
-    return NextResponse.json(data);
+    return NextResponse.json(data as CentroAudit);
   } catch (error) {
     console.error("Error al obtener datos:", error);
     return NextResponse.json(
@@ -39,12 +39,4 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
-}
-
-export interface CentroAudit {
-  centro: CentroDistribucion;
-  cierres: ({
-    fecha: string;
-    ajuste_deuda: Cajas;
-  } & CajasRoturas)[];
 }
