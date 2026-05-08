@@ -167,7 +167,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
         className={`inline-flex items-center gap-2 rounded-full border ${rowTone()} px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100`}
       >
         <Bell size={15} />
-        <span>{error || "Notificaciones"}</span>
+        <span className="hidden sm:inline">{error || "Notificaciones"}</span>
         <span
           className={`rounded-full px-2 py-0.5 text-xs font-semibold ${rowToneLower()}`}
         >
@@ -176,7 +176,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
       </button>
 
       {open && !error && (
-        <div className="absolute right-0 z-40 mt-2 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+        <div className="absolute right-0 z-40 mt-2 w-64 lg:w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-900">Alertas</p>
             <p className="text-xs text-slate-500">Fecha: {fecha}</p>
