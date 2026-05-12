@@ -9,8 +9,8 @@ export default function NavFooter({ usuario, pageAccess }: NavProps) {
   const tabs = pageAccess[usuario.rol];
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-30 p-2 md:hidden bg-slate-50/90 backdrop-blur-sm">
-      <nav className="flex items-center justify-around rounded-[28px] bg-[linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(15,23,42,0.92))] py-2 shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.5)]">
+    <div className="fixed bottom-0 inset-x-0 z-30 md:hidden bg-[linear-gradient(120deg,_rgba(15,23,42,0.98),_rgba(30,41,59,0.94),_rgba(14,165,233,0.88))] border-b border-white/10 text-white shadow-[0_20px_60px_-35px_rgba(15,23,42,0.95)] py-2 shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.5)] backdrop-blur-sm">
+      <nav className="flex items-center justify-around">
         {tabs.map((item) => {
           const isActive = pathname === `/${item}`;
           return (

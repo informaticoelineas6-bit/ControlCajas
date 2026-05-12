@@ -340,7 +340,7 @@ export default function TablaAlmacenes({
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-3 md:p-6">
         {error && (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
             {error}
@@ -350,7 +350,7 @@ export default function TablaAlmacenes({
         {usuario.rol === "informatico" && (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}>
-              <div className="col-span-3">
+              <div className={"md:col-span-" + CAJAS_ARRAY.length}>
                 <label
                   htmlFor="nombre"
                   className="mb-2 block text-sm font-medium text-slate-600"
@@ -481,7 +481,7 @@ export default function TablaAlmacenes({
                         </h4>
                       </div>
                       {usuario.rol === "informatico" && (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap flex-col justify-end gap-2">
                           <button
                             onClick={() => startEdit(item)}
                             className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
@@ -535,7 +535,7 @@ export default function TablaAlmacenes({
                       <div>
                         <p className="text-slate-500">Estado</p>
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
                             item.ajuste?.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"

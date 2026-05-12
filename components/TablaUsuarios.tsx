@@ -229,7 +229,7 @@ export default function TablaUsuarios({
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-3 md:p-6">
         {error && (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
             {error}
@@ -395,7 +395,7 @@ export default function TablaUsuarios({
                         </h4>
                       </div>
                       {usuario.rol === "informatico" && (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap flex-col justify-end gap-2">
                           <button
                             onClick={() => startEdit(item)}
                             className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
@@ -438,14 +438,14 @@ export default function TablaUsuarios({
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       <div>
                         <p className="text-slate-500">Rol</p>
-                        <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
+                        <span className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
                           {item.rol ?? "-"}
                         </span>
                       </div>
                       <div>
                         <p className="text-slate-500">Estado</p>
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
                             item.ajuste?.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"
