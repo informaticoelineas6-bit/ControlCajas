@@ -1,13 +1,8 @@
 "use client";
 
 import { frontendClient } from "@/lib/client";
-import {
-  CAJAS_ARRAY,
-  COLORES_CAJAS,
-  ItemComparacionEntrega,
-  TABLAS,
-} from "@/lib/constants";
-import { totalCajas } from "@/lib/utils";
+import { ItemComparacionEntrega, TABLAS } from "@/lib/constants";
+import { formatCajas, totalCajas } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaExpedicionEntrega({
@@ -178,15 +173,13 @@ export default function TablaExpedicionEntrega({
                         <div>
                           <p className="text-slate-500">Cajas</p>
                           <p className="font-medium text-slate-700">
-                            {CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                              const capitalize =
-                                color.charAt(0).toUpperCase() + color.slice(1);
-                              return `${capitalize}: ${item.expedicion?.cajas[color] ?? 0}`;
-                            }).join("\n") +
-                              "\nTotal: " +
-                              (item.expedicion?.cajas
-                                ? totalCajas(item.expedicion.cajas)
-                                : 0)}
+                            {item.expedicion
+                              ? formatCajas(item.expedicion?.cajas) +
+                                "\nTotal: " +
+                                (item.expedicion?.cajas
+                                  ? totalCajas(item.expedicion.cajas)
+                                  : 0)
+                              : "No hay información"}
                           </p>
                         </div>
                       </div>
@@ -211,15 +204,13 @@ export default function TablaExpedicionEntrega({
                         <div>
                           <p className="text-slate-500">Cajas</p>
                           <p className="font-medium text-slate-700">
-                            {CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                              const capitalize =
-                                color.charAt(0).toUpperCase() + color.slice(1);
-                              return `${capitalize}: ${item.traspaso?.cajas[color] ?? 0}`;
-                            }).join("\n") +
-                              "\nTotal: " +
-                              (item.traspaso?.cajas
-                                ? totalCajas(item.traspaso.cajas)
-                                : 0)}
+                            {item.traspaso
+                              ? formatCajas(item.traspaso?.cajas) +
+                                "\nTotal: " +
+                                (item.traspaso?.cajas
+                                  ? totalCajas(item.traspaso.cajas)
+                                  : 0)
+                              : "No hay información"}
                           </p>
                         </div>
                       </div>
@@ -244,15 +235,13 @@ export default function TablaExpedicionEntrega({
                         <div>
                           <p className="text-slate-500">Cajas</p>
                           <p className="font-medium text-slate-700">
-                            {CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                              const capitalize =
-                                color.charAt(0).toUpperCase() + color.slice(1);
-                              return `${capitalize}: ${item.entrega?.cajas[color] ?? 0}`;
-                            }).join("\n") +
-                              "\nTotal: " +
-                              (item.entrega?.cajas
-                                ? totalCajas(item.entrega.cajas)
-                                : 0)}
+                            {item.entrega
+                              ? formatCajas(item.entrega?.cajas) +
+                                "\nTotal: " +
+                                (item.entrega?.cajas
+                                  ? totalCajas(item.entrega.cajas)
+                                  : 0)
+                              : "No hay información"}
                           </p>
                         </div>
                       </div>
@@ -342,7 +331,7 @@ export default function TablaExpedicionEntrega({
                         key={item.centro_distribucion}
                         className={`border-t border-slate-100 transition ${
                           item.alerta
-                            ? "from-rose-200 to-rose-50 hover:bg-rose-100/70"
+                            ? "bg-gradient-to-r from-rose-100 to-rose-200 hover:bg-rose-100/70"
                             : "hover:bg-slate-100"
                         }`}
                       >
@@ -362,11 +351,11 @@ export default function TablaExpedicionEntrega({
                           {item.expedicion?.ajuste ?? "-"}
                         </td>
                         <td
-                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                            const capitalize =
-                              color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.expedicion?.cajas[color] ?? 0}`;
-                          }).join("\n")}
+                          title={
+                            item.expedicion
+                              ? formatCajas(item.expedicion?.cajas)
+                              : "No hay información"
+                          }
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {item.expedicion?.cajas
@@ -380,11 +369,11 @@ export default function TablaExpedicionEntrega({
                           {item.traspaso?.ajuste ?? "-"}
                         </td>
                         <td
-                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                            const capitalize =
-                              color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.traspaso?.cajas[color] ?? 0}`;
-                          }).join("\n")}
+                          title={
+                            item.traspaso
+                              ? formatCajas(item.traspaso?.cajas)
+                              : "No hay información"
+                          }
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {item.traspaso?.cajas
@@ -398,11 +387,11 @@ export default function TablaExpedicionEntrega({
                           {item.entrega?.ajuste ?? "-"}
                         </td>
                         <td
-                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                            const capitalize =
-                              color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.entrega?.cajas[color] ?? 0}`;
-                          }).join("\n")}
+                          title={
+                            item.entrega
+                              ? formatCajas(item.entrega?.cajas)
+                              : "No hay información"
+                          }
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {item.entrega?.cajas

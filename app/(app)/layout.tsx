@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Usuario } from "@/lib/constants";
 import { pageAccess } from "./tabs";
 import { UserProvider } from "@/app/(app)/user-context";
+import { FechaProvider } from "@/app/(app)/fecha-context";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import NavFooter from "@/components/NavFooter";
@@ -57,7 +58,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex flex-1 flex-col gap-6 bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.18),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.18),_transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_48%,_#f8fafc_100%)] p-2 md:p-4 lg:p-6 xl:p-8 md:flex-row md:overflow-hidden">
           <Sidebar usuario={usuario} pageAccess={pageAccess} />
           <main className="min-w-0 flex-1 space-y-6 overflow-x-auto pb-20 md:pb-0 md:overflow-y-auto">
-            {children}
+            <FechaProvider>{children}</FechaProvider>
           </main>
         </div>
         <NavFooter usuario={usuario} pageAccess={pageAccess} />

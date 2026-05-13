@@ -10,7 +10,6 @@ import {
   EVENTOS_ARRAY,
   Expedicion,
   Provincia,
-  Recogida,
   TABLAS,
   TIPOS_EVENTO,
   Traspaso,
@@ -272,12 +271,12 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(respuesta);
       }
       case "Devolucion": {
-        const [eventosRaw, centrosRaw, almacenesRaw] = await Promise.all([
-          db
+        const [/*eventosRaw,*/ centrosRaw, almacenesRaw] = await Promise.all([
+          /*db
             .from(TABLAS.RECOGIDA)
             .select<string, Recogida>("centro_distribucion")
             .eq("fecha", fecha)
-            .order("centro_distribucion"),
+            .order("centro_distribucion"),*/
           db.rpc<string, DeudaAct<CentroDistribucion>>(
             "all_centros_deuda_activa",
           ),
@@ -289,26 +288,26 @@ export async function GET(request: NextRequest) {
         ]);
 
         const error =
-          eventosRaw.error || centrosRaw.error || almacenesRaw.error;
+          /*eventosRaw.error ||*/ centrosRaw.error || almacenesRaw.error;
 
         if (error) throw new Error(error.message);
 
-        if (eventosRaw.data.length === 0) {
+        /*if (eventosRaw.data.length === 0) {
           return NextResponse.json(
             { error: "No se han registrado recogidas" },
             { status: 400 },
           );
-        }
-        for (const element of eventosRaw.data) {
-          const centro: DeudaAct<CentroDistribucion> = centrosRaw.data.find(
+        }*/
+        for (const element of centrosRaw.data) {
+          /*const centro: DeudaAct<CentroDistribucion> = centrosRaw.data.find(
             (cent: DeudaAct<CentroDistribucion>) =>
               cent.nombre === element.centro_distribucion,
-          );
-          resultado[element.centro_distribucion] = {
+          );*/
+          resultado[element.nombre] = {
             almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
-            habilitado: centro.habilitado,
+            habilitado: element.habilitado,
             vehiculos: new Set([]),
-            deuda_activa: centro.deuda_activa,
+            deuda_activa: element.deuda_activa,
           };
         }
         for (const key in resultado) {

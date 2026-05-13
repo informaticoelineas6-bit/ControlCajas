@@ -141,22 +141,25 @@ export async function GET(request: NextRequest) {
           centro.roturas.cajas.verdes,
       };
 
-      if (!iteration.fechaRot) continue;
+      if (iteration.fechaRot) {
+        const fechaRotDate = parseDate(iteration.fechaRot);
+        const fechaLimite = new Date(fechaRotDate);
+        fechaLimite.setUTCDate(
+          fechaLimite.getUTCDate() + (centro.rotacion ?? 0),
+        );
 
-      const fechaRotDate = parseDate(iteration.fechaRot);
-      const fechaLimite = new Date(fechaRotDate);
-      fechaLimite.setUTCDate(fechaLimite.getUTCDate() + (centro.rotacion ?? 0));
-
-      if (fechaLimite < today) {
-        iteration.estadoRot = "Retrasada";
-      } else if (totalCajas(centro.deuda_activa) <= 0) {
-        iteration.estadoRot = "Cumplida";
-      } else if (fechaLimite > today) {
-        iteration.estadoRot = "Pendiente";
+        if (fechaLimite < today) {
+          iteration.estadoRot = "Retrasada";
+        } else if (totalCajas(centro.deuda_activa) <= 0) {
+          iteration.estadoRot = "Cumplida";
+        } else if (fechaLimite > today) {
+          iteration.estadoRot = "Pendiente";
+        } else {
+          iteration.estadoRot = "En tiempo";
+        }
       } else {
-        iteration.estadoRot = "En tiempo";
+        iteration.estadoRot = "Desconocido";
       }
-
       dashboardData.push(iteration);
     }
 

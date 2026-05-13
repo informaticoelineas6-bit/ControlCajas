@@ -12,12 +12,14 @@ import {
   Traspaso,
 } from "./constants";
 import {
+  AjusteStr,
   appendNombre,
   applyAjuste,
   hasCajas,
   prettyName,
   sameCajas,
   sumCajas,
+  sumTapas,
 } from "./utils";
 
 export async function getComparacionEntrega(
@@ -38,15 +40,21 @@ export async function getComparacionEntrega(
   if (error !== null) throw new Error(error.message);
 
   const expediciones = expedicionesRaw.data
-    ? (expedicionesRaw.data.map(applyAjuste).filter(hasCajas) as Expedicion[])
+    ? (expedicionesRaw.data
+        .map(applyAjuste)
+        .filter(hasCajas) as AjusteStr<Expedicion>[])
     : [];
 
   const traspasos = traspasosRaw.data
-    ? (traspasosRaw.data.map(applyAjuste).filter(hasCajas) as Traspaso[])
+    ? (traspasosRaw.data
+        .map(applyAjuste)
+        .filter(hasCajas) as AjusteStr<Traspaso>[])
     : [];
 
   const entregas = entregasRaw.data
-    ? (entregasRaw.data.map(applyAjuste).filter(hasCajas) as Entrega[])
+    ? (entregasRaw.data
+        .map(applyAjuste)
+        .filter(hasCajas) as AjusteStr<Entrega>[])
     : [];
 
   // Agrupar por centro de distribución
@@ -55,18 +63,18 @@ export async function getComparacionEntrega(
   for (const current of expediciones) {
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+      current.ajuste = prettyName(current.ajuste) as string;
     }
-    const centro = current.centro_distribucion;
+    const centro = current.provincia ?? current.centro_distribucion;
     if (centrosExp.has(centro)) {
       const item = centrosExp.get(centro) as ItemComparacionEntrega;
       item.almacen = appendNombre(item.almacen, current.almacen);
       item.expedicion = {
         nombre: appendNombre(item.expedicion?.nombre, current.nombre),
         cajas: item.expedicion?.cajas
-          ? (sumCajas(item.expedicion?.cajas, current.cajas) as Cajas)
+          ? sumCajas(item.expedicion?.cajas, current.cajas)
           : current.cajas,
-        ajuste: appendNombre(item.expedicion?.ajuste, current.ajuste?.nombre),
+        ajuste: appendNombre(item.expedicion?.ajuste, current.ajuste),
       };
     } else {
       centrosExp.set(centro, {
@@ -76,7 +84,7 @@ export async function getComparacionEntrega(
         expedicion: {
           nombre: current.nombre,
           cajas: current.cajas,
-          ajuste: current.ajuste?.nombre,
+          ajuste: current.ajuste,
         },
         traspaso: null,
         entrega: null,
@@ -88,9 +96,9 @@ export async function getComparacionEntrega(
   for (const current of traspasos) {
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+      current.ajuste = prettyName(current.ajuste) as string;
     }
-    const centro = current.centro_distribucion;
+    const centro = current.provincia ?? current.centro_distribucion;
     if (centrosExp.has(centro)) {
       const item = centrosExp.get(centro) as ItemComparacionEntrega;
       item.almacen = appendNombre(item.almacen, current.almacen);
@@ -98,9 +106,9 @@ export async function getComparacionEntrega(
       item.traspaso = {
         nombre: appendNombre(item.traspaso?.nombre, current.nombre),
         cajas: item.traspaso?.cajas
-          ? (sumCajas(item.traspaso?.cajas, current.cajas) as Cajas)
+          ? sumCajas(item.traspaso?.cajas, current.cajas)
           : current.cajas,
-        ajuste: appendNombre(item.traspaso?.ajuste, current.ajuste?.nombre),
+        ajuste: appendNombre(item.traspaso?.ajuste, current.ajuste),
       };
     } else {
       centrosExp.set(centro, {
@@ -111,7 +119,7 @@ export async function getComparacionEntrega(
         traspaso: {
           nombre: current.nombre,
           cajas: current.cajas,
-          ajuste: current.ajuste?.nombre,
+          ajuste: current.ajuste,
         },
         entrega: null,
         alerta: false,
@@ -122,18 +130,18 @@ export async function getComparacionEntrega(
   for (const current of entregas) {
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+      current.ajuste = prettyName(current.ajuste) as string;
     }
-    const centro = current.centro_distribucion;
+    const centro = current.provincia ?? current.centro_distribucion;
     if (centrosExp.has(centro)) {
       const item = centrosExp.get(centro) as ItemComparacionEntrega;
       item.chapa = appendNombre(item.chapa, current.chapa);
       item.entrega = {
         nombre: appendNombre(item.entrega?.nombre, current.nombre),
         cajas: item.entrega?.cajas
-          ? (sumCajas(item.entrega?.cajas, current.cajas) as Cajas)
+          ? sumCajas(item.entrega?.cajas, current.cajas)
           : current.cajas,
-        ajuste: appendNombre(item.entrega?.ajuste, current.ajuste?.nombre),
+        ajuste: appendNombre(item.entrega?.ajuste, current.ajuste),
       };
     } else {
       centrosExp.set(centro, {
@@ -145,7 +153,7 @@ export async function getComparacionEntrega(
         entrega: {
           nombre: current.nombre,
           cajas: current.cajas,
-          ajuste: current.ajuste?.nombre,
+          ajuste: current.ajuste,
         },
         alerta: true,
       });
@@ -171,11 +179,15 @@ export async function getComparacionRecogida(
   if (error !== null) throw new Error(error.message);
 
   const recogidas = recogidasRaw.data
-    ? (recogidasRaw.data.map(applyAjuste).filter(hasCajas) as Recogida[])
+    ? (recogidasRaw.data
+        .map(applyAjuste)
+        .filter(hasCajas) as AjusteStr<Recogida>[])
     : [];
 
   const devoluciones = devolucionesRaw.data
-    ? (devolucionesRaw.data.map(applyAjuste).filter(hasCajas) as Devolucion[])
+    ? (devolucionesRaw.data
+        .map(applyAjuste)
+        .filter(hasCajas) as AjusteStr<Devolucion>[])
     : [];
 
   // Agrupar por centro de distribución
@@ -185,7 +197,7 @@ export async function getComparacionRecogida(
     const centro = current.centro_distribucion;
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+      current.ajuste = prettyName(current.ajuste) as string;
     }
     if (centrosRec.has(centro)) {
       const item = centrosRec.get(centro) as ItemComparacionRecogida;
@@ -193,20 +205,14 @@ export async function getComparacionRecogida(
       item.recogida = {
         nombre: appendNombre(item.recogida?.nombre, current.nombre),
         cajas: item.recogida?.cajas
-          ? (sumCajas(item.recogida?.cajas, current.cajas) as Cajas)
+          ? sumCajas(item.recogida?.cajas, current.cajas)
           : current.cajas,
         roturas: {
           cajas: item.recogida?.roturas.cajas
-            ? (sumCajas(
-                item.recogida.roturas.cajas,
-                current.roturas.cajas,
-              ) as Cajas)
+            ? sumCajas(item.recogida.roturas.cajas, current.roturas.cajas)
             : current.roturas.cajas,
           tapas: item.recogida?.roturas.tapas
-            ? (sumCajas(
-                item.recogida.roturas.tapas,
-                current.roturas.tapas,
-              ) as Tapas)
+            ? sumTapas(item.recogida.roturas.tapas, current.roturas.tapas)
             : current.roturas.tapas,
         },
       };
@@ -219,7 +225,7 @@ export async function getComparacionRecogida(
           nombre: current.nombre,
           cajas: current.cajas,
           roturas: current.roturas,
-          ajuste: current.ajuste?.nombre,
+          ajuste: current.ajuste,
         },
         devolucion: null,
         alerta: false,
@@ -232,7 +238,7 @@ export async function getComparacionRecogida(
     const centro = current.centro_distribucion;
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste.nombre = prettyName(current.ajuste.nombre) as string;
+      current.ajuste = prettyName(current.ajuste) as string;
     }
     if (centrosRec.has(centro)) {
       const item = centrosRec.get(centro) as ItemComparacionRecogida;
@@ -240,23 +246,17 @@ export async function getComparacionRecogida(
       item.devolucion = {
         nombre: appendNombre(item.devolucion?.nombre, current.nombre),
         cajas: item.devolucion?.cajas
-          ? (sumCajas(item.devolucion?.cajas, current.cajas) as Cajas)
+          ? sumCajas(item.devolucion?.cajas, current.cajas)
           : current.cajas,
         roturas: {
           cajas: item.devolucion?.roturas.cajas
-            ? (sumCajas(
-                item.devolucion.roturas.cajas,
-                current.roturas.cajas,
-              ) as Cajas)
+            ? sumCajas(item.devolucion.roturas.cajas, current.roturas.cajas)
             : current.roturas.cajas,
           tapas: item.devolucion?.roturas.tapas
-            ? (sumCajas(
-                item.devolucion.roturas.tapas,
-                current.roturas.tapas,
-              ) as Tapas)
+            ? sumTapas(item.devolucion.roturas.tapas, current.roturas.tapas)
             : current.roturas.tapas,
         },
-        ajuste: appendNombre(item.devolucion?.ajuste, current.ajuste?.nombre),
+        ajuste: appendNombre(item.devolucion?.ajuste, current.ajuste),
       };
     } else {
       centrosRec.set(centro, {
@@ -268,7 +268,7 @@ export async function getComparacionRecogida(
           nombre: current.nombre,
           cajas: current.cajas,
           roturas: current.roturas,
-          ajuste: current.ajuste?.nombre,
+          ajuste: current.ajuste,
         },
         alerta: false,
         rotura: false,

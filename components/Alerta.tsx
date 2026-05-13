@@ -148,14 +148,16 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
   const rowTone = () => {
     if (!data.total) return "border-slate-500 bg-white";
     else if (data.total === 0) return "border-emerald-500 bg-emerald-200";
-    else if (data.total === 1) return "border-amber-500 bg-amber-200";
+    else if (data.total === 1 && data.cierre_pendiente)
+      return "border-amber-500 bg-amber-200";
     else return "border-rose-500 bg-rose-200";
   };
 
   const rowToneLower = () => {
     if (!data.total) return "text-slate-700 bg-white";
     else if (data.total === 0) return "text-emerald-700 bg-emerald-200";
-    else if (data.total === 1) return "text-amber-700 bg-amber-200";
+    else if (data.total === 1 && data.cierre_pendiente)
+      return "text-amber-700 bg-amber-200";
     else return "text-rose-700 bg-rose-200";
   };
 

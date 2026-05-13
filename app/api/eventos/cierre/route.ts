@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const usuario = usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
+    if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
     const { fecha, cierre_cd, cierre_almacen }: Cierre = await request.json();

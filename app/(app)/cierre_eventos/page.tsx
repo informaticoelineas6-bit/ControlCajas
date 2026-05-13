@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useUser } from "@/app/(app)/user-context";
+import { useFecha } from "@/app/(app)/fecha-context";
 import { contentCardClass, pageAccess } from "../tabs";
+import SelectorFecha from "@/components/SelectorFecha";
 import {
   ItemComparacionEntrega,
   ItemComparacionRecogida,
@@ -14,7 +16,7 @@ import NotAllowed from "@/app/not-allowed";
 
 export default function CierreEventos() {
   const usuario = useUser();
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const { fecha } = useFecha();
   const [expedicionEntregaData, setExpedicionEntregaData] = useState<
     ItemComparacionEntrega[]
   >([]);
@@ -39,21 +41,7 @@ export default function CierreEventos() {
             Cuadre entre eventos
           </h3>
         </div>
-        <div>
-          <label
-            htmlFor="fechaRenderCruce"
-            className="mb-2 block text-sm font-medium text-slate-600"
-          >
-            Fecha
-          </label>
-          <input
-            id="fechaRenderCruce"
-            type="date"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-          />
-        </div>
+        <SelectorFecha />
       </div>
       <div className="space-y-8">
         <TablaExpedicionEntrega

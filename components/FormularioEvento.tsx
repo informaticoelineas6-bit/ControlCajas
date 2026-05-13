@@ -61,6 +61,7 @@ export default function FormularioEvento({
     negras: false,
     verdes: false,
   });
+  const [existente, setExistente] = useState(false);
 
   const [formData, setFormData] = useState<EventoForm>({
     tipo_evento: tipoEvento,
@@ -140,6 +141,39 @@ export default function FormularioEvento({
     [tipoEvento],
   );
 
+  const fetchExistente = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/form/cierres`, {
+        signal,
+      });
+      const data = await response.json();
+      if (data.error) {
+        setMensaje(data.error);
+        setExistente(false);
+        return false;
+      }
+
+      const cierreExistente = Boolean(data.existente);
+      setExistente(cierreExistente);
+      if (cierreExistente) {
+        setTipoEvento(undefined);
+        setMensaje("");
+      }
+      return cierreExistente;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return false;
+      }
+      console.error("Error fetching data:", error);
+      return false;
+    } finally {
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const abortController = new AbortController();
 
@@ -149,6 +183,20 @@ export default function FormularioEvento({
       abortController.abort();
     };
   }, [tipoEvento, fetchDatos]);
+
+  useEffect(() => {
+    if (isAdjustment) {
+      return;
+    }
+
+    const abortController = new AbortController();
+
+    fetchExistente(abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
+  }, [isAdjustment, fetchExistente]);
 
   useEffect(() => {
     if (
@@ -203,7 +251,19 @@ export default function FormularioEvento({
     resetForm();
   };
 
-  const handleSelectEvento = (tipo: TIPOS_EVENTO) => {
+  const handleSelectEvento = async (tipo: TIPOS_EVENTO) => {
+    if (loading) {
+      return;
+    }
+
+    const cierreExistente = await fetchExistente();
+    if (cierreExistente) {
+      setMensaje(
+        "Ya se ha realizado el cierre del día. No es posible registrar más eventos.",
+      );
+      return;
+    }
+
     setTipoEvento(tipo);
     setMensaje("");
   };
@@ -305,6 +365,15 @@ export default function FormularioEvento({
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
+    if (!isAdjustment) {
+      if (existente) {
+        setMensaje(
+          "Ya se ha realizado el cierre del día. No es posible registrar más eventos.",
+        );
+        return;
+      }
+    }
+
     const check = checkData();
     if (!check.status) {
       setMensaje(
@@ -362,16 +431,17 @@ export default function FormularioEvento({
 
       const data = await response.json();
 
-      const mensajeLower = data.message.toLowerCase();
+      const responseMessage = data.message ?? "";
+      const mensajeLower = responseMessage.toLowerCase();
       setIsSuccess(mensajeLower.includes("exitosamente") as boolean);
       setIsWarning(mensajeLower.includes("advertencia") as boolean);
 
       if (response.ok) {
         setSubmitted(true);
         if (isAdjustment) {
-          setMensaje(data.message || "Ajuste guardado exitosamente.");
+          setMensaje(responseMessage || "Ajuste guardado exitosamente.");
         } else {
-          setMensaje(data.message || "Evento guardado exitosamente.");
+          setMensaje(responseMessage || "Evento guardado exitosamente.");
         }
       } else {
         setMensaje(data.error || "Error al procesar");
@@ -449,6 +519,9 @@ export default function FormularioEvento({
       return "border-emerald-200 bg-emerald-50 text-emerald-800";
     else return "border-rose-200 bg-rose-50 text-rose-800";
   };
+  const selectedResponse = formData.centro_distribucion
+    ? response[formData.centro_distribucion]
+    : undefined;
 
   return (
     <div className="overflow-hidden rounded-[30px] border border-white/70 bg-white/82 p-5 shadow-[0_30px_80px_-46px_rgba(15,23,42,0.38)] backdrop-blur sm:p-7">
@@ -479,21 +552,27 @@ export default function FormularioEvento({
         <>
           {!tipoEvento && !isAdjustment ? (
             <div className="space-y-5">
+              {existente && (
+                <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
+                  Ya se ha realizado el cierre del día. No es posible registrar
+                  más eventos.
+                </div>
+              )}
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
                 Selecciona el tipo de evento:
               </p>
               <div
                 className={
-                  "grid grid-cols-1 gap-3" + usuario.rol === "chofer"
-                    ? " md:grid-cols-3"
-                    : ""
+                  "grid grid-cols-1 gap-3" +
+                  (usuario.rol === "chofer" ? " md:grid-cols-3" : "")
                 }
               >
                 {opcionesEvento.map((tipo) => (
                   <button
                     key={tipo}
                     onClick={() => handleSelectEvento(tipo)}
-                    className="w-full m-2 rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(239,246,255,0.95))] px-5 py-5 text-left transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_22px_38px_-24px_rgba(59,130,246,0.55)]"
+                    disabled={loading || existente}
+                    className="w-full m-2 rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(239,246,255,0.95))] px-5 py-5 text-left transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_22px_38px_-24px_rgba(59,130,246,0.55)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:border-slate-200 disabled:hover:shadow-none"
                   >
                     <div className="mb-2 flex items-center gap-2 text-blue-500">
                       {tipo === "Expedicion" && <PackageOpen size={20} />}
@@ -556,7 +635,7 @@ export default function FormularioEvento({
                     onChange={handleInputChange}
                     required
                     disabled={
-                      !!(isAdjustment || loading || loading || submitted)
+                      !!(isAdjustment || loading || existente || submitted)
                     }
                     className={fieldClass}
                   >
@@ -601,7 +680,7 @@ export default function FormularioEvento({
                       onChange={handleInputChange}
                       required
                       disabled={
-                        !!(isAdjustment || loading || loading || submitted)
+                        !!(isAdjustment || loading || existente || submitted)
                       }
                       className={fieldClass}
                     >
@@ -614,13 +693,11 @@ export default function FormularioEvento({
                           {initialData.almacen}
                         </option>
                       ) : (
-                        response[formData.centro_distribucion].almacenes?.map(
-                          (almacen) => (
-                            <option key={almacen} value={almacen}>
-                              {almacen}
-                            </option>
-                          ),
-                        )
+                        selectedResponse?.almacenes?.map((almacen) => (
+                          <option key={almacen} value={almacen}>
+                            {almacen}
+                          </option>
+                        ))
                       )}
                     </select>
                   </div>
@@ -641,7 +718,7 @@ export default function FormularioEvento({
                       onChange={handleInputChange}
                       required
                       disabled={
-                        !!(isAdjustment || loading || loading || submitted)
+                        !!(isAdjustment || loading || existente || submitted)
                       }
                       className={fieldClass}
                     >
@@ -654,17 +731,14 @@ export default function FormularioEvento({
                           {initialData.chapa}
                         </option>
                       ) : (
-                        response[formData.centro_distribucion].vehiculos.map(
-                          (vehiculo) => (
-                            <option key={vehiculo.chapa} value={vehiculo.chapa}>
-                              {vehiculo.categoria}{" "}
-                              {vehiculo.marca ? vehiculo.marca + " " : ""}
-                              {vehiculo.modelo
-                                ? vehiculo.modelo + " "
-                                : ""}- {vehiculo.chapa}
-                            </option>
-                          ),
-                        )
+                        selectedResponse?.vehiculos.map((vehiculo) => (
+                          <option key={vehiculo.chapa} value={vehiculo.chapa}>
+                            {vehiculo.categoria}{" "}
+                            {vehiculo.marca ? vehiculo.marca + " " : ""}
+                            {vehiculo.modelo ? vehiculo.modelo + " " : ""}-{" "}
+                            {vehiculo.chapa}
+                          </option>
+                        ))
                       )}
                     </select>
                   </div>
@@ -774,7 +848,7 @@ export default function FormularioEvento({
               ) : (
                 <button
                   type="submit"
-                  disabled={!!(loading || submitted)}
+                  disabled={!!(loading || existente || submitted)}
                   className="inline-flex items-center justify-center gap-2 w-full rounded-[22px] bg-[linear-gradient(135deg,_#0f766e,_#059669)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
                 >
                   {!loading && <Save size={16} />}
@@ -827,7 +901,7 @@ export default function FormularioEvento({
                   name={`${prefix}_${color}`}
                   value={value}
                   onChange={handleInputChange}
-                  disabled={disabled || submitted}
+                  disabled={disabled || loading || existente || submitted}
                   className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
                     value === 0
                       ? "border-slate-200 bg-slate-50"

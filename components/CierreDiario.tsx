@@ -5,9 +5,7 @@ import {
   Cierre,
   Cajas,
   Expedicion,
-  Entrega,
   Devolucion,
-  Recogida,
   ItemComparacionEntrega,
   ItemComparacionRecogida,
   COLECCIONES,
@@ -19,7 +17,7 @@ import {
   COLORES_TAPAS,
   TABLAS,
 } from "@/lib/constants";
-import { AjusteStr, totalCajas } from "@/lib/utils";
+import { AjusteStr, formatCajas, formatTapas, totalCajas } from "@/lib/utils";
 import { frontendClient } from "@/lib/client";
 
 export default function CierreDiario({
@@ -44,24 +42,17 @@ export default function CierreDiario({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    for (const item of expedicionEntregaData ?? []) {
-      if (item.alerta) {
-        setAlertas(true);
-        return;
-      }
-    }
-    for (const item of recogidaDevolucionData ?? []) {
-      if (item.alerta) {
-        setAlertas(true);
-        return;
-      }
-    }
+    setAlertas(
+      expedicionEntregaData.some((item) => item.alerta) ||
+        recogidaDevolucionData.some((item) => item.alerta),
+    );
     setAlertas(false);
   }, [expedicionEntregaData, recogidaDevolucionData]);
 
-  const calcularAjustesStock = useCallback(
+  const calcularAjustes = useCallback(
     async (signal: AbortSignal) => {
-      const ajustesMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
+      const stockMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
+      const deudaMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
 
       const [devolucionData, expedicionData] = await Promise.all([
         (
@@ -79,8 +70,8 @@ export default function CierreDiario({
       ]);
 
       devolucionData.forEach((item: AjusteStr<Devolucion>) => {
-        if (!ajustesMap[item.almacen]) {
-          ajustesMap[item.almacen] = {
+        if (!deudaMap[item.centro_distribucion]) {
+          deudaMap[item.centro_distribucion] = {
             cajas: { blancas: 0, negras: 0, verdes: 0 },
             roturas: {
               cajas: { blancas: 0, negras: 0, verdes: 0 },
@@ -88,25 +79,53 @@ export default function CierreDiario({
             },
           };
         }
-        ajustesMap[item.almacen].cajas.blancas += item.cajas.blancas ?? 0;
-        ajustesMap[item.almacen].cajas.negras += item.cajas.negras ?? 0;
-        ajustesMap[item.almacen].cajas.verdes += item.cajas.verdes ?? 0;
 
-        ajustesMap[item.almacen].roturas.cajas.blancas +=
+        deudaMap[item.centro_distribucion].cajas.blancas -=
+          item.cajas.blancas ?? 0;
+        deudaMap[item.centro_distribucion].cajas.negras -=
+          item.cajas.negras ?? 0;
+        deudaMap[item.centro_distribucion].cajas.verdes -=
+          item.cajas.verdes ?? 0;
+
+        deudaMap[item.centro_distribucion].roturas.cajas.blancas +=
           item.roturas.cajas.blancas ?? 0;
-        ajustesMap[item.almacen].roturas.cajas.negras +=
+        deudaMap[item.centro_distribucion].roturas.cajas.negras +=
           item.roturas.cajas.negras ?? 0;
-        ajustesMap[item.almacen].roturas.cajas.verdes +=
+        deudaMap[item.centro_distribucion].roturas.cajas.verdes +=
           item.roturas.cajas.verdes ?? 0;
-        ajustesMap[item.almacen].roturas.tapas.blancas +=
+        deudaMap[item.centro_distribucion].roturas.tapas.blancas +=
           item.roturas.tapas.blancas ?? 0;
-        ajustesMap[item.almacen].roturas.tapas.negras +=
+        deudaMap[item.centro_distribucion].roturas.tapas.negras +=
+          item.roturas.tapas.negras ?? 0;
+
+        if (!stockMap[item.almacen]) {
+          stockMap[item.almacen] = {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            roturas: {
+              cajas: { blancas: 0, negras: 0, verdes: 0 },
+              tapas: { blancas: 0, negras: 0 },
+            },
+          };
+        }
+        stockMap[item.almacen].cajas.blancas += item.cajas.blancas ?? 0;
+        stockMap[item.almacen].cajas.negras += item.cajas.negras ?? 0;
+        stockMap[item.almacen].cajas.verdes += item.cajas.verdes ?? 0;
+
+        stockMap[item.almacen].roturas.cajas.blancas +=
+          item.roturas.cajas.blancas ?? 0;
+        stockMap[item.almacen].roturas.cajas.negras +=
+          item.roturas.cajas.negras ?? 0;
+        stockMap[item.almacen].roturas.cajas.verdes +=
+          item.roturas.cajas.verdes ?? 0;
+        stockMap[item.almacen].roturas.tapas.blancas +=
+          item.roturas.tapas.blancas ?? 0;
+        stockMap[item.almacen].roturas.tapas.negras +=
           item.roturas.tapas.negras ?? 0;
       });
 
       expedicionData.forEach((item: AjusteStr<Expedicion>) => {
-        if (!ajustesMap[item.almacen]) {
-          ajustesMap[item.almacen] = {
+        if (!stockMap[item.almacen]) {
+          stockMap[item.almacen] = {
             cajas: { blancas: 0, negras: 0, verdes: 0 },
             roturas: {
               cajas: { blancas: 0, negras: 0, verdes: 0 },
@@ -114,38 +133,12 @@ export default function CierreDiario({
             },
           };
         }
-        ajustesMap[item.almacen].cajas.blancas -= item.cajas.blancas ?? 0;
-        ajustesMap[item.almacen].cajas.negras -= item.cajas.negras ?? 0;
-        ajustesMap[item.almacen].cajas.verdes -= item.cajas.verdes ?? 0;
-      });
+        stockMap[item.almacen].cajas.blancas -= item.cajas.blancas ?? 0;
+        stockMap[item.almacen].cajas.negras -= item.cajas.negras ?? 0;
+        stockMap[item.almacen].cajas.verdes -= item.cajas.verdes ?? 0;
 
-      return ajustesMap;
-    },
-    [fecha],
-  );
-
-  const calcularAjustesDeuda = useCallback(
-    async (signal: AbortSignal) => {
-      const ajustesMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
-
-      const [entregaData, recogidaData] = await Promise.all([
-        (
-          await fetch(
-            `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.ENTREGA}`,
-            { signal },
-          )
-        ).json() as Promise<AjusteStr<Entrega>[]>,
-        (
-          await fetch(
-            `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.RECOGIDA}`,
-            { signal },
-          )
-        ).json() as Promise<AjusteStr<Recogida>[]>,
-      ]);
-
-      entregaData.forEach((item: AjusteStr<Entrega>) => {
-        if (!ajustesMap[item.centro_distribucion]) {
-          ajustesMap[item.centro_distribucion] = {
+        if (!deudaMap[item.centro_distribucion]) {
+          deudaMap[item.centro_distribucion] = {
             cajas: { blancas: 0, negras: 0, verdes: 0 },
             roturas: {
               cajas: { blancas: 0, negras: 0, verdes: 0 },
@@ -153,55 +146,23 @@ export default function CierreDiario({
             },
           };
         }
-        ajustesMap[item.centro_distribucion].cajas.blancas +=
+        deudaMap[item.centro_distribucion].cajas.blancas +=
           item.cajas.blancas ?? 0;
-        ajustesMap[item.centro_distribucion].cajas.negras +=
+        deudaMap[item.centro_distribucion].cajas.negras +=
           item.cajas.negras ?? 0;
-        ajustesMap[item.centro_distribucion].cajas.verdes +=
+        deudaMap[item.centro_distribucion].cajas.verdes +=
           item.cajas.verdes ?? 0;
       });
 
-      recogidaData.forEach((item: AjusteStr<Recogida>) => {
-        if (!ajustesMap[item.centro_distribucion]) {
-          ajustesMap[item.centro_distribucion] = {
-            cajas: { blancas: 0, negras: 0, verdes: 0 },
-            roturas: {
-              cajas: { blancas: 0, negras: 0, verdes: 0 },
-              tapas: { blancas: 0, negras: 0 },
-            },
-          };
-        }
-
-        ajustesMap[item.centro_distribucion].cajas.blancas -=
-          item.cajas.blancas ?? 0;
-        ajustesMap[item.centro_distribucion].cajas.negras -=
-          item.cajas.negras ?? 0;
-        ajustesMap[item.centro_distribucion].cajas.verdes -=
-          item.cajas.verdes ?? 0;
-
-        ajustesMap[item.centro_distribucion].roturas.cajas.blancas +=
-          item.roturas.cajas.blancas ?? 0;
-        ajustesMap[item.centro_distribucion].roturas.cajas.negras +=
-          item.roturas.cajas.negras ?? 0;
-        ajustesMap[item.centro_distribucion].roturas.cajas.verdes +=
-          item.roturas.cajas.verdes ?? 0;
-        ajustesMap[item.centro_distribucion].roturas.tapas.blancas +=
-          item.roturas.tapas.blancas ?? 0;
-        ajustesMap[item.centro_distribucion].roturas.tapas.negras +=
-          item.roturas.tapas.negras ?? 0;
-      });
-
-      return ajustesMap;
+      return { deudaMap, stockMap };
     },
     [fecha],
   );
 
   const nuevoCierre = useCallback(
     async (signal: AbortSignal): Promise<Cierre> => {
-      const [ajustesStock, ajustesDeuda] = await Promise.all([
-        calcularAjustesStock(signal),
-        calcularAjustesDeuda(signal),
-      ]);
+      const { stockMap: ajustesStock, deudaMap: ajustesDeuda } =
+        await calcularAjustes(signal);
 
       return {
         fecha,
@@ -217,7 +178,7 @@ export default function CierreDiario({
         })),
       };
     },
-    [calcularAjustesDeuda, calcularAjustesStock, fecha],
+    [calcularAjustes, fecha],
   );
 
   const fetchDatos = useCallback(
@@ -277,16 +238,6 @@ export default function CierreDiario({
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: TABLAS.ENTREGA },
-        debouncedFetch,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: TABLAS.RECOGIDA },
-        debouncedFetch,
-      )
-      .on(
-        "postgres_changes",
         { event: "*", schema: "public", table: TABLAS.DEVOLUCION },
         debouncedFetch,
       )
@@ -306,7 +257,7 @@ export default function CierreDiario({
 
   const handleCrearCierre = async () => {
     const confirmar = globalThis.confirm(
-      `¿Deseas crear el Cierre para el día ${fecha}? Esta acción no se puede deshacer.`,
+      `¿Deseas crear el Cierre para el día ${fecha}?\nUna vez cerrado el día no es posible registrar nuevos eventos.\nEsta acción no se puede deshacer.`,
     );
     if (!confirmar) return;
 
@@ -357,7 +308,7 @@ export default function CierreDiario({
           {!existente && usuario.rol === "informatico" && (
             <button
               onClick={handleCrearCierre}
-              disabled={alertas || loading}
+              disabled={loading}
               className="rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Creando..." : "Crear cierre"}
@@ -374,8 +325,8 @@ export default function CierreDiario({
 
       {alertas && !loading && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-          Existen inconsistencias en los datos. No se puede crear un nuevo
-          cierre hasta que se resuelvan.
+          Existen inconsistencias en los datos. Se recomienda resolverlas antes
+          de crear un nuevo cierre.
         </div>
       )}
 
@@ -517,21 +468,13 @@ export default function CierreDiario({
                           {totalCajas(item.ajuste_stock)}
                         </td>
                         <td
-                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                            const capitalize =
-                              color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.cajas[color] ?? "-"}`;
-                          }).join("\n")}
+                          title={formatCajas(item.roturas.cajas)}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.roturas.cajas)}
                         </td>
                         <td
-                          title={TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
-                            const capitalize =
-                              color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.tapas[color] ?? "-"}`;
-                          }).join("\n")}
+                          title={formatTapas(item.roturas.tapas)}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.roturas.tapas)}
@@ -678,21 +621,13 @@ export default function CierreDiario({
                           {totalCajas(item.ajuste_deuda)}
                         </td>
                         <td
-                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                            const capitalize =
-                              color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.cajas[color] ?? "-"}`;
-                          }).join("\n")}
+                          title={formatCajas(item.roturas.cajas)}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.roturas.cajas)}
                         </td>
                         <td
-                          title={TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
-                            const capitalize =
-                              color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.tapas[color] ?? "-"}`;
-                          }).join("\n")}
+                          title={formatTapas(item.roturas.tapas)}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.roturas.tapas)}

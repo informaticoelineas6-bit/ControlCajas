@@ -395,7 +395,7 @@ export default function TablaInformacion() {
               {data.dashboardData.map((centro) => (
                 <article
                   key={centro.nombre}
-                  className={`g-gradient-to-r ${rowTone(
+                  className={`bg-gradient-to-r ${rowTone(
                     centro.estadoRot ?? "",
                   )} rounded-[24px] border border-slate-200 bg-slate-50/70 p-4`}
                 >

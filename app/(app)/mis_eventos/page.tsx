@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useUser } from "@/app/(app)/user-context";
+import { useFecha } from "@/app/(app)/fecha-context";
 import { pageAccess, contentCardClass } from "../tabs";
+import SelectorFecha from "@/components/SelectorFecha";
 import { Evento, TIPOS_EVENTO } from "@/lib/constants";
 import { AjusteProp } from "@/components/FormularioEvento";
 import FormularioEvento from "@/components/FormularioEvento";
@@ -16,7 +18,7 @@ import NotAllowed from "@/app/not-allowed";
 
 export default function MisEventos() {
   const usuario = useUser();
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const { fecha } = useFecha();
   const [adjustingEvent, setAdjustingEvent] =
     useState<AjusteProp<Evento> | null>(null);
 
@@ -55,21 +57,7 @@ export default function MisEventos() {
               Movimientos por fecha
             </h3>
           </div>
-          <div>
-            <label
-              htmlFor="fechaRender"
-              className="mb-2 block text-sm font-medium text-slate-600"
-            >
-              Fecha
-            </label>
-            <input
-              id="fechaRender"
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-            />
-          </div>
+          <SelectorFecha />
         </div>
         <div className="space-y-8">
           {(usuario.rol === "informatico" || usuario.rol === "expedidor") && (

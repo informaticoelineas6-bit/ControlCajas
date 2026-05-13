@@ -5,14 +5,18 @@ import {
   CAJAS_ARRAY,
   COLECCIONES,
   COLORES_CAJAS,
-  COLORES_TAPAS,
   Devolucion,
   TABLAS,
-  TAPAS_ARRAY,
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
-import { AjusteStr, prettyName, totalCajas } from "@/lib/utils";
+import {
+  AjusteStr,
+  formatCajas,
+  formatTapas,
+  prettyName,
+  totalCajas,
+} from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaDevolucion({
@@ -253,21 +257,13 @@ export default function TablaDevolucion({
                           </td>
                         ))}
                         <td
-                          title={CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-                            const capitalize =
-                              color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.cajas[color] ?? 0}`;
-                          }).join("\n")}
+                          title={formatCajas(item.roturas.cajas)}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.roturas.cajas)}
                         </td>
                         <td
-                          title={TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
-                            const capitalize =
-                              color.charAt(0).toUpperCase() + color.slice(1);
-                            return `${capitalize}: ${item.roturas.tapas[color] ?? 0}`;
-                          }).join("\n")}
+                          title={formatTapas(item.roturas.tapas)}
                           className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {totalCajas(item.roturas.tapas)}

@@ -1,11 +1,15 @@
 import {
   Almacen,
   Cajas,
+  CAJAS_ARRAY,
   CentroDistribucion,
+  COLORES_CAJAS,
+  COLORES_TAPAS,
   Evento,
   EventoRotura,
   Provincia,
   Tapas,
+  TAPAS_ARRAY,
   Usuario,
   Vehiculo,
 } from "@/lib/constants";
@@ -52,29 +56,23 @@ export function applyAjuste(
   };
 }
 
-export function sumCajas(
-  actuales: Cajas | Tapas,
-  nuevas: Cajas | Tapas,
-): Cajas | Tapas {
-  if (
-    "verdes" in actuales &&
-    actuales?.verdes &&
-    "verdes" in nuevas &&
-    nuevas?.verdes
-  ) {
-    return {
-      blancas: (actuales.blancas ?? 0) + (nuevas.blancas ?? 0),
-      negras: (actuales.negras ?? 0) + (nuevas.negras ?? 0),
-      verdes: (actuales.verdes ?? 0) + (nuevas.verdes ?? 0),
-    } as Cajas;
-  } else {
-    return {
-      blancas: (actuales.blancas ?? 0) + (nuevas.blancas ?? 0),
-      negras: (actuales.negras ?? 0) + (nuevas.negras ?? 0),
-    } as Tapas;
-  }
+export function sumCajas(actuales: Cajas, nuevas: Cajas): Cajas {
+  return {
+    blancas: (actuales.blancas ?? 0) + (nuevas.blancas ?? 0),
+    negras: (actuales.negras ?? 0) + (nuevas.negras ?? 0),
+    verdes: (actuales.verdes ?? 0) + (nuevas.verdes ?? 0),
+  };
 }
 
+export function sumTapas(actuales: Tapas, nuevas: Tapas): Tapas {
+  return {
+    blancas: (actuales.blancas ?? 0) + (nuevas.blancas ?? 0),
+    negras: (actuales.negras ?? 0) + (nuevas.negras ?? 0),
+  };
+}
+
+export function sameCajas(a: Cajas, b: Cajas): boolean;
+export function sameCajas(a: Tapas, b: Tapas): boolean;
 export function sameCajas(a: Cajas | Tapas, b: Cajas | Tapas): boolean {
   return (
     a.blancas === b.blancas &&
@@ -83,7 +81,7 @@ export function sameCajas(a: Cajas | Tapas, b: Cajas | Tapas): boolean {
   );
 }
 
-export function totalCajas(item: Partial<Cajas | Tapas>): number {
+export function totalCajas(item: Cajas | Tapas): number {
   return (
     (item?.blancas ?? 0) +
     (item?.negras ?? 0) +
@@ -119,6 +117,20 @@ export function formatDate(date: string): string {
   return new Date(date).toLocaleString("es-MX", {
     dateStyle: "long",
   });
+}
+
+export function formatCajas(item: Cajas, separator: string = "\n"): string {
+  return CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
+    const capitalize = color.charAt(0).toUpperCase() + color.slice(1);
+    return `${capitalize}: ${item[color] ?? "-"}`;
+  }).join(separator);
+}
+
+export function formatTapas(item: Tapas, separator: string = "\n"): string {
+  return TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
+    const capitalize = color.charAt(0).toUpperCase() + color.slice(1);
+    return `${capitalize}: ${item[color] ?? "-"}`;
+  }).join(separator);
 }
 
 export type DeudaAct<Centro> = Centro & {
