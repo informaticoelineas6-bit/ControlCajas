@@ -53,7 +53,10 @@ export default function Header({ usuario }: Readonly<HeaderProps>) {
           <div className="flex flex-row gap-3 items-center justify-end">
             {usuario.rol === "informatico" && <Alerta usuario={usuario} />}
             <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/10">
-              <User size={16} className="shrink-0 text-sky-100/70" />
+              <User
+                size={16}
+                className="hidden sm:block shrink-0 text-sky-100/70"
+              />
               <div>
                 <p className="text-sm font-semibold text-white">
                   {prettyName(usuario.nombre)}
