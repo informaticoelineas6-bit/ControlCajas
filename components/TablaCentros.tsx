@@ -14,7 +14,7 @@ import {
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
-import { prettyName } from "@/lib/utils";
+import { formatDate, prettyName } from "@/lib/utils";
 
 export default function TablaCentros({
   usuario,
@@ -274,8 +274,6 @@ export default function TablaCentros({
         body: JSON.stringify({
           tipo_objeto: "CentroDistribucion",
           ajuste: {
-            nombre: usuario.nombre,
-            fechaHora: new Date().toISOString(),
             habilitado: habilitado,
           },
         } as ObjetoAjusteForm),
@@ -647,14 +645,7 @@ export default function TablaCentros({
                       <td
                         title={
                           item.ajuste
-                            ? "Ajustado el " +
-                              new Date(item.ajuste?.fechaHora).toLocaleString(
-                                "es-MX",
-                                {
-                                  dateStyle: "full",
-                                  timeStyle: "short",
-                                },
-                              )
+                            ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
                             : undefined
                         }
                         className={

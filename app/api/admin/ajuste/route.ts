@@ -3,10 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
 import {
+  AjusteObjetos,
   getObjectTable,
   ObjetoAjusteForm,
   OBJETOS_ARRAY,
 } from "@/lib/constants";
+import { format } from "date-fns";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -37,10 +39,10 @@ export async function PUT(request: NextRequest) {
     const { error } = await db
       .update({
         ajuste: {
-          fechaHora: new Date().toISOString(),
+          fechaHora: format(new Date(), "yyyy-MM-dd"),
           habilitado: ajuste.habilitado,
           nombre: usuario.nombre,
-        },
+        } as AjusteObjetos,
       })
       .eq(tipo_objeto === "Vehiculo" ? "chapa" : "nombre", id);
 

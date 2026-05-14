@@ -2,8 +2,9 @@ import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
-import { EventoAjusteForm } from "@/lib/constants";
+import { AjusteCajas, AjusteRoturas, EventoAjusteForm } from "@/lib/constants";
 import { EVENTOS_ARRAY, getEventTable } from "@/lib/constants";
+import { format } from "date-fns";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     const { error } = await db
       .update({
         ajuste: {
-          fechaHora: new Date().toISOString(),
+          fechaHora: format(new Date(), "yyyy-MM-dd"),
           nombre: usuario.nombre,
           cajas: ajuste.cajas,
           roturas:
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
                   tapas: ajuste.roturas.tapas,
                 }
               : undefined,
-        },
+        } as AjusteCajas | AjusteRoturas,
       })
       .eq("id", id);
 

@@ -23,6 +23,7 @@ import {
   totalCajas,
 } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
+import { addDays, format, isAfter, isBefore, parseISO } from "date-fns";
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,11 +35,7 @@ export async function GET(request: NextRequest) {
 
     const db = await connectToDatabase();
     const today = new Date();
-    const todayString = today.toISOString().split("T")[0];
-    const parseDate = (value: string) => {
-      const [year, month, day] = value.split("-").map(Number);
-      return new Date(Date.UTC(year, month - 1, day));
-    };
+    const todayString = format(today, "yyyy-MM-dd");
 
     // Run all database queries in parallel
     const [
@@ -142,17 +139,16 @@ export async function GET(request: NextRequest) {
       };
 
       if (iteration.fechaRot) {
-        const fechaRotDate = parseDate(iteration.fechaRot);
-        const fechaLimite = new Date(fechaRotDate);
-        fechaLimite.setUTCDate(
-          fechaLimite.getUTCDate() + (centro.rotacion ?? 0),
+        const fechaLimite = addDays(
+          parseISO(iteration.fechaRot),
+          centro.rotacion ?? 0,
         );
 
-        if (fechaLimite < today) {
+        if (isBefore(fechaLimite, today)) {
           iteration.estadoRot = "Retrasada";
         } else if (totalCajas(centro.deuda_activa) <= 0) {
           iteration.estadoRot = "Cumplida";
-        } else if (fechaLimite > today) {
+        } else if (isAfter(fechaLimite, today)) {
           iteration.estadoRot = "Pendiente";
         } else {
           iteration.estadoRot = "En tiempo";

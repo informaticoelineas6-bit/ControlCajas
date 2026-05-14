@@ -244,7 +244,9 @@ export interface AuditLog {
 
 export interface ObjetoAjusteForm {
   tipo_objeto?: TIPOS_OBJETOS;
-  ajuste: AjusteObjetos;
+  ajuste: {
+    habilitado: boolean;
+  };
 }
 
 export interface AlertaResponse {

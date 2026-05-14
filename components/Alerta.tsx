@@ -5,6 +5,8 @@ import { frontendClient } from "@/lib/client";
 import { TABLAS, Usuario } from "@/lib/constants";
 import { useCallback, useEffect, useState } from "react";
 import { Bell } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
   const [open, setOpen] = useState(false);
@@ -94,7 +96,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
     };
   }, [fetchAlerts]);
 
-  const fecha = new Date().toISOString().split("T")[0];
+  const fecha = format(new Date(), "PPP", { locale: es });
 
   const renderView = () => {
     if (error)

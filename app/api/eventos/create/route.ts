@@ -26,6 +26,7 @@ import {
 import { usuarioCookie } from "@/lib/auth";
 import { EventoCreateForm } from "@/lib/constants";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { format } from "date-fns";
 
 async function buildMessage(
   db: SupabaseClient,
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest) {
     const documentoBase = {
       centro_distribucion: centro_real,
       provincia,
-      fecha: new Date().toISOString().split("T")[0],
+      fecha: format(new Date(), "yyyy-MM-dd"),
       nombre: usuario.nombre,
       cajas: cajas || { blancas: 0, negras: 0, verdes: 0 },
     };

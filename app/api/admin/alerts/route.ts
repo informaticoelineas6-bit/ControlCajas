@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getErrorMessage, sameCajas } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import { getComparacionEntrega, getComparacionRecogida } from "@/lib/compares";
+import { endOfDay, format, startOfDay } from "date-fns";
 
 function formatCajas(cajas?: Cajas): string {
   if (!cajas) return "B:0 N:0 V:0";
@@ -31,14 +32,10 @@ export async function GET(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const fecha = new Date().toISOString().split("T")[0];
+    const fecha = format(new Date(), "yyyy-MM-dd");
 
-    // Get UTC start of today
-    const startOfToday = new Date();
-    startOfToday.setUTCHours(0, 0, 0, 0);
-    // Get UTC start of tomorrow
-    const startOfTomorrow = new Date(startOfToday);
-    startOfTomorrow.setUTCDate(startOfToday.getUTCDate() + 1);
+    const startOfToday = startOfDay(new Date());
+    const endOfToday = endOfDay(new Date());
 
     const db = await connectToDatabase();
 
@@ -49,7 +46,7 @@ export async function GET(request: NextRequest) {
           .select("*", { count: "exact", head: true })
           .or("ajuste->habilitado.neq.true, ajuste->habilitado.is.null")
           .gte("created_at", startOfToday.toISOString())
-          .lt("created_at", startOfTomorrow.toISOString()),
+          .lte("created_at", endOfToday.toISOString()),
         db
           .from(TABLAS.CIERRE)
           .select("*", { count: "exact", head: true })

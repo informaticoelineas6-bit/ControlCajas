@@ -17,6 +17,7 @@ import {
 } from "@/lib/constants";
 import { DeudaAct } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
+import { format } from "date-fns";
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const tipo = searchParams.get("tipo"); // Expedicion|Entrega|Devolucion|Recogida
-    const fecha = new Date().toISOString().split("T")[0];
+    const fecha = format(new Date(), "yyyy-MM-dd");
 
     if (!tipo || !EVENTOS_ARRAY.includes(tipo as TIPOS_EVENTO)) {
       return NextResponse.json(

@@ -14,7 +14,7 @@ import { ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
-import { prettyName } from "@/lib/utils";
+import { formatDate, prettyName } from "@/lib/utils";
 
 export default function TablaUsuarios({
   usuario,
@@ -168,8 +168,6 @@ export default function TablaUsuarios({
         body: JSON.stringify({
           tipo_objeto: "Usuario",
           ajuste: {
-            nombre: usuario.nombre,
-            fechaHora: new Date().toISOString(),
             habilitado: habilitado,
           },
         } as ObjetoAjusteForm),
@@ -522,13 +520,7 @@ export default function TablaUsuarios({
                         title={
                           item.ajuste
                             ? "Ajustado el " +
-                              new Date(item.ajuste?.fechaHora).toLocaleString(
-                                "es-MX",
-                                {
-                                  dateStyle: "full",
-                                  timeStyle: "short",
-                                },
-                              )
+                              formatDate(item.ajuste.fechaHora)
                             : undefined
                         }
                         className="px-5 py-4 text-slate-500 hover:bg-slate-300"

@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import { createContext, useContext, useState } from "react";
 
 interface FechaContextValue {
@@ -16,7 +17,7 @@ export function useFecha() {
 }
 
 export function FechaProvider({ children }: { children: React.ReactNode }) {
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const [fecha, setFecha] = useState(format(new Date(), "yyyy-MM-dd"));
   return (
     <FechaContext.Provider value={{ fecha, setFecha }}>
       {children}

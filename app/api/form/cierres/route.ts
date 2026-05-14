@@ -3,6 +3,7 @@ import { TABLAS } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
 import { usuarioCookie } from "@/lib/auth";
+import { format } from "date-fns";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-    const fecha = new Date().toISOString().split("T")[0];
+    const fecha = format(new Date(), "yyyy-MM-dd");
 
     const db = (await connectToDatabase()).from(TABLAS.CIERRE);
     const { count, error } = await db

@@ -11,7 +11,7 @@ import {
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
-import { prettyName } from "@/lib/utils";
+import { formatDate, prettyName } from "@/lib/utils";
 
 export default function TablaProvincias({
   usuario,
@@ -165,8 +165,6 @@ export default function TablaProvincias({
         body: JSON.stringify({
           tipo_objeto: "Provincia",
           ajuste: {
-            nombre: usuario.nombre,
-            fechaHora: new Date().toISOString(),
             habilitado: habilitado,
           },
         } as ObjetoAjusteForm),
@@ -453,14 +451,7 @@ export default function TablaProvincias({
                       <td
                         title={
                           item.ajuste
-                            ? "Ajustado el " +
-                              new Date(item.ajuste?.fechaHora).toLocaleString(
-                                "es-MX",
-                                {
-                                  dateStyle: "full",
-                                  timeStyle: "short",
-                                },
-                              )
+                            ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
                             : undefined
                         }
                         className="px-5 py-4 text-slate-500 hover:bg-slate-300"

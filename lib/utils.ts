@@ -1,18 +1,15 @@
 import {
-  Almacen,
   Cajas,
   CAJAS_ARRAY,
-  CentroDistribucion,
   COLORES_CAJAS,
   COLORES_TAPAS,
   Evento,
   EventoRotura,
-  Provincia,
   Tapas,
   TAPAS_ARRAY,
-  Usuario,
-  Vehiculo,
 } from "@/lib/constants";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 
 export type AjusteStr<Str> = Omit<Str, "ajuste"> & { ajuste?: string };
 
@@ -97,12 +94,6 @@ export function hasCajas(item: { cajas: Cajas }): boolean {
   }
 }
 
-export function isEnabled(
-  item: Almacen | CentroDistribucion | Vehiculo | Usuario | Provincia,
-): boolean {
-  return item.ajuste?.habilitado ?? true;
-}
-
 export function appendNombre(
   actual?: string,
   nuevo?: string,
@@ -114,9 +105,8 @@ export function appendNombre(
 }
 
 export function formatDate(date: string): string {
-  return new Date(date).toLocaleString("es-MX", {
-    dateStyle: "long",
-  });
+  const dateObj = parseISO(date);
+  return format(dateObj, "PPP", { locale: es });
 }
 
 export function formatCajas(item: Cajas, separator: string = "\n"): string {
@@ -214,7 +204,7 @@ export function formatName(name: string): string {
   return name
     .trim()
     .toLowerCase()
-    .replace(/[^\wáéíóú]+/gi, ".")
+    .replace(/[^a-záéíóú]+/gi, ".")
     .replace(/^\.|\.$/g, "");
 }
 
