@@ -1,11 +1,10 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
   Cajas,
+  CajasRoturas,
   Devolucion,
   Entrega,
   Expedicion,
-  ItemComparacionEntrega,
-  ItemComparacionRecogida,
   Recogida,
   TABLAS,
   Tapas,
@@ -13,7 +12,6 @@ import {
 } from "./constants";
 import {
   AjusteStr,
-  appendNombre,
   applyAjuste,
   hasCajas,
   prettyName,
@@ -289,4 +287,40 @@ export function alertCompare(
     if (!sameCajas(event2.roturas.tapas, event1.roturas.tapas)) return true;
   }
   return false;
+}
+
+export function appendNombre(
+  actual?: string,
+  nuevo?: string,
+): string | undefined {
+  if (!actual) return nuevo;
+  if (!nuevo) return actual;
+  if (actual.includes(nuevo)) return actual;
+  return actual + " + " + nuevo;
+}
+
+export interface ItemComparacion {
+  nombre?: string;
+  cajas: Cajas;
+  ajuste?: string;
+}
+
+export interface ItemComparacionEntrega {
+  chapa?: string;
+  centro_distribucion: string;
+  almacen?: string;
+  expedicion: ItemComparacion | null;
+  traspaso: ItemComparacion | null;
+  entrega: ItemComparacion | null;
+  alerta: boolean;
+}
+
+export interface ItemComparacionRecogida {
+  centro_distribucion: string;
+  almacen?: string;
+  chapa?: string;
+  recogida: (ItemComparacion & CajasRoturas) | null;
+  devolucion: (ItemComparacion & CajasRoturas) | null;
+  alerta: boolean;
+  rotura: boolean;
 }

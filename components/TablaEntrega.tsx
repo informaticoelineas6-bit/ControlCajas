@@ -10,7 +10,7 @@ import {
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
-import { AjusteStr, applyAjuste, prettyName } from "@/lib/utils";
+import { AjusteStr, prettyName } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaEntrega({
@@ -37,7 +37,7 @@ export default function TablaEntrega({
         );
         const data = await res.json();
         if (res.ok) {
-          setDatos(data.map(applyAjuste));
+          setDatos(data);
         } else {
           setError(data.error || "Error al cargar eventos");
         }

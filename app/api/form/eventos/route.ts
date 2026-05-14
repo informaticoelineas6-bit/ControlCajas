@@ -1,11 +1,11 @@
-import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
+import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import {
   Almacen,
   Cajas,
   CajasHabilitadas,
   CentroDistribucion,
+  DeudaAct,
   EventoResponse,
   EVENTOS_ARRAY,
   Expedicion,
@@ -15,7 +15,6 @@ import {
   Traspaso,
   Vehiculo,
 } from "@/lib/constants";
-import { DeudaAct } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import { format } from "date-fns";
 

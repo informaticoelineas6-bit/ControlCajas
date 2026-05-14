@@ -1,6 +1,5 @@
-import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
+import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
 import { AjusteCajas, AjusteRoturas, EventoAjusteForm } from "@/lib/constants";
 import { EVENTOS_ARRAY, getEventTable } from "@/lib/constants";

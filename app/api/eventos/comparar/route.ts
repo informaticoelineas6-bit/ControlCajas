@@ -1,13 +1,13 @@
-import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
-import {
-  ItemComparacionEntrega,
-  ItemComparacionRecogida,
-} from "@/lib/constants";
+import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import { sameCajas } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
-import { getComparacionEntrega, getComparacionRecogida } from "@/lib/compares";
+import {
+  getComparacionEntrega,
+  getComparacionRecogida,
+  ItemComparacionEntrega,
+  ItemComparacionRecogida,
+} from "@/lib/compares";
 
 export async function GET(request: NextRequest) {
   try {

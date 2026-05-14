@@ -1,4 +1,4 @@
-import { getErrorMessage } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/server";
 import { NextResponse } from "next/server";
 
 export async function POST() {

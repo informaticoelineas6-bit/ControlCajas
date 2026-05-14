@@ -1,8 +1,8 @@
-import { formatName, getErrorMessage } from "@/lib/utils";
+import { formatName } from "@/lib/utils";
+import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth";
 import { ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
-import { connectToDatabase } from "@/lib/server";
 
 export async function POST(request: NextRequest) {
   try {

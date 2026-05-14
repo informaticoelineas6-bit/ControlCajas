@@ -1,4 +1,4 @@
-import { getErrorMessage } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";

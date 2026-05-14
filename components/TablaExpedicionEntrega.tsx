@@ -1,7 +1,8 @@
 "use client";
 
 import { frontendClient } from "@/lib/client";
-import { ItemComparacionEntrega, TABLAS } from "@/lib/constants";
+import { TABLAS } from "@/lib/constants";
+import { ItemComparacionEntrega } from "@/lib/compares";
 import { formatCajas, totalCajas } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 

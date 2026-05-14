@@ -1,6 +1,5 @@
-import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase, LogAudit } from "@/lib/server";
+import { connectToDatabase, getErrorMessage, LogAudit } from "@/lib/server";
 import { TABLAS, Usuario } from "@/lib/constants";
 import { hashPassword, usuarioCookie } from "@/lib/auth";
 

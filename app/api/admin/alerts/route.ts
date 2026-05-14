@@ -1,28 +1,15 @@
+import { AlertaResponse, EventAlerta, TABLAS } from "@/lib/constants";
+import { connectToDatabase, getErrorMessage } from "@/lib/server";
+import { NextRequest, NextResponse } from "next/server";
+import { formatCajas, formatTapas, sameCajas } from "@/lib/utils";
+import { usuarioCookie } from "@/lib/auth";
 import {
-  AlertaResponse,
-  Cajas,
-  EventAlerta,
+  getComparacionEntrega,
+  getComparacionRecogida,
   ItemComparacionEntrega,
   ItemComparacionRecogida,
-  TABLAS,
-  Tapas,
-} from "@/lib/constants";
-import { connectToDatabase } from "@/lib/server";
-import { NextRequest, NextResponse } from "next/server";
-import { getErrorMessage, sameCajas } from "@/lib/utils";
-import { usuarioCookie } from "@/lib/auth";
-import { getComparacionEntrega, getComparacionRecogida } from "@/lib/compares";
+} from "@/lib/compares";
 import { endOfDay, format, startOfDay } from "date-fns";
-
-function formatCajas(cajas?: Cajas): string {
-  if (!cajas) return "B:0 N:0 V:0";
-  return `B:${cajas.blancas ?? 0} N:${cajas.negras ?? 0} V:${cajas.verdes ?? 0}`;
-}
-
-function formatTapas(cajas?: Tapas): string {
-  if (!cajas) return "B:0 N:0 V:0";
-  return `B:${cajas.blancas ?? 0} N:${cajas.negras ?? 0}`;
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -83,12 +70,21 @@ export async function GET(request: NextRequest) {
         return {
           tipo: "expedicion_entrega",
           nombre: item.centro_distribucion,
-          detalle: `Diferencia en cajas: Expedicion(${formatCajas(
-            item.expedicion?.cajas,
-          )}) vs Traspaso(${formatCajas(item.traspaso?.cajas)}) vs Entrega(${formatCajas(
-            item.entrega?.cajas,
-          )})`,
-          // data: item,
+          detalle: `Diferencia en cajas: Expedicion(${
+            item.expedicion
+              ? formatCajas(item.expedicion.cajas, {
+                  fullName: false,
+                  separator: " ",
+                })
+              : "sin cajas"
+          }) vs Traspaso(${item.traspaso ? formatCajas(item.traspaso.cajas, { fullName: false, separator: " " }) : "sin cajas"}) vs Entrega(${
+            item.entrega
+              ? formatCajas(item.entrega.cajas, {
+                  fullName: false,
+                  separator: " ",
+                })
+              : "sin cajas"
+          })`,
         };
       });
 
@@ -135,19 +131,41 @@ export async function GET(request: NextRequest) {
           nombre: item.centro_distribucion,
           detalle:
             (alertCajas
-              ? `Diferencia en cajas: "Recogida cajas(${formatCajas(
-                  item.recogida?.cajas,
-                )}) vs Devolucion cajas(${formatCajas(item.devolucion?.cajas)})`
+              ? `Diferencia en cajas: Recogida(${
+                  item.recogida
+                    ? formatCajas(item.recogida.cajas, {
+                        fullName: false,
+                        separator: " ",
+                      })
+                    : "sin cajas"
+                }) vs Devolucion(${
+                  item.devolucion
+                    ? formatCajas(item.devolucion.cajas, {
+                        fullName: false,
+                        separator: " ",
+                      })
+                    : "sin cajas"
+                })`
               : "") +
             (alertRotas
-              ? `${alertCajas ? "\n" : ""}Diferencia en cajas rotas: "Recogida cajas(${formatCajas(
-                  item.recogida?.roturas.cajas,
-                )}) vs Devolucion cajas(${formatCajas(item.devolucion?.roturas.cajas)})`
+              ? `${alertCajas ? "\n" : ""}Diferencia en cajas rotas: Recogida(${
+                  item.recogida
+                    ? formatCajas(item.recogida.roturas.cajas, {
+                        fullName: false,
+                        separator: " ",
+                      })
+                    : "sin cajas"
+                }) vs Devolucion(${item.devolucion ? formatCajas(item.devolucion.roturas.cajas, { fullName: false, separator: " " }) : "sin cajas"})`
               : "") +
             (alertTapas
-              ? `${alertCajas || alertRotas ? "\n" : ""}Diferencia en tapas rotas: "Recogida cajas(${formatTapas(
-                  item.recogida?.roturas.tapas,
-                )}) vs Devolucion cajas(${formatTapas(item.devolucion?.roturas.tapas)})`
+              ? `${alertCajas || alertRotas ? "\n" : ""}Diferencia en tapas rotas: "Recogida(${
+                  item.recogida
+                    ? formatTapas(item.recogida.roturas.tapas, {
+                        fullName: false,
+                        separator: " ",
+                      })
+                    : "sin tapas"
+                }) vs Devolucion(${item.devolucion ? formatTapas(item.devolucion.roturas.tapas, { fullName: false, separator: " " }) : "sin cajas"})`
               : ""),
         };
       });

@@ -120,6 +120,11 @@ export interface Almacen extends CajasRoturas {
   ajuste?: AjusteObjetos;
 }
 
+export type DeudaAct<Centro> = Centro & {
+  deuda_activa: Cajas;
+  fecha_liquidacion: string | null;
+};
+
 export interface CentroDistribucion extends CajasRoturas {
   nombre: string;
   habilitado: CajasHabilitadas;
@@ -193,31 +198,6 @@ export interface Recogida extends EventoRotura {
 
 export interface Devolucion extends EventoRotura {
   almacen: string;
-}
-
-export interface ItemComparacion {
-  nombre?: string;
-  cajas: Cajas;
-  ajuste?: string;
-}
-export interface ItemComparacionEntrega {
-  chapa?: string;
-  centro_distribucion: string;
-  almacen?: string;
-  expedicion: ItemComparacion | null;
-  traspaso: ItemComparacion | null;
-  entrega: ItemComparacion | null;
-  alerta: boolean;
-}
-
-export interface ItemComparacionRecogida {
-  centro_distribucion: string;
-  almacen?: string;
-  chapa?: string;
-  recogida: (ItemComparacion & CajasRoturas) | null;
-  devolucion: (ItemComparacion & CajasRoturas) | null;
-  alerta: boolean;
-  rotura: boolean;
 }
 
 export interface Cierre {

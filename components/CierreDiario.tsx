@@ -6,8 +6,6 @@ import {
   Cajas,
   Expedicion,
   Devolucion,
-  ItemComparacionEntrega,
-  ItemComparacionRecogida,
   COLECCIONES,
   Usuario,
   CajasRoturas,
@@ -17,6 +15,10 @@ import {
   COLORES_TAPAS,
   TABLAS,
 } from "@/lib/constants";
+import {
+  ItemComparacionEntrega,
+  ItemComparacionRecogida,
+} from "@/lib/compares";
 import { AjusteStr, formatCajas, formatTapas, totalCajas } from "@/lib/utils";
 import { frontendClient } from "@/lib/client";
 

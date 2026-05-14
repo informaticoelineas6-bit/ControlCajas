@@ -8,7 +8,7 @@ import SelectorFecha from "@/components/SelectorFecha";
 import {
   ItemComparacionEntrega,
   ItemComparacionRecogida,
-} from "@/lib/constants";
+} from "@/lib/compares";
 import TablaExpedicionEntrega from "@/components/TablaExpedicionEntrega";
 import TablaRecogidaDevolucion from "@/components/TablaRecogidaDevolucion";
 import CierreDiario from "@/components/CierreDiario";

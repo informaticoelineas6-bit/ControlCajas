@@ -1,6 +1,5 @@
-import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
+import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import {
   Cajas,
   Devolucion,

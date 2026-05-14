@@ -82,7 +82,7 @@ export function totalCajas(item: Cajas | Tapas): number {
   return (
     (item?.blancas ?? 0) +
     (item?.negras ?? 0) +
-    ("verdes" in item ? (item?.verdes ?? 0) : 0)
+    ("verdes" in item ? (item.verdes ?? 0) : 0)
   );
 }
 
@@ -94,110 +94,37 @@ export function hasCajas(item: { cajas: Cajas }): boolean {
   }
 }
 
-export function appendNombre(
-  actual?: string,
-  nuevo?: string,
-): string | undefined {
-  if (!actual) return nuevo;
-  if (!nuevo) return actual;
-  if (actual.includes(nuevo)) return actual;
-  return actual + " + " + nuevo;
-}
-
 export function formatDate(date: string): string {
   const dateObj = parseISO(date);
   return format(dateObj, "PPP", { locale: es });
 }
 
-export function formatCajas(item: Cajas, separator: string = "\n"): string {
+export function formatCajas(
+  item: Cajas,
+  options: { fullName: boolean; separator: string } = {
+    fullName: true,
+    separator: "\n",
+  },
+): string {
   return CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-    const capitalize = color.charAt(0).toUpperCase() + color.slice(1);
+    const capitalize =
+      color.charAt(0).toUpperCase() + options.fullName ? color.slice(1) : "";
     return `${capitalize}: ${item[color] ?? "-"}`;
-  }).join(separator);
+  }).join(options.separator);
 }
 
-export function formatTapas(item: Tapas, separator: string = "\n"): string {
+export function formatTapas(
+  item: Tapas,
+  options: { fullName: boolean; separator: string } = {
+    fullName: true,
+    separator: "\n",
+  },
+): string {
   return TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
-    const capitalize = color.charAt(0).toUpperCase() + color.slice(1);
+    const capitalize =
+      color.charAt(0).toUpperCase() + options.fullName ? color.slice(1) : "";
     return `${capitalize}: ${item[color] ?? "-"}`;
-  }).join(separator);
-}
-
-export type DeudaAct<Centro> = Centro & {
-  deuda_activa: Cajas;
-  fecha_liquidacion: string | null;
-};
-
-// export function deudaActiva(
-//   centro: CentroDistribucion,
-//   entregas: AjusteStr<Entrega>[],
-// ): DeudaAct<CentroDistribucion> {
-//   const rotDate = new Date();
-//   rotDate.setUTCDate(rotDate.getUTCDate() - (centro.rotacion ?? 0));
-//   const targetStr = rotDate.toISOString().split("T")[0]; // e.g., "2026-03-25"
-
-//   const listaEntregas = entregas
-//     .filter((elem) => elem.centro_distribucion === centro.nombre)
-//     .sort((a, b) => b.fecha.localeCompare(a.fecha));
-
-//   const deuda: Cajas = {
-//     blancas: centro.deuda.blancas,
-//     negras: centro.deuda.negras,
-//     verdes: centro.deuda.verdes,
-//   };
-//   let deuda_activa: Cajas = {
-//     blancas: 0,
-//     negras: 0,
-//     verdes: 0,
-//   };
-//   for (const entrega of listaEntregas) {
-//     if (entrega.fecha < targetStr) {
-//       deuda_activa = deuda;
-//     } else if (deuda.blancas >= 0 || deuda.negras >= 0 || deuda.verdes >= 0) {
-//       deuda.blancas -= entrega.cajas.blancas;
-//       deuda.negras -= entrega.cajas.negras;
-//       deuda.verdes -= entrega.cajas.verdes;
-//     } else {
-//       break;
-//     }
-//   }
-
-//   return { ...centro, deuda_activa };
-// }
-
-export function getErrorMessage(error: unknown): string {
-  if (!(error instanceof Error)) return "Error en el servidor";
-
-  const errorPatterns = [
-    // Errores de conexión (Timeout, Network, etc.)
-    {
-      pattern: /fetch|network|timeout|timed out/i,
-      message: "Error conectando a la base de datos",
-    },
-    // Permisos / Row Level Security
-    {
-      pattern: /permission denied|row-level security/i,
-      message: "Acceso no autorizado a la base de datos",
-    },
-    // Rate limiting
-    {
-      pattern: /too many requests|rate limit/i,
-      message: "Demasiadas solicitudes",
-    },
-    // Autenticación de API / JWT
-    {
-      pattern: /invalid api key|no api key|jwt|signature verification/i,
-      message: "Error de autenticación a la base de datos",
-    },
-  ];
-
-  for (const { pattern, message } of errorPatterns) {
-    if (pattern.test(error.message)) {
-      return message;
-    }
-  }
-
-  return "Error en el servidor";
+  }).join(options.separator);
 }
 
 export function formatName(name: string): string {
