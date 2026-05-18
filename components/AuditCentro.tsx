@@ -405,7 +405,7 @@ export default function AuditCentro() {
                       className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
                       <td className="px-5 py-4 font-medium text-slate-700">
-                        {formatDate(item.fecha)}
+                        {item.fecha ? formatDate(item.fecha) : "-"}
                       </td>
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td

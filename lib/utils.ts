@@ -95,8 +95,13 @@ export function hasCajas(item: { cajas: Cajas }): boolean {
 }
 
 export function formatDate(date: string): string {
-  const dateObj = parseISO(date);
-  return format(dateObj, "PPP", { locale: es });
+  try {
+    const dateObj = parseISO(date);
+    return format(dateObj, "PPP", { locale: es });
+  } catch (err) {
+    console.log("Error al formatear la fecha:" + date, err);
+    return "-";
+  }
 }
 
 export function formatCajas(
@@ -108,7 +113,7 @@ export function formatCajas(
 ): string {
   return CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
     const capitalize =
-      color.charAt(0).toUpperCase() + options.fullName ? color.slice(1) : "";
+      color.charAt(0).toUpperCase() + (options.fullName ? color.slice(1) : "");
     return `${capitalize}: ${item[color] ?? "-"}`;
   }).join(options.separator);
 }
@@ -122,7 +127,7 @@ export function formatTapas(
 ): string {
   return TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
     const capitalize =
-      color.charAt(0).toUpperCase() + options.fullName ? color.slice(1) : "";
+      color.charAt(0).toUpperCase() + (options.fullName ? color.slice(1) : "");
     return `${capitalize}: ${item[color] ?? "-"}`;
   }).join(options.separator);
 }
@@ -136,8 +141,13 @@ export function formatName(name: string): string {
 }
 
 export function prettyName(name: string): string {
-  return name
-    .split(".")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+  try {
+    return name
+      .split(".")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  } catch (err) {
+    console.log("Error al formatear el nombre:" + name, err);
+    return "-";
+  }
 }

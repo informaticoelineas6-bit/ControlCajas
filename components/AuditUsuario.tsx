@@ -325,7 +325,7 @@ export default function AuditUsuario() {
                               Fecha
                             </p>
                             <h4 className="mt-1 text-base font-semibold text-slate-900">
-                              {formatDate(item.created_at)}
+                              {item.created_at ? formatDate(item.created_at) : "-"}
                             </h4>
                           </div>
                         </div>
@@ -409,7 +409,7 @@ export default function AuditUsuario() {
                           className="border-t border-slate-100 transition hover:bg-slate-100"
                         >
                           <td className="px-5 py-4 font-medium text-slate-700">
-                            {formatDate(item.created_at)}
+                            {item.created_at ? formatDate(item.created_at) : "-"}
                           </td>
                           <td className="px-5 py-4 text-slate-600">
                             {item.object_type}
@@ -479,7 +479,7 @@ export default function AuditUsuario() {
                               Fecha
                             </p>
                             <h4 className="mt-1 text-base font-semibold text-slate-900">
-                              {formatDate(item.fecha)}
+                              {item.fecha ? formatDate(item.fecha) : "-"}
                             </h4>
                           </div>
                         </div>
@@ -594,7 +594,7 @@ export default function AuditUsuario() {
                           className="border-t border-slate-100 transition hover:bg-slate-100"
                         >
                           <td className="px-5 py-4 font-medium text-slate-700">
-                            {formatDate(item.fecha)}
+                            {item.fecha ? formatDate(item.fecha) : "-"}
                           </td>
                           <td className="px-5 py-4 text-slate-600">
                             {item.centro_distribucion}

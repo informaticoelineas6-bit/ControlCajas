@@ -466,7 +466,7 @@ export default function TablaVehiculos({
                       </td>
                       <td
                         title={
-                          item.ajuste
+                          item.ajuste?.fechaHora
                             ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
                             : undefined
                         }
