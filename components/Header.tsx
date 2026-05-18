@@ -59,7 +59,7 @@ export default function Header({ usuario }: Readonly<HeaderProps>) {
               />
               <div>
                 <p className="text-sm font-semibold text-white">
-                  {prettyName(usuario.nombre)}
+                  {usuario.nombre ? prettyName(usuario.nombre) : "-"}
                 </p>
                 <p className="hidden lg:block mt-1 text-xs capitalize text-sky-100/75">
                   {usuario.rol}

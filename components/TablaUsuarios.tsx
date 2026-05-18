@@ -389,7 +389,7 @@ export default function TablaUsuarios({
                           Nombre
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
-                          {prettyName(item.nombre)}
+                          {item.nombre ? prettyName(item.nombre) : "-"}
                         </h4>
                       </div>
                       {usuario.rol === "informatico" && (
@@ -496,7 +496,7 @@ export default function TablaUsuarios({
                       className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
                       <td className="px-5 py-4 font-semibold text-slate-800">
-                        {prettyName(item.nombre)}
+                        {item.nombre ? prettyName(item.nombre) : "-"}
                       </td>
                       <td className="px-5 py-4">
                         <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
@@ -519,8 +519,7 @@ export default function TablaUsuarios({
                       <td
                         title={
                           item.ajuste
-                            ? "Ajustado el " +
-                              formatDate(item.ajuste.fechaHora)
+                            ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
                             : undefined
                         }
                         className="px-5 py-4 text-slate-500 hover:bg-slate-300"

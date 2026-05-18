@@ -16,7 +16,7 @@ export default function Sidebar({ usuario, pageAccess }: NavProps) {
           Control de cajas
         </p>
         <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-          {prettyName(usuario.nombre)}
+          {usuario.nombre ? prettyName(usuario.nombre) : "-"}
         </h2>
         <p className="mt-2 text-sm capitalize text-slate-300">{usuario.rol}</p>
       </div>
