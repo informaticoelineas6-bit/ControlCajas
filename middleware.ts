@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifyToken } from "@/lib/auth";
 
 const allowedOrigins = ["https://controlcajas.mercadoelineas.com"];
 
@@ -9,7 +8,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 } as const;
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const origin = request.headers.get("origin") ?? "";
   const isAllowed = allowedOrigins.includes(origin);
   const allowOrigin = isAllowed ? origin : allowedOrigins[0];
@@ -25,20 +24,7 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  // Strip any client-provided x-usuario to prevent identity spoofing
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.delete("x-usuario");
-
-  // Verify Bearer token and forward the identity as a trusted internal header
-  const authHeader = request.headers.get("Authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    const usuario = await verifyToken(authHeader.slice(7));
-    if (usuario) {
-      requestHeaders.set("x-usuario", JSON.stringify(usuario));
-    }
-  }
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  const response = NextResponse.next();
   response.headers.set("Access-Control-Allow-Origin", allowOrigin);
   for (const [key, value] of Object.entries(CORS_HEADERS)) {
     response.headers.set(key, value);

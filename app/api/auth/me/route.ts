@@ -1,10 +1,10 @@
 import { getErrorMessage } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
-import { usuarioCookie } from "@/lib/auth";
+import { getUsuario } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const usuario = usuarioCookie(request);
+    const usuario = await getUsuario(request);
 
     if (!usuario) {
       return NextResponse.json(

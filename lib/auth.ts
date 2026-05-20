@@ -97,20 +97,19 @@ export async function verifyToken(token: string): Promise<TokenPayload | null> {
   }
 }
 
-export function usuarioCookie(request: NextRequest): Usuario | null {
-  // x-usuario is set by middleware after Bearer token verification;
-  // strip any client-provided value happens in middleware before this runs.
-  const xUsuario = request.headers.get("x-usuario");
-  if (xUsuario) {
-    try {
-      const parsed = JSON.parse(xUsuario) as Usuario;
-      if (parsed?.nombre && parsed?.rol) return parsed;
-    } catch {
-      // fall through to cookie
-    }
+// getUsuario: checks Bearer token (cross-origin) or httpOnly cookie (same-origin).
+// Use this in every route handler instead of usuarioCookie.
+export async function getUsuario(request: NextRequest): Promise<Usuario | null> {
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const usuario = await verifyToken(authHeader.slice(7));
+    if (usuario) return usuario;
   }
+  return usuarioCookie(request);
+}
 
-  // Fall back to httpOnly cookie for same-origin requests
+// usuarioCookie: synchronous cookie-only read, kept for same-origin pages.
+export function usuarioCookie(request: NextRequest): Usuario | null {
   const cookieVal = request.cookies.get("usuario");
   if (!cookieVal) return null;
   try {

@@ -13,12 +13,12 @@ import {
 } from "@/lib/constants";
 import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import { AjusteStr, applyAjuste, hasCajas } from "@/lib/utils";
-import { usuarioCookie } from "@/lib/auth";
+import { getUsuario } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const usuarioAuth = usuarioCookie(request);
+    const usuarioAuth = await getUsuario(request);
     if (usuarioAuth === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     if (usuarioAuth.rol !== "informatico" && usuarioAuth.rol !== "auditor")

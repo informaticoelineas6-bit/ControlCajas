@@ -1,7 +1,7 @@
 import { getErrorMessage } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/server";
-import { usuarioCookie } from "@/lib/auth";
+import { getUsuario } from "@/lib/auth";
 import {
   AjusteObjetos,
   getObjectTable,
@@ -12,7 +12,7 @@ import { format } from "date-fns";
 
 export async function PUT(request: NextRequest) {
   try {
-    const usuario = usuarioCookie(request);
+    const usuario = await getUsuario(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     if (usuario.rol !== "informatico")
