@@ -168,7 +168,7 @@ export default function AuditCentro() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                       Nombre
                     </p>
                     <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -179,9 +179,7 @@ export default function AuditCentro() {
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
-                      <p className="text-slate-500 capitalize">
-                        {"Deuda " + color}
-                      </p>
+                      <p className="text-slate-600">Deuda {color}</p>
                       <p className="font-medium text-slate-700">
                         {datos.centro.deuda?.[color] ?? "-"}
                       </p>
@@ -191,9 +189,7 @@ export default function AuditCentro() {
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
-                      <p className="text-slate-500 capitalize">
-                        {"Cajas rotas " + color}
-                      </p>
+                      <p className="text-slate-600">Cajas {color} rotas</p>
                       <p className="font-medium text-slate-700">
                         {datos.centro.roturas.cajas[color] ?? "-"}
                       </p>
@@ -203,16 +199,14 @@ export default function AuditCentro() {
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                     <div key={color}>
-                      <p className="text-slate-500 capitalize">
-                        {"Tapas rotas " + color}
-                      </p>
+                      <p className="text-slate-600">Tapas {color} rotas</p>
                       <p className="font-medium text-slate-700">
                         {datos.centro.roturas.tapas[color] ?? "-"}
                       </p>
                     </div>
                   ))}
                   <div>
-                    <p className="text-slate-500">Estado</p>
+                    <p className="text-slate-600">Estado</p>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
                         datos.centro.ajuste?.habilitado
@@ -226,7 +220,7 @@ export default function AuditCentro() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-slate-500">Editado por</p>
+                    <p className="text-slate-600">Editado por</p>
                     <p className="font-medium text-slate-700">
                       {datos.centro.ajuste?.nombre
                         ? prettyName(datos.centro.ajuste?.nombre)
@@ -260,7 +254,7 @@ export default function AuditCentro() {
                         key={`cajas-${color}`}
                         className="px-5 py-4 text-left font-semibold"
                       >
-                        Cajas rotas {color}
+                        Cajas {color} rotas
                       </th>
                     ))}
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
@@ -312,7 +306,7 @@ export default function AuditCentro() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                           Fecha del cierre
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -323,9 +317,7 @@ export default function AuditCentro() {
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-500 capitalize">
-                            {"Ajuste deuda " + color}
-                          </p>
+                          <p className="text-slate-600">Ajuste deuda {color}</p>
                           <p
                             className={`font-medium text-slate-700 ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
                           >
@@ -337,9 +329,7 @@ export default function AuditCentro() {
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-500 capitalize">
-                            {"Cajas rotas " + color}
-                          </p>
+                          <p className="text-slate-600">Cajas {color} rotas</p>
                           <p
                             className={`font-medium text-slate-700 ${getRoturaClass(item.roturas.cajas[color])}`}
                           >
@@ -351,9 +341,7 @@ export default function AuditCentro() {
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <div key={color}>
-                          <p className="text-slate-500 capitalize">
-                            {"Tapas rotas " + color}
-                          </p>
+                          <p className="text-slate-600">Tapas {color} rotas</p>
                           <p
                             className={`font-medium text-slate-700 ${getRoturaClass(item.roturas.tapas[color])}`}
                           >
@@ -404,7 +392,7 @@ export default function AuditCentro() {
                       key={`${item.fecha}`}
                       className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
-                      <td className="px-5 py-4 font-medium text-slate-700">
+                      <td className="px-5 py-4 font-medium text-slate-900">
                         {item.fecha ? formatDate(item.fecha) : "-"}
                       </td>
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (

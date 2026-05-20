@@ -186,7 +186,7 @@ export default function AuditUsuario() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                       Nombre
                     </p>
                     <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -196,13 +196,13 @@ export default function AuditUsuario() {
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   <div>
-                    <p className="text-slate-500">Rol</p>
+                    <p className="text-slate-600">Rol</p>
                     <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
                       {datos.usuario.rol ?? "-"}
                     </span>
                   </div>
                   <div>
-                    <p className="text-slate-500">Fecha inscripción</p>
+                    <p className="text-slate-600">Fecha inscripción</p>
                     <p className="font-medium text-slate-700">
                       {datos.usuario.created_at
                         ? formatDate(datos.usuario.created_at)
@@ -210,7 +210,7 @@ export default function AuditUsuario() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-500">Estado</p>
+                    <p className="text-slate-600">Estado</p>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
                         datos.usuario.ajuste?.habilitado
@@ -224,7 +224,7 @@ export default function AuditUsuario() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-slate-500">Autorizado por</p>
+                    <p className="text-slate-600">Autorizado por</p>
                     <p className="font-medium text-slate-700">
                       {datos.usuario.ajuste?.nombre
                         ? prettyName(datos.usuario.ajuste?.nombre)
@@ -232,7 +232,7 @@ export default function AuditUsuario() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-500">Fecha ajuste</p>
+                    <p className="text-slate-600">Fecha ajuste</p>
                     <p className="font-medium text-slate-700">
                       {datos.usuario.ajuste?.fechaHora
                         ? formatDate(datos.usuario.ajuste.fechaHora)
@@ -321,17 +321,19 @@ export default function AuditUsuario() {
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                               Fecha
                             </p>
                             <h4 className="mt-1 text-base font-semibold text-slate-900">
-                              {item.created_at ? formatDate(item.created_at) : "-"}
+                              {item.created_at
+                                ? formatDate(item.created_at)
+                                : "-"}
                             </h4>
                           </div>
                         </div>
                         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                           <div>
-                            <p className="text-slate-500">Tipo</p>
+                            <p className="text-slate-600">Tipo</p>
                             <span
                               className={
                                 "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
@@ -342,7 +344,7 @@ export default function AuditUsuario() {
                             </span>
                           </div>
                           <div>
-                            <p className="text-slate-500">Acción</p>
+                            <p className="text-slate-600">Acción</p>
                             <span
                               className={
                                 "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
@@ -355,22 +357,22 @@ export default function AuditUsuario() {
                           {item.changes ? (
                             <>
                               <div>
-                                <p className="text-slate-500">Previo</p>
-                                <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                                <p className="text-slate-600">Previo</p>
+                                <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
                                   {JSON.stringify(item.changes.prev, null, 2)}
                                 </pre>
                               </div>
                               <div>
-                                <p className="text-slate-500">Cambios</p>
-                                <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                                <p className="text-slate-600">Cambios</p>
+                                <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
                                   {JSON.stringify(item.changes.new, null, 2)}
                                 </pre>
                               </div>
                             </>
                           ) : (
                             <div className="col-span-2">
-                              <p className="text-slate-500">Objeto</p>
-                              <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                              <p className="text-slate-600">Objeto</p>
+                              <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
                                 {JSON.stringify(item.snapshot, null, 2)}
                               </pre>
                             </div>
@@ -383,7 +385,7 @@ export default function AuditUsuario() {
 
                 <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
                   <table className="min-w-full text-sm">
-                    <thead className="bg-slate-50 text-slate-600">
+                    <thead className="bg-slate-50 text-slate-800">
                       <tr>
                         <th className="px-5 py-4 text-left font-semibold">
                           Fecha
@@ -409,12 +411,14 @@ export default function AuditUsuario() {
                           className="border-t border-slate-100 transition hover:bg-slate-100"
                         >
                           <td className="px-5 py-4 font-medium text-slate-700">
-                            {item.created_at ? formatDate(item.created_at) : "-"}
+                            {item.created_at
+                              ? formatDate(item.created_at)
+                              : "-"}
                           </td>
-                          <td className="px-5 py-4 text-slate-600">
+                          <td className="px-5 py-4 text-slate-700">
                             {item.object_type}
                           </td>
-                          <td className="px-5 py-4 text-slate-600">
+                          <td className="px-5 py-4 text-slate-700">
                             <span
                               className={
                                 "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
@@ -425,7 +429,7 @@ export default function AuditUsuario() {
                             </span>
                           </td>
                           {item.changes && (
-                            <td className="px-5 py-4 text-slate-600">
+                            <td className="px-5 py-4 text-slate-700">
                               <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
                                 {JSON.stringify(item.changes.prev, null, 2)}
                               </pre>
@@ -433,9 +437,9 @@ export default function AuditUsuario() {
                           )}
                           <td
                             colSpan={item.changes ? 1 : 2}
-                            className="px-5 py-4 text-slate-600"
+                            className="px-5 py-4 text-slate-700"
                           >
-                            <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                            <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
                               {JSON.stringify(
                                 item.changes?.new ?? item.snapshot,
                                 null,
@@ -475,7 +479,7 @@ export default function AuditUsuario() {
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                               Fecha
                             </p>
                             <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -485,13 +489,13 @@ export default function AuditUsuario() {
                         </div>
                         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                           <div>
-                            <p className="text-slate-500">Centro</p>
+                            <p className="text-slate-600">Centro</p>
                             <p className="font-medium text-slate-700">
                               {item.centro_distribucion ?? "-"}
                             </p>
                           </div>
                           <div>
-                            <p className="text-slate-500">Evento</p>
+                            <p className="text-slate-600">Evento</p>
                             <p className="font-medium text-slate-700">
                               {item.tipo_evento ?? "-"}
                             </p>
@@ -500,7 +504,7 @@ export default function AuditUsuario() {
                         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                           {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                             <div key={color}>
-                              <p className="text-slate-500 capitalize">
+                              <p className="text-slate-600">
                                 {"Cajas " + color}
                               </p>
                               <p
@@ -515,8 +519,8 @@ export default function AuditUsuario() {
                           <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                             {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                               <div key={color}>
-                                <p className="text-slate-500 capitalize">
-                                  {"Cajas rotas " + color}
+                                <p className="text-slate-600">
+                                  Cajas {color} rotas
                                 </p>
                                 <p
                                   className={`font-medium text-slate-700 ${getRoturaClass(item.roturas?.cajas[color])}`}
@@ -531,8 +535,8 @@ export default function AuditUsuario() {
                           <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                             {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                               <div key={color}>
-                                <p className="text-slate-500 capitalize">
-                                  {"Tapas rotas " + color}
+                                <p className="text-slate-600">
+                                  Tapas {color} rotas
                                 </p>
                                 <p
                                   className={`font-medium text-slate-700 ${getRoturaClass(item.roturas?.tapas[color])}`}
@@ -550,7 +554,7 @@ export default function AuditUsuario() {
 
                 <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
                   <table className="min-w-full text-sm">
-                    <thead className="bg-slate-50 text-slate-600">
+                    <thead className="bg-slate-50 text-slate-800">
                       <tr>
                         <th className="px-5 py-4 text-left font-semibold">
                           Fecha
@@ -596,10 +600,10 @@ export default function AuditUsuario() {
                           <td className="px-5 py-4 font-medium text-slate-700">
                             {item.fecha ? formatDate(item.fecha) : "-"}
                           </td>
-                          <td className="px-5 py-4 text-slate-600">
+                          <td className="px-5 py-4 text-slate-700">
                             {item.centro_distribucion}
                           </td>
-                          <td className="px-5 py-4 text-slate-600">
+                          <td className="px-5 py-4 text-slate-700">
                             <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
                               {item.tipo_evento}
                             </span>
@@ -607,7 +611,7 @@ export default function AuditUsuario() {
                           {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                             <td
                               key={`cajas-${item.fecha}-${color}`}
-                              className="px-5 py-4 text-slate-600"
+                              className="px-5 py-4 text-slate-700"
                             >
                               <span
                                 className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getCajasClass(item.cajas[color])}`}
@@ -619,7 +623,7 @@ export default function AuditUsuario() {
                           {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                             <td
                               key={`cajas-rotas-${item.fecha}-${color}`}
-                              className="px-5 py-4 text-slate-600"
+                              className="px-5 py-4 text-slate-700"
                             >
                               <span
                                 className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.cajas[color])}`}
@@ -631,7 +635,7 @@ export default function AuditUsuario() {
                           {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                             <td
                               key={`tapas-rotas-${item.fecha}-${color}`}
-                              className="px-5 py-4 text-slate-600"
+                              className="px-5 py-4 text-slate-700"
                             >
                               <span
                                 className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.tapas[color])}`}

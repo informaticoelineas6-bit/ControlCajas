@@ -132,7 +132,7 @@ export default function TablaExpedicionEntrega({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                           Centro
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -142,13 +142,13 @@ export default function TablaExpedicionEntrega({
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                       <div>
-                        <p className="text-slate-500">Almacén</p>
+                        <p className="text-slate-600">Almacén</p>
                         <p className="font-medium text-slate-700">
                           {item.almacen ?? "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-slate-500">Chapa</p>
+                        <p className="text-slate-600">Chapa</p>
                         <p className="font-medium text-slate-700">
                           {item.chapa ?? "-"}
                         </p>
@@ -160,19 +160,19 @@ export default function TablaExpedicionEntrega({
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                         <div className="md:col-span-2">
-                          <p className="text-slate-500">Responsable</p>
+                          <p className="text-slate-600">Responsable</p>
                           <p className="font-medium text-slate-700">
                             {item.expedicion?.nombre ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Ajuste</p>
+                          <p className="text-slate-600">Ajuste</p>
                           <p className="font-medium text-slate-700">
                             {item.expedicion?.ajuste ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Cajas</p>
+                          <p className="text-slate-600">Cajas</p>
                           <p className="font-medium text-slate-700">
                             {item.expedicion
                               ? formatCajas(item.expedicion?.cajas) +
@@ -191,19 +191,19 @@ export default function TablaExpedicionEntrega({
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                         <div className="md:col-span-2">
-                          <p className="text-slate-500">Responsable</p>
+                          <p className="text-slate-600">Responsable</p>
                           <p className="font-medium text-slate-700">
                             {item.traspaso?.nombre ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Ajuste</p>
+                          <p className="text-slate-600">Ajuste</p>
                           <p className="font-medium text-slate-700">
                             {item.traspaso?.ajuste ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Cajas</p>
+                          <p className="text-slate-600">Cajas</p>
                           <p className="font-medium text-slate-700">
                             {item.traspaso
                               ? formatCajas(item.traspaso?.cajas) +
@@ -222,19 +222,19 @@ export default function TablaExpedicionEntrega({
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                         <div className="md:col-span-2">
-                          <p className="text-slate-500">Responsable</p>
+                          <p className="text-slate-600">Responsable</p>
                           <p className="font-medium text-slate-700">
                             {item.entrega?.nombre ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Ajuste</p>
+                          <p className="text-slate-600">Ajuste</p>
                           <p className="font-medium text-slate-700">
                             {item.entrega?.ajuste ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Cajas</p>
+                          <p className="text-slate-600">Cajas</p>
                           <p className="font-medium text-slate-700">
                             {item.entrega
                               ? formatCajas(item.entrega?.cajas) +
@@ -255,7 +255,7 @@ export default function TablaExpedicionEntrega({
             <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500">
+                  <tr className="bg-slate-50 text-slate-800">
                     <th
                       colSpan={3}
                       className="px-5 py-4 text-left font-semibold bg-slate-100"
@@ -336,7 +336,7 @@ export default function TablaExpedicionEntrega({
                             : "hover:bg-slate-100"
                         }`}
                       >
-                        <td className="px-5 py-4 font-semibold text-slate-800">
+                        <td className="px-5 py-4 font-semibold text-slate-900">
                           {item.centro_distribucion ?? "-"}
                         </td>
                         <td className="px-5 py-4 text-slate-600">
@@ -348,7 +348,7 @@ export default function TablaExpedicionEntrega({
                         <td className="px-5 py-4 text-center text-slate-600">
                           {item.expedicion?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-500">
+                        <td className="px-5 py-4 text-center text-slate-600">
                           {item.expedicion?.ajuste ?? "-"}
                         </td>
                         <td
@@ -366,7 +366,7 @@ export default function TablaExpedicionEntrega({
                         <td className="px-5 py-4 text-center text-slate-600">
                           {item.traspaso?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-500">
+                        <td className="px-5 py-4 text-center text-slate-600">
                           {item.traspaso?.ajuste ?? "-"}
                         </td>
                         <td
@@ -384,7 +384,7 @@ export default function TablaExpedicionEntrega({
                         <td className="px-5 py-4 text-center text-slate-600">
                           {item.entrega?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-500">
+                        <td className="px-5 py-4 text-center text-slate-600">
                           {item.entrega?.ajuste ?? "-"}
                         </td>
                         <td

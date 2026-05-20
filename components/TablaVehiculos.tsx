@@ -311,7 +311,7 @@ export default function TablaVehiculos({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                           Chapa
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -361,25 +361,25 @@ export default function TablaVehiculos({
                     </div>
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       <div>
-                        <p className="text-slate-500">Categoría</p>
+                        <p className="text-slate-600">Categoría</p>
                         <span className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200">
                           {item.categoria ?? "-"}
                         </span>
                       </div>
                       <div>
-                        <p className="text-slate-500">Marca</p>
+                        <p className="text-slate-600">Marca</p>
                         <p className="font-medium text-slate-700">
                           {item.marca ?? "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-slate-500">Modelo</p>
+                        <p className="text-slate-600">Modelo</p>
                         <p className="font-medium text-slate-700">
                           {item.modelo ?? "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-slate-500">Estado</p>
+                        <p className="text-slate-600">Estado</p>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
                             item.ajuste?.habilitado
@@ -393,7 +393,7 @@ export default function TablaVehiculos({
                         </span>
                       </div>
                       <div>
-                        <p className="text-slate-500">Editado por</p>
+                        <p className="text-slate-600">Editado por</p>
                         <p className="font-medium text-slate-700">
                           {item.ajuste?.nombre
                             ? prettyName(item.ajuste?.nombre)
@@ -408,7 +408,7 @@ export default function TablaVehiculos({
 
             <div className="mt-8 overflow-x-auto hidden lg:block">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500">
+                <thead className="bg-slate-50 text-slate-800">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold">
                       Categoría
@@ -442,7 +442,7 @@ export default function TablaVehiculos({
                           {item.categoria ?? "-"}
                         </span>
                       </td>
-                      <td className="px-5 py-4 font-semibold text-slate-800">
+                      <td className="px-5 py-4 font-semibold text-slate-900">
                         {item.chapa ?? "-"}
                       </td>
                       <td className="px-5 py-4 text-slate-600">
@@ -470,7 +470,7 @@ export default function TablaVehiculos({
                             ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
                             : undefined
                         }
-                        className="px-5 py-4 text-slate-500 hover:bg-slate-300"
+                        className={`px-5 py-4 text-slate-600${!!item.ajuste ? " hover:bg-slate-300" : ""}`}
                       >
                         {item.ajuste?.nombre
                           ? prettyName(item.ajuste?.nombre)

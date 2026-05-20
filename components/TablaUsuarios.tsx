@@ -385,7 +385,7 @@ export default function TablaUsuarios({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                           Nombre
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -435,13 +435,13 @@ export default function TablaUsuarios({
                     </div>
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       <div>
-                        <p className="text-slate-500">Rol</p>
+                        <p className="text-slate-600">Rol</p>
                         <span className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
                           {item.rol ?? "-"}
                         </span>
                       </div>
                       <div>
-                        <p className="text-slate-500">Estado</p>
+                        <p className="text-slate-600">Estado</p>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
                             item.ajuste?.habilitado
@@ -455,7 +455,7 @@ export default function TablaUsuarios({
                         </span>
                       </div>
                       <div>
-                        <p className="text-slate-500">Autorizado por</p>
+                        <p className="text-slate-600">Autorizado por</p>
                         <p className="font-medium text-slate-700">
                           {item.ajuste?.nombre
                             ? prettyName(item.ajuste?.nombre)
@@ -470,7 +470,7 @@ export default function TablaUsuarios({
 
             <div className="mt-8 overflow-x-auto hidden lg:block">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500">
+                <thead className="bg-slate-50 text-slate-800">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold">
                       Nombre
@@ -495,7 +495,7 @@ export default function TablaUsuarios({
                       key={item.nombre}
                       className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
-                      <td className="px-5 py-4 font-semibold text-slate-800">
+                      <td className="px-5 py-4 font-semibold text-slate-900">
                         {item.nombre ? prettyName(item.nombre) : "-"}
                       </td>
                       <td className="px-5 py-4">
@@ -522,7 +522,7 @@ export default function TablaUsuarios({
                             ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
                             : undefined
                         }
-                        className="px-5 py-4 text-slate-500 hover:bg-slate-300"
+                        className={`px-5 py-4 text-slate-600${!!item.ajuste ? " hover:bg-slate-300" : ""}`}
                       >
                         {item.ajuste?.nombre
                           ? prettyName(item.ajuste?.nombre)

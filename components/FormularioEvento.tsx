@@ -626,7 +626,8 @@ export default function FormularioEvento({
                     htmlFor="centro_distribucion"
                     className="mb-2 block text-sm font-medium text-slate-600"
                   >
-                    {`Centro de distribución${mostrarRoturas ? " o Provincia" : ""} *`}
+                    Centro de distribución{" "}
+                    {mostrarRoturas ? " o Provincia" : ""} *
                   </label>
                   <select
                     id="centro_distribucion"
@@ -639,9 +640,10 @@ export default function FormularioEvento({
                     }
                     className={fieldClass}
                   >
-                    <option
-                      value={undefined}
-                    >{`Selecciona un centro${mostrarRoturas ? " o provincia" : ""}`}</option>
+                    <option value={undefined}>
+                      Selecciona un centro{" "}
+                      {mostrarRoturas ? " o provincia" : ""}
+                    </option>
                     {initialData ? (
                       <option
                         key={initialData.centro_distribucion}

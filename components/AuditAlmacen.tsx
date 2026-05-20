@@ -168,7 +168,7 @@ export default function AuditAlmacen() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                       Nombre
                     </p>
                     <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -179,9 +179,7 @@ export default function AuditAlmacen() {
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
-                      <p className="text-slate-500 capitalize">
-                        {"Stock " + color}
-                      </p>
+                      <p className="text-slate-600">Stock {color}</p>
                       <p className="font-medium text-slate-700">
                         {datos.almacen.stock?.[color] ?? "-"}
                       </p>
@@ -191,9 +189,7 @@ export default function AuditAlmacen() {
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
-                      <p className="text-slate-500 capitalize">
-                        {"Cajas rotas " + color}
-                      </p>
+                      <p className="text-slate-600">Cajas {color} rotas</p>
                       <p className="font-medium text-slate-700">
                         {datos.almacen.roturas.cajas[color] ?? "-"}
                       </p>
@@ -203,16 +199,14 @@ export default function AuditAlmacen() {
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                     <div key={color}>
-                      <p className="text-slate-500 capitalize">
-                        {"Tapas rotas " + color}
-                      </p>
+                      <p className="text-slate-600">Tapas {color} rotas</p>
                       <p className="font-medium text-slate-700">
                         {datos.almacen.roturas.tapas[color] ?? "-"}
                       </p>
                     </div>
                   ))}
                   <div>
-                    <p className="text-slate-500">Estado</p>
+                    <p className="text-slate-600">Estado</p>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
                         datos.almacen.ajuste?.habilitado
@@ -226,7 +220,7 @@ export default function AuditAlmacen() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-slate-500">Editado por</p>
+                    <p className="text-slate-600">Editado por</p>
                     <p className="font-medium text-slate-700">
                       {datos.almacen.ajuste?.nombre
                         ? prettyName(datos.almacen.ajuste?.nombre)
@@ -308,7 +302,7 @@ export default function AuditAlmacen() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                           Fecha del cierre
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -319,9 +313,7 @@ export default function AuditAlmacen() {
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-500 capitalize">
-                            {"Ajuste stock " + color}
-                          </p>
+                          <p className="text-slate-600">Ajuste stock {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.ajuste_stock[color] ?? "-"}
                           </p>
@@ -331,9 +323,7 @@ export default function AuditAlmacen() {
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-500 capitalize">
-                            {"Cajas rotas " + color}
-                          </p>
+                          <p className="text-slate-600">Cajas rotas {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.roturas.cajas[color] ?? "-"}
                           </p>
@@ -343,9 +333,7 @@ export default function AuditAlmacen() {
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <div key={color}>
-                          <p className="text-slate-500 capitalize">
-                            {"Tapas rotas " + color}
-                          </p>
+                          <p className="text-slate-600">Tapas rotas {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.roturas.tapas[color] ?? "-"}
                           </p>
@@ -394,7 +382,7 @@ export default function AuditAlmacen() {
                       key={`${item.fecha}`}
                       className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
-                      <td className="px-5 py-4 font-medium text-slate-700">
+                      <td className="px-5 py-4 font-medium text-slate-900">
                         {item.fecha ? formatDate(item.fecha) : "-"}
                       </td>
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (

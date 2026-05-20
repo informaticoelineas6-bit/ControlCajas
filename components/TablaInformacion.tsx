@@ -201,7 +201,7 @@ export default function TablaInformacion() {
             <p className="text-xs font-semibold uppercase tracking-[0.34em] text-slate-500">
               Centro operativo
             </p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
               Panorama de centros y rotación de cajas
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">
@@ -318,7 +318,7 @@ export default function TablaInformacion() {
             </article>
 
             <article className="rounded-[28px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.45)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-600">
                 Deuda por color
               </p>
               <h3 className="mt-3 text-2xl font-semibold text-slate-900">
@@ -347,7 +347,7 @@ export default function TablaInformacion() {
             </article>
 
             <article className="rounded-[28px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.45)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-600">
                 Stock por color
               </p>
               <h3 className="mt-3 text-2xl font-semibold text-slate-900">
@@ -401,7 +401,7 @@ export default function TablaInformacion() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                         Nombre
                       </p>
                       <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -411,31 +411,31 @@ export default function TablaInformacion() {
                   </div>
                   <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                     <div>
-                      <p className="text-slate-500">Deuda</p>
+                      <p className="text-slate-600">Deuda</p>
                       <p className="font-medium text-slate-700">
                         {totalCajas(centro.deuda)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Deuda activa</p>
+                      <p className="text-slate-600">Deuda activa</p>
                       <p className="font-medium text-slate-700">
                         {totalCajas(centro.deuda_activa)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Roturas</p>
+                      <p className="text-slate-600">Roturas</p>
                       <p className="font-medium text-slate-700">
                         {centro.roturasTotal}
                       </p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Rotación</p>
+                      <p className="text-slate-600">Rotación</p>
                       <p className="font-medium text-slate-700">
                         {centro.rotacion ?? "-"} días
                       </p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Fecha de deuda</p>
+                      <p className="text-slate-600">Fecha de deuda</p>
                       <p className="font-medium text-slate-700">
                         {centro.fechaRot
                           ? formatDate(centro.fechaRot)
@@ -443,7 +443,7 @@ export default function TablaInformacion() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Estado de deuda</p>
+                      <p className="text-slate-600">Estado de deuda</p>
                       <span
                         className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                           estadoStyles[centro.estadoRot ?? ""] ??
@@ -460,7 +460,7 @@ export default function TablaInformacion() {
 
             <div className="overflow-x-auto hidden lg:block">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500">
+                <thead className="bg-slate-50 text-slate-800">
                   <tr>
                     <th className="px-6 py-4 text-left font-semibold">
                       Centro de Distribución
@@ -492,7 +492,7 @@ export default function TablaInformacion() {
                       )} border-t border-slate-100 transition hover:from-slate-50 hover:to-white`}
                     >
                       <td className="px-6 py-4">
-                        <p className="font-semibold text-slate-800">
+                        <p className="font-semibold text-slate-900">
                           {centro.nombre}
                         </p>
                       </td>
@@ -520,7 +520,7 @@ export default function TablaInformacion() {
                       <td className="px-6 py-4 font-medium text-slate-700">
                         {centro.rotacion ?? 0} días
                       </td>
-                      <td className="px-6 py-4 text-slate-500">
+                      <td className="px-6 py-4 text-slate-600">
                         {centro.fechaRot
                           ? formatDate(centro.fechaRot)
                           : "Sin fecha"}

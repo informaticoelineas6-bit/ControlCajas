@@ -119,7 +119,7 @@ export default function TablaExpedicion({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                           {item.provincia ? "Provincia" : "Centro"}
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -139,27 +139,27 @@ export default function TablaExpedicion({
                     </div>
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       <div>
-                        <p className="text-slate-500">Almacén</p>
+                        <p className="text-slate-600">Almacén</p>
                         <p className="font-medium text-slate-700">
                           {item.almacen ?? "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-slate-500">Expedidor</p>
+                        <p className="text-slate-600">Expedidor</p>
                         <p className="font-medium text-slate-700">
                           {item.nombre ? prettyName(item.nombre) : "-"}
                         </p>
                       </div>
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-500 capitalize">{color}</p>
+                          <p className="text-slate-600 capitalize">{color}</p>
                           <p className="font-medium text-slate-700">
                             {item.cajas?.[color] ?? "-"}
                           </p>
                         </div>
                       ))}
                       <div>
-                        <p className="text-slate-500">Ajustado por</p>
+                        <p className="text-slate-600">Ajustado por</p>
                         <p className="font-medium text-slate-700">
                           {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </p>
@@ -172,7 +172,7 @@ export default function TablaExpedicion({
 
             <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500">
+                <thead className="bg-slate-50 text-slate-800">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold">
                       Centro (o Provincia)
@@ -217,15 +217,15 @@ export default function TablaExpedicion({
                         key={item.id}
                         className="border-t border-slate-100 transition hover:bg-emerald-50/40"
                       >
-                        <td className="px-5 py-4 font-semibold text-slate-800">
+                        <td className="px-5 py-4 font-semibold text-slate-900">
                           {(item.provincia
                             ? item.provincia
                             : item.centro_distribucion) ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-slate-600">
+                        <td className="px-5 py-4 text-slate-700">
                           {item.almacen ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-slate-600">
+                        <td className="px-5 py-4 text-slate-700">
                           {item.nombre ? prettyName(item.nombre) : "-"}
                         </td>
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (

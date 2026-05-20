@@ -129,7 +129,7 @@ export default function TablaRecogidaDevolucion({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                           Centro
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -139,13 +139,13 @@ export default function TablaRecogidaDevolucion({
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                       <div>
-                        <p className="text-slate-500">Almacén</p>
+                        <p className="text-slate-600">Almacén</p>
                         <p className="font-medium text-slate-700">
                           {item.almacen ?? "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-slate-500">Chapa</p>
+                        <p className="text-slate-600">Chapa</p>
                         <p className="font-medium text-slate-700">
                           {item.chapa ?? "-"}
                         </p>
@@ -157,19 +157,19 @@ export default function TablaRecogidaDevolucion({
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                         <div className="md:col-span-2">
-                          <p className="text-slate-500">Responsable</p>
+                          <p className="text-slate-600">Responsable</p>
                           <p className="font-medium text-slate-700">
                             {item.recogida?.nombre ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Ajuste</p>
+                          <p className="text-slate-600">Ajuste</p>
                           <p className="font-medium text-slate-700">
                             {item.recogida?.ajuste ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Cajas</p>
+                          <p className="text-slate-600">Cajas</p>
                           <p className="font-medium text-slate-700">
                             {item.recogida
                               ? formatCajas(item.recogida.cajas) +
@@ -185,19 +185,19 @@ export default function TablaRecogidaDevolucion({
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                         <div className="md:col-span-2">
-                          <p className="text-slate-500">Responsable</p>
+                          <p className="text-slate-600">Responsable</p>
                           <p className="font-medium text-slate-700">
                             {item.devolucion?.nombre ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Ajuste</p>
+                          <p className="text-slate-600">Ajuste</p>
                           <p className="font-medium text-slate-700">
                             {item.devolucion?.ajuste ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Cajas</p>
+                          <p className="text-slate-600">Cajas</p>
                           <p className="font-medium text-slate-700">
                             {item.devolucion
                               ? formatCajas(item.devolucion.cajas) +
@@ -213,7 +213,7 @@ export default function TablaRecogidaDevolucion({
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                         <div>
-                          <p className="text-slate-500">Recogida</p>
+                          <p className="text-slate-600">Recogida</p>
                           <p className="font-medium text-slate-700">
                             {item.recogida
                               ? `Cajas ${formatCajas(item.recogida.roturas.cajas)}\nTapas ${formatTapas(item.recogida.roturas.tapas)}\nTotal: ${
@@ -226,7 +226,7 @@ export default function TablaRecogidaDevolucion({
                           </p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Devolucion</p>
+                          <p className="text-slate-600">Devolucion</p>
                           <p className="font-medium text-slate-700">
                             {item.devolucion
                               ? `Cajas ${formatCajas(item.devolucion.roturas.cajas)}\nTapas ${formatTapas(item.devolucion.roturas.tapas)}\nTotal: ${
@@ -250,7 +250,7 @@ export default function TablaRecogidaDevolucion({
             <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500">
+                  <tr className="bg-slate-50 text-slate-800">
                     <th
                       colSpan={3}
                       className="px-5 py-4 text-left font-semibold bg-slate-100"
@@ -276,7 +276,7 @@ export default function TablaRecogidaDevolucion({
                       Roturas
                     </th>
                   </tr>
-                  <tr className="bg-slate-100 text-slate-500">
+                  <tr className="bg-slate-100 text-slate-800">
                     <th className="px-5 py-3 text-left font-semibold">CD</th>
                     <th className="px-5 py-3 text-left font-semibold">
                       Almacén
@@ -330,7 +330,7 @@ export default function TablaRecogidaDevolucion({
                               : "hover:bg-slate-100"
                         }`}
                       >
-                        <td className="px-5 py-4 font-semibold text-slate-800">
+                        <td className="px-5 py-4 font-semibold text-slate-900">
                           {item.centro_distribucion ?? "-"}
                         </td>
                         <td className="px-5 py-4 text-slate-600">
@@ -342,7 +342,7 @@ export default function TablaRecogidaDevolucion({
                         <td className="px-5 py-4 text-center text-slate-600">
                           {item.recogida?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-500">
+                        <td className="px-5 py-4 text-center text-slate-600">
                           {item.recogida?.ajuste ?? "-"}
                         </td>
                         <td
@@ -358,7 +358,7 @@ export default function TablaRecogidaDevolucion({
                         <td className="px-5 py-4 text-center text-slate-600">
                           {item.devolucion?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-500">
+                        <td className="px-5 py-4 text-center text-slate-600">
                           {item.devolucion?.ajuste ?? "-"}
                         </td>
                         <td

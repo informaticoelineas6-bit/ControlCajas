@@ -125,7 +125,7 @@ export default function TablaDevolucion({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                           Centro
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -143,39 +143,39 @@ export default function TablaDevolucion({
                     </div>
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       <div>
-                        <p className="text-slate-500">Almacén</p>
+                        <p className="text-slate-600">Almacén</p>
                         <p className="font-medium text-slate-700">
                           {item.almacen ?? "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-slate-500">Almacenero</p>
+                        <p className="text-slate-600">Almacenero</p>
                         <p className="font-medium text-slate-700">
                           {item.nombre ? prettyName(item.nombre) : "-"}
                         </p>
                       </div>
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-500 capitalize">{color}</p>
+                          <p className="text-slate-600 capitalize">{color}</p>
                           <p className="font-medium text-slate-700">
                             {item.cajas?.[color] ?? "-"}
                           </p>
                         </div>
                       ))}
                       <div>
-                        <p className="text-slate-500">Cajas Rotas</p>
+                        <p className="text-slate-600">Cajas Rotas</p>
                         <p className="font-medium text-slate-700">
                           {totalCajas(item.roturas.cajas)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-slate-500">Tapas Rotas</p>
+                        <p className="text-slate-600">Tapas Rotas</p>
                         <p className="font-medium text-slate-700">
                           {totalCajas(item.roturas.tapas)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-slate-500">Ajustado por</p>
+                        <p className="text-slate-600">Ajustado por</p>
                         <p className="font-medium text-slate-700">
                           {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </p>
@@ -188,7 +188,7 @@ export default function TablaDevolucion({
 
             <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500">
+                <thead className="bg-slate-50 text-slate-800">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold">
                       Centro
@@ -239,13 +239,13 @@ export default function TablaDevolucion({
                         key={item.id}
                         className="border-t border-slate-100 transition hover:bg-amber-50/40"
                       >
-                        <td className="px-5 py-4 font-semibold text-slate-800">
+                        <td className="px-5 py-4 font-semibold text-slate-900">
                           {item.centro_distribucion ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-slate-600">
+                        <td className="px-5 py-4 text-slate-700">
                           {item.almacen ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-slate-600">
+                        <td className="px-5 py-4 text-slate-700">
                           {item.nombre ? prettyName(item.nombre) : "-"}
                         </td>
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
@@ -268,7 +268,7 @@ export default function TablaDevolucion({
                         >
                           {totalCajas(item.roturas.tapas)}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-500">
+                        <td className="px-5 py-4 text-center text-slate-700">
                           {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </td>
                         {usuario.rol === "informatico" && (

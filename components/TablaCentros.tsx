@@ -392,7 +392,7 @@ export default function TablaCentros({
                       onChange={handleInputChange}
                       className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
                     />
-                    {`Deuda de cajas ${color}`}
+                    Deuda {color}
                   </label>
                   <input
                     id={`deuda_${color}`}
@@ -411,7 +411,7 @@ export default function TablaCentros({
                     htmlFor={`cajas_rotas_${color}`}
                     className="mb-2 block text-sm font-medium text-slate-600"
                   >
-                    {`Cajas ${color} rotas`}
+                    Cajas {color} rotas
                   </label>
                   <input
                     id={`cajas_rotas_${color}`}
@@ -430,7 +430,7 @@ export default function TablaCentros({
                     htmlFor={`tapas_rotas_${color}`}
                     className="mb-2 block text-sm font-medium text-slate-600"
                   >
-                    {`Tapas ${color} rotas`}
+                    Tapas {color} rotas
                   </label>
                   <input
                     id={`tapas_rotas_${color}`}
@@ -485,7 +485,7 @@ export default function TablaCentros({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                           Nombre
                         </p>
                         <h4 className="mt-1 text-base font-semibold text-slate-900">
@@ -536,22 +536,20 @@ export default function TablaCentros({
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-500 capitalize">
-                            {"Deuda " + color}
-                          </p>
+                          <p className="text-slate-600">Deuda {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.deuda?.[color] ?? "-"}
                           </p>
                         </div>
                       ))}
                       <div>
-                        <p className="text-slate-500">Rotación</p>
+                        <p className="text-slate-600">Rotación</p>
                         <p className="font-medium text-slate-700">
                           {item.rotacion ?? "-"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-slate-500">Estado</p>
+                        <p className="text-slate-600">Estado</p>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
                             item.ajuste?.habilitado
@@ -565,7 +563,7 @@ export default function TablaCentros({
                         </span>
                       </div>
                       <div>
-                        <p className="text-slate-500">Editado por</p>
+                        <p className="text-slate-600">Editado por</p>
                         <p className="font-medium text-slate-700">
                           {item.ajuste?.nombre
                             ? prettyName(item.ajuste?.nombre)
@@ -580,7 +578,7 @@ export default function TablaCentros({
 
             <div className="mt-8 overflow-x-auto hidden lg:block">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500">
+                <thead className="bg-slate-50 text-slate-800">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold">
                       Nombre
@@ -590,7 +588,7 @@ export default function TablaCentros({
                         key={color}
                         className="px-5 py-4 text-left font-semibold"
                       >
-                        {"Deuda " + color}
+                        Deuda {color}
                       </th>
                     ))}
                     <th className="px-5 py-4 text-left font-semibold">
@@ -615,7 +613,7 @@ export default function TablaCentros({
                       key={item.nombre}
                       className="border-t border-slate-100 transition hover:bg-slate-100"
                     >
-                      <td className="px-5 py-4 font-semibold text-slate-800">
+                      <td className="px-5 py-4 font-semibold text-slate-900">
                         {item.nombre}
                       </td>
 
@@ -648,11 +646,7 @@ export default function TablaCentros({
                             ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
                             : undefined
                         }
-                        className={
-                          "px-5 py-4 text-slate-500" + !!item.ajuste
-                            ? " hover:bg-slate-300"
-                            : ""
-                        }
+                        className={`px-5 py-4 text-slate-600${!!item.ajuste ? " hover:bg-slate-300" : ""}`}
                       >
                         {item.ajuste?.nombre
                           ? prettyName(item.ajuste?.nombre)
