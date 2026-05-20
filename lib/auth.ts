@@ -13,18 +13,110 @@ export async function comparePassword(
 ): Promise<boolean> {
   return await bcryptjs.compare(password, hashedPassword);
 }
+
+// JWT helper functions using Web Crypto API (edge-runtime compatible)
+
+type TokenPayload = Pick<Usuario, "nombre" | "rol">;
+
+function b64urlEncode(str: string): string {
+  return btoa(String.fromCharCode(...new TextEncoder().encode(str)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+function b64urlFromBuffer(buf: ArrayBuffer): string {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+function b64urlDecode(str: string): string {
+  const bytes = Uint8Array.from(
+    atob(str.replace(/-/g, "+").replace(/_/g, "/")),
+    (c) => c.charCodeAt(0),
+  );
+  return new TextDecoder().decode(bytes);
+}
+
+async function hmacKey(): Promise<CryptoKey> {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET is not configured");
+  return crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"],
+  );
+}
+
+export async function signToken(usuario: TokenPayload): Promise<string> {
+  const header = b64urlEncode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const payload = b64urlEncode(
+    JSON.stringify({
+      nombre: usuario.nombre,
+      rol: usuario.rol,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 86400,
+    }),
+  );
+  const data = `${header}.${payload}`;
+  const key = await hmacKey();
+  const sig = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(data),
+  );
+  return `${data}.${b64urlFromBuffer(sig)}`;
+}
+
+export async function verifyToken(token: string): Promise<TokenPayload | null> {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const [header, payload, sig] = parts;
+    const key = await hmacKey();
+    const sigBytes = Uint8Array.from(
+      atob(sig.replace(/-/g, "+").replace(/_/g, "/")),
+      (c) => c.charCodeAt(0),
+    );
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      sigBytes,
+      new TextEncoder().encode(`${header}.${payload}`),
+    );
+    if (!valid) return null;
+    const claims = JSON.parse(b64urlDecode(payload));
+    if (claims.exp < Math.floor(Date.now() / 1000)) return null;
+    return { nombre: claims.nombre, rol: claims.rol };
+  } catch {
+    return null;
+  }
+}
+
 export function usuarioCookie(request: NextRequest): Usuario | null {
-  const usuarioCookie = request.cookies.get("usuario");
-  let usuario: Usuario | null = null;
-  if (usuarioCookie) {
+  // x-usuario is set by middleware after Bearer token verification;
+  // strip any client-provided value happens in middleware before this runs.
+  const xUsuario = request.headers.get("x-usuario");
+  if (xUsuario) {
     try {
-      usuario = JSON.parse(usuarioCookie.value);
-      if (!usuario) {
-        return null;
-      }
+      const parsed = JSON.parse(xUsuario) as Usuario;
+      if (parsed?.nombre && parsed?.rol) return parsed;
     } catch {
-      return null;
+      // fall through to cookie
     }
   }
-  return usuario ?? null;
+
+  // Fall back to httpOnly cookie for same-origin requests
+  const cookieVal = request.cookies.get("usuario");
+  if (!cookieVal) return null;
+  try {
+    const usuario = JSON.parse(cookieVal.value) as Usuario;
+    return usuario ?? null;
+  } catch {
+    return null;
+  }
 }

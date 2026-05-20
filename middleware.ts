@@ -1,46 +1,51 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifyToken } from "@/lib/auth";
 
 const allowedOrigins = ["https://controlcajas.mercadoelineas.com"];
 
-export function middleware(request: NextRequest) {
+const CORS_HEADERS = {
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+} as const;
+
+export async function middleware(request: NextRequest) {
   const origin = request.headers.get("origin") ?? "";
   const isAllowed = allowedOrigins.includes(origin);
+  const allowOrigin = isAllowed ? origin : allowedOrigins[0];
 
-  // Handle preflight OPTIONS request
   if (request.method === "OPTIONS") {
-    const response = new NextResponse(null, { status: 204 });
-    response.headers.set(
-      "Access-Control-Allow-Origin",
-      isAllowed ? origin : allowedOrigins[0],
-    );
-    response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS",
-    );
-    response.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization",
-    );
-    response.headers.set("Access-Control-Max-Age", "86400");
-    return response;
+    return new NextResponse(null, {
+      status: 204,
+      headers: {
+        ...CORS_HEADERS,
+        "Access-Control-Allow-Origin": allowOrigin,
+        "Access-Control-Max-Age": "86400",
+      },
+    });
   }
 
-  // For normal requests, we'll attach CORS headers in the response
-  const response = NextResponse.next();
+  // Strip any client-provided x-usuario to prevent identity spoofing
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete("x-usuario");
 
-  if (isAllowed) {
-    response.headers.set("Access-Control-Allow-Origin", origin);
-  } else {
-    // Fallback to a specific origin or omit entirely in production
-    response.headers.set("Access-Control-Allow-Origin", allowedOrigins[0]);
+  // Verify Bearer token and forward the identity as a trusted internal header
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const usuario = await verifyToken(authHeader.slice(7));
+    if (usuario) {
+      requestHeaders.set("x-usuario", JSON.stringify(usuario));
+    }
   }
 
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("Access-Control-Allow-Origin", allowOrigin);
+  for (const [key, value] of Object.entries(CORS_HEADERS)) {
+    response.headers.set(key, value);
+  }
   return response;
 }
 
-// Only apply to your API routes
 export const config = {
   matcher: "/api/:path*",
 };
