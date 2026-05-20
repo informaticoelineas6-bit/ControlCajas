@@ -38,8 +38,10 @@ async function buildMessage(
 ): Promise<string | null> {
   const referenceByTipo: Record<string, { collection: string; label: string }> =
     {
-      Traspaso: { collection: TABLAS.EXPEDICION, label: "la expedicion" },
+      Expedicion: { collection: TABLAS.TRASPASO, label: "el traspaso" },
+      Traspaso: { collection: TABLAS.EXPEDICION, label: "la expedición" },
       Entrega: { collection: TABLAS.TRASPASO, label: "el traspaso" },
+      Recogida: { collection: TABLAS.DEVOLUCION, label: "la devolución" },
       Devolucion: { collection: TABLAS.RECOGIDA, label: "la recogida" },
     };
 
@@ -54,14 +56,17 @@ async function buildMessage(
     .eq("fecha", fecha)
     .eq("centro_distribucion", centro_distribucion);
 
-  if (tipoEvento !== "Devolucion") {
-    if (almacen) {
-      query = query.eq("almacen", almacen);
-    }
+  if (almacen && (tipoEvento === "Expedicion" || tipoEvento === "Traspaso")) {
+    query = query.eq("almacen", almacen);
+  }
 
-    if (provincia) {
-      query = query.eq("provincia", provincia);
-    }
+  if (
+    provincia &&
+    (tipoEvento === "Expedicion" ||
+      tipoEvento === "Traspaso" ||
+      tipoEvento === "Entrega")
+  ) {
+    query = query.eq("provincia", provincia);
   }
 
   const { data, error } = await query;
@@ -72,7 +77,7 @@ async function buildMessage(
   const eventos = data.map(applyAjuste).filter(hasCajas) as AjusteStr<Evento>[];
 
   const referenciaTotal: Cajas = eventos.reduce(
-    (acc: Cajas, item: AjusteStr<Evento>) => sumCajas(acc, item.cajas) as Cajas,
+    (acc: Cajas, item: AjusteStr<Evento>) => sumCajas(acc, item.cajas),
     { blancas: 0, negras: 0, verdes: 0 },
   );
 

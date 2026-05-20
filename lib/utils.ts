@@ -136,7 +136,7 @@ export function formatName(name: string): string {
   return name
     .trim()
     .toLowerCase()
-    .replace(/[^a-záéíóú]+/gi, ".")
+    .replace(/[^a-z0-9áéíóú]+/gi, ".")
     .replace(/^\.|\.$/g, "");
 }
 

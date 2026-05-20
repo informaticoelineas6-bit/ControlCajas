@@ -8,7 +8,6 @@ import {
   DeudaAct,
   EventoResponse,
   EVENTOS_ARRAY,
-  Expedicion,
   Provincia,
   TABLAS,
   TIPOS_EVENTO,
@@ -100,54 +99,58 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(respuesta);
       }
       case "Traspaso": {
-        const [eventosRaw, centrosRaw, vehiculosRaw] = await Promise.all([
-          db
-            .from(TABLAS.EXPEDICION)
-            .select<
-              string,
-              Expedicion
-            >("centro_distribucion, provincia, almacen")
-            .eq("fecha", fecha)
-            .order("centro_distribucion")
-            .order("provincia"),
-          db
-            .from(TABLAS.CENTRO_DISTRIBUCION)
-            .select<string, CentroDistribucion>("nombre, habilitado")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
-            .order("nombre"),
-          db
-            .from(TABLAS.VEHICULO)
-            .select<string, Vehiculo>("categoria, chapa, marca, modelo")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
-            .order("categoria")
-            .order("chapa"),
-        ]);
+        const [centrosRaw, almacenesRaw, provinciasRaw, vehiculosRaw] =
+          await Promise.all([
+            db
+              .from(TABLAS.CENTRO_DISTRIBUCION)
+              .select<string, CentroDistribucion>("nombre, habilitado")
+              .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+              .order("nombre"),
+            db
+              .from(TABLAS.ALMACEN)
+              .select<string, Almacen>("nombre")
+              .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+              .order("nombre"),
+            db
+              .from(TABLAS.PROVINCIA)
+              .select<string, Provincia>("nombre, centro_distribucion")
+              .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+              .order("nombre"),
+            db
+              .from(TABLAS.VEHICULO)
+              .select<string, Vehiculo>("categoria, chapa, marca, modelo")
+              .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+              .order("categoria")
+              .order("chapa"),
+          ]);
 
         const error =
-          eventosRaw.error || centrosRaw.error || vehiculosRaw.error;
+          centrosRaw.error ||
+          almacenesRaw.error ||
+          provinciasRaw.error ||
+          vehiculosRaw.error;
 
         if (error) throw new Error(error.message);
 
-        if (eventosRaw.data.length === 0) {
-          return NextResponse.json(
-            { error: "No se han registrado expediciones" },
-            { status: 400 },
-          );
+        for (const centro of centrosRaw.data) {
+          resultado[centro.nombre] = {
+            almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
+            habilitado: centro.habilitado ?? {
+              blancas: false,
+              negras: false,
+              verdes: false,
+            },
+            vehiculos: new Set(vehiculosRaw.data),
+          };
         }
-
-        for (const element of eventosRaw.data) {
-          const index = element.provincia ?? element.centro_distribucion;
-          if (index in resultado) {
-            resultado[index].almacenes.add(element.almacen);
-          } else {
-            resultado[index] = {
-              almacenes: new Set([element.almacen]),
-              habilitado: centrosRaw.data.find(
-                (centro) => centro.nombre === element.centro_distribucion,
-              )?.habilitado ?? { blancas: false, negras: false, verdes: false },
-              vehiculos: new Set(vehiculosRaw.data),
-            };
-          }
+        for (const prov of provinciasRaw.data) {
+          resultado[prov.nombre] = {
+            almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
+            habilitado: centrosRaw.data.find(
+              (centro) => centro.nombre === prov.centro_distribucion,
+            )?.habilitado ?? { blancas: false, negras: false, verdes: false },
+            vehiculos: new Set(vehiculosRaw.data),
+          };
         }
         for (const key in resultado) {
           respuesta[key] = {
@@ -252,7 +255,6 @@ export async function GET(request: NextRequest) {
         if (error) throw new Error(error.message);
 
         for (const centro of centrosRaw.data) {
-          //.sort((a,b)=>a.nombre.localeCompare(b.nombre))
           resultado[centro.nombre] = {
             almacenes: new Set([]),
             habilitado: centro.habilitado,
