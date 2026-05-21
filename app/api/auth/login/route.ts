@@ -1,7 +1,7 @@
 import { formatName } from "@/lib/utils";
 import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
-import { comparePassword, signToken } from "@/lib/auth";
+import { comparePassword } from "@/lib/auth";
 import { TABLAS, Usuario } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
@@ -56,14 +56,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const token = await signToken({
-      nombre: usuario.nombre,
-      rol: usuario.rol,
-    });
-
     const response = NextResponse.json({
       success: true,
-      token,
       usuario: {
         nombre: usuario.nombre,
         rol: usuario.rol,

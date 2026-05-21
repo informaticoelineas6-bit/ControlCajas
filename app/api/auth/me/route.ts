@@ -4,7 +4,7 @@ import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const usuario = await usuarioCookie(request);
+    const usuario = usuarioCookie(request);
 
     if (!usuario) {
       return NextResponse.json(

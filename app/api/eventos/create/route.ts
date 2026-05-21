@@ -89,7 +89,7 @@ async function buildMessage(
 
 export async function POST(request: NextRequest) {
   try {
-    const usuario = await usuarioCookie(request);
+    const usuario = usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 

@@ -11,7 +11,7 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const usuario = await usuarioCookie(request);
+    const usuario = usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
