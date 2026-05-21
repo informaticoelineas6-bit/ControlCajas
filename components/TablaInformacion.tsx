@@ -5,6 +5,7 @@ import { DashboardData } from "@/lib/constants";
 import { formatDate, totalCajas } from "@/lib/utils";
 import { frontendClient } from "@/lib/client";
 import { TABLAS } from "@/lib/constants";
+import { differenceInDays, parseISO } from "date-fns";
 
 interface MetricCardProps {
   eyebrow: string;
@@ -145,7 +146,11 @@ export default function TablaInformacion() {
   const totalCentros = data.dashboardData.length;
   const centrosConRetraso = data.dashboardData
     .filter((centro) => centro.estadoRot === "Retrasada")
-    .map((centro) => centro.nombre);
+    .sort((a, b) => (a.fechaRot! < b.fechaRot! ? -1 : 1))
+    .map(
+      (centro) =>
+        `${centro.nombre} (${centro.fechaRot ? differenceInDays(new Date(), parseISO(centro.fechaRot)) : "N/A"} días)`,
+    );
   const hasCentrosConRetraso = centrosConRetraso.length > 0;
   const topDebtCenter = [...data.dashboardData].sort(
     (a, b) => totalCajas(b.deuda) - totalCajas(a.deuda),
@@ -286,8 +291,8 @@ export default function TablaInformacion() {
               </h3>
               <p className="mt-2 text-sm text-slate-600">
                 {topDebtCenter
-                  ? `${totalCajas(topDebtCenter.deuda)} cajas pendientes de retorno`
-                  : "No hay centros registrados para calcular deuda."}
+                  ? `${totalCajas(topDebtCenter.deuda_activa)} cajas pendientes de retorno; divididas en ${topDebtCenter.deuda_activa.blancas} blancas, ${topDebtCenter.deuda_activa.negras} negras y ${topDebtCenter.deuda_activa.verdes} verdes.`
+                  : "No hay datos para calcular."}
               </p>
             </article>
 
