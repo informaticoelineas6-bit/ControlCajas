@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  Check,
   Eye,
   EyeOff,
   Users,
@@ -15,6 +16,7 @@ import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
+import AdminFormModal from "./AdminFormModal";
 
 export default function TablaUsuarios({
   usuario,
@@ -28,6 +30,7 @@ export default function TablaUsuarios({
     contrasena: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [passwordChange, setPasswordChange] = useState<boolean>(false);
@@ -89,6 +92,7 @@ export default function TablaUsuarios({
     setConfirmarContrasena("");
     setShowPassword(false);
     setError("");
+    setIsFormOpen(false);
   };
 
   const handleInputChange = (
@@ -157,6 +161,7 @@ export default function TablaUsuarios({
     resetForm();
     setForm(usuario);
     setEditingId(usuario.nombre ?? null);
+    setIsFormOpen(true);
   };
 
   const enableUsuario = async (target: Usuario, habilitado: boolean) => {
@@ -235,137 +240,152 @@ export default function TablaUsuarios({
         )}
 
         {usuario.rol === "informatico" && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="nombre"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Nombre
-                </label>
-                <input
-                  id="nombre"
-                  name="nombre"
-                  disabled
-                  value={form.nombre || ""}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="rol"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Rol
-                </label>
-                <select
-                  id="rol"
-                  name="rol"
-                  required
-                  value={form.rol}
-                  disabled={!editingId}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                >
-                  {ROLES_ARRAY.map((rol) => (
-                    <option key={rol} value={rol}>
-                      {rol.charAt(0).toUpperCase() + rol.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label
-                  htmlFor={"contrasena"}
-                  className="flex items-center gap-2 mb-2 text-sm font-medium text-slate-600"
-                >
+          <AdminFormModal
+            description="Actualiza rol y credenciales del usuario seleccionado."
+            headerClassName="bg-[linear-gradient(135deg,_rgba(168,85,247,0.08),_rgba(255,255,255,0.96))]"
+            icon={<Users size={18} className="text-violet-600" />}
+            isBusy={submitting}
+            isOpen={isFormOpen}
+            onDismiss={resetForm}
+            title="Editar usuario"
+          >
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                  {error}
+                </div>
+              )}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="nombre"
+                    className="mb-2 block text-sm font-medium text-slate-600"
+                  >
+                    Nombre
+                  </label>
                   <input
-                    id={"passwordChange"}
-                    name={`passwordChange`}
-                    type="checkbox"
-                    checked={passwordChange}
-                    onChange={(e) => setPasswordChange(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
-                  />
-                  Cambiar contraseña
-                </label>
-                <div className="relative">
-                  <input
-                    id="contrasena"
-                    type={showPassword ? "text" : "password"}
-                    name="contrasena"
-                    disabled={!passwordChange}
-                    value={form.contrasena ?? ""}
+                    id="nombre"
+                    name="nombre"
+                    disabled
+                    value={form.nombre || ""}
                     onChange={handleInputChange}
-                    required={passwordChange}
-                    placeholder="Mínimo 6 caracteres"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-10 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    disabled={!passwordChange}
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                </div>
+                <div>
+                  <label
+                    htmlFor="rol"
+                    className="mb-2 block text-sm font-medium text-slate-600"
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                    Rol
+                  </label>
+                  <select
+                    id="rol"
+                    name="rol"
+                    required
+                    value={form.rol}
+                    disabled={!editingId}
+                    onChange={handleInputChange}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  >
+                    {ROLES_ARRAY.map((rol) => (
+                      <option key={rol} value={rol}>
+                        {rol.charAt(0).toUpperCase() + rol.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor={"contrasena"}
+                    className="flex items-center gap-2 mb-2 text-sm font-medium text-slate-600"
+                  >
+                    <input
+                      id={"passwordChange"}
+                      name={`passwordChange`}
+                      type="checkbox"
+                      checked={passwordChange}
+                      onChange={(e) => setPasswordChange(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
+                    />
+                    Cambiar contraseña
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="contrasena"
+                      type={showPassword ? "text" : "password"}
+                      name="contrasena"
+                      disabled={!passwordChange}
+                      value={form.contrasena ?? ""}
+                      onChange={handleInputChange}
+                      required={passwordChange}
+                      placeholder="Mínimo 6 caracteres"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-10 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      disabled={!passwordChange}
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label
+                    htmlFor="confirmarContrasena"
+                    className="mb-2 block text-sm font-medium text-slate-600"
+                  >
+                    Confirmar contraseña
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmarContrasena"
+                      type={showPassword ? "text" : "password"}
+                      name="confirmarContrasena"
+                      disabled={!passwordChange}
+                      value={confirmarContrasena}
+                      onChange={(e) => setConfirmarContrasena(e.target.value)}
+                      required={passwordChange}
+                      placeholder="Repite la contraseña"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-10 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      disabled={!passwordChange}
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div>
-                <label
-                  htmlFor="confirmarContrasena"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Confirmar contraseña
-                </label>
-                <div className="relative">
-                  <input
-                    id="confirmarContrasena"
-                    type={showPassword ? "text" : "password"}
-                    name="confirmarContrasena"
-                    disabled={!passwordChange}
-                    value={confirmarContrasena}
-                    onChange={(e) => setConfirmarContrasena(e.target.value)}
-                    required={passwordChange}
-                    placeholder="Repite la contraseña"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-10 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                  />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    disabled={!passwordChange}
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 disabled:opacity-30"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-            </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
-                disabled={submitting || !editingId}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Guardar
-              </button>
-              {editingId && (
+              <div className="flex flex-wrap justify-end gap-3">
+                <button
+                  type="submit"
+                  disabled={submitting || !editingId}
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Check size={14} />
+                  Guardar cambios
+                </button>
                 <button
                   type="button"
+                  disabled={submitting}
                   onClick={resetForm}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <X size={14} />
                   Cancelar
                 </button>
-              )}
-            </div>
-          </form>
+              </div>
+            </form>
+          </AdminFormModal>
         )}
 
         {loading ? (

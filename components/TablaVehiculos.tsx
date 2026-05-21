@@ -1,12 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Truck, Pencil, Plus, X, ToggleLeft, ToggleRight } from "lucide-react";
+import {
+  Check,
+  Truck,
+  Pencil,
+  Plus,
+  X,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import { TABLAS, Usuario, Vehiculo } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
+import AdminFormModal from "./AdminFormModal";
 
 export default function TablaVehiculos({
   usuario,
@@ -21,6 +30,7 @@ export default function TablaVehiculos({
     categoria: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -72,6 +82,7 @@ export default function TablaVehiculos({
     setForm({ chapa: "", marca: "", modelo: "", categoria: "" });
     setEditingId(null);
     setError("");
+    setIsFormOpen(false);
   };
 
   const handleInputChange = (
@@ -126,6 +137,8 @@ export default function TablaVehiculos({
   const startEdit = (vehiculo: Vehiculo) => {
     setForm(vehiculo);
     setEditingId(vehiculo.chapa ?? null);
+    setError("");
+    setIsFormOpen(true);
   };
 
   const enableVehiculo = async (target: Vehiculo, habilitado: boolean) => {
@@ -204,94 +217,125 @@ export default function TablaVehiculos({
         )}
 
         {usuario.rol === "informatico" && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="categoria"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Categoría
-                </label>
-                <input
-                  id="categoria"
-                  name="categoria"
-                  required
-                  value={form.categoria || ""}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="chapa"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Chapa
-                </label>
-                <input
-                  id="chapa"
-                  name="chapa"
-                  required
-                  value={form.chapa || ""}
-                  disabled={!!editingId}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="marca"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Marca
-                </label>
-                <input
-                  id="marca"
-                  name="marca"
-                  value={form.marca || ""}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="modelo"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Modelo
-                </label>
-                <input
-                  id="modelo"
-                  name="modelo"
-                  value={form.modelo || ""}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-            </div>
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setIsFormOpen(true);
+              }}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400"
+            >
+              <Plus size={14} />
+              Agregar vehículo
+            </button>
+            <AdminFormModal
+              description={
+                editingId
+                  ? "Actualiza los datos base del vehículo seleccionado."
+                  : "Registra categoría, chapa y datos base para la flota."
+              }
+              headerClassName="bg-[linear-gradient(135deg,_rgba(59,130,246,0.08),_rgba(255,255,255,0.96))]"
+              icon={<Truck size={18} className="text-blue-500" />}
+              isBusy={submitting}
+              isOpen={isFormOpen}
+              onDismiss={resetForm}
+              title={editingId ? "Editar vehículo" : "Agregar vehículo"}
+            >
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                    {error}
+                  </div>
+                )}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="categoria"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Categoría
+                    </label>
+                    <input
+                      id="categoria"
+                      name="categoria"
+                      required
+                      value={form.categoria || ""}
+                      onChange={handleInputChange}
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="chapa"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Chapa
+                    </label>
+                    <input
+                      id="chapa"
+                      name="chapa"
+                      required
+                      value={form.chapa || ""}
+                      disabled={!!editingId}
+                      onChange={handleInputChange}
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="marca"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Marca
+                    </label>
+                    <input
+                      id="marca"
+                      name="marca"
+                      value={form.marca || ""}
+                      onChange={handleInputChange}
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="modelo"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Modelo
+                    </label>
+                    <input
+                      id="modelo"
+                      name="modelo"
+                      value={form.modelo || ""}
+                      onChange={handleInputChange}
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                  </div>
+                </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {!editingId && <Plus size={14} />}
-                {editingId ? "Guardar cambios" : "Agregar vehículo"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
-                >
-                  <X size={14} />
-                  Cancelar
-                </button>
-              )}
-            </div>
-          </form>
+                <div className="flex flex-wrap justify-end gap-3">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Check size={14} />
+                    Guardar cambios
+                  </button>
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={resetForm}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <X size={14} />
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </AdminFormModal>
+          </div>
         )}
 
         {loading ? (

@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapPin, Pencil, Plus, X, ToggleLeft, ToggleRight } from "lucide-react";
+import {
+  Check,
+  MapPin,
+  Pencil,
+  Plus,
+  X,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import {
   CAJAS_ARRAY,
   CentroDistribucion,
@@ -15,6 +23,7 @@ import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
+import AdminFormModal from "./AdminFormModal";
 
 export default function TablaCentros({
   usuario,
@@ -37,6 +46,7 @@ export default function TablaCentros({
     },
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const numberFieldClass =
@@ -103,6 +113,7 @@ export default function TablaCentros({
     });
     setEditingId(null);
     setError("");
+    setIsFormOpen(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -260,6 +271,8 @@ export default function TablaCentros({
       roturas: centro.roturas,
     });
     setEditingId(centro.nombre ?? null);
+    setError("");
+    setIsFormOpen(true);
   };
 
   const enableCentro = async (
@@ -341,131 +354,166 @@ export default function TablaCentros({
         )}
 
         {usuario.rol === "informatico" && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}>
-              <div className={"md:col-span-" + (CAJAS_ARRAY.length - 1)}>
-                <label
-                  htmlFor="nombre"
-                  className="mb-2 block text-sm font-medium text-slate-600"
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setIsFormOpen(true);
+              }}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-600 to-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(217,119,6,0.9)] transition hover:from-amber-500 hover:to-orange-400"
+            >
+              <Plus size={14} />
+              Agregar centro
+            </button>
+            <AdminFormModal
+              description={
+                editingId
+                  ? "Actualiza deuda, roturas y rotación del centro."
+                  : "Define deuda inicial, colores habilitados y rotación."
+              }
+              headerClassName="bg-[linear-gradient(135deg,_rgba(245,158,11,0.08),_rgba(255,255,255,0.96))]"
+              icon={<MapPin size={18} className="text-amber-500" />}
+              isBusy={submitting}
+              isOpen={isFormOpen}
+              onDismiss={resetForm}
+              title={editingId ? "Editar centro" : "Agregar centro"}
+            >
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                    {error}
+                  </div>
+                )}
+                <div
+                  className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}
                 >
-                  Nombre
-                </label>
-                <input
-                  id="nombre"
-                  name="nombre"
-                  value={form.nombre || ""}
-                  disabled={!!editingId}
-                  onChange={handleInputChange}
-                  className={numberFieldClass}
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="rotacion"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Rotación (días)
-                </label>
-                <input
-                  id="rotacion"
-                  name="rotacion"
-                  type="number"
-                  value={form.rotacion || 0}
-                  onChange={handleInputChange}
-                  className={numberFieldClass}
-                />
-              </div>
-            </div>
-
-            <div className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}>
-              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                <div key={color}>
-                  <label
-                    htmlFor={`deuda_${color}`}
-                    className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600"
-                  >
+                  <div className={"md:col-span-" + (CAJAS_ARRAY.length - 1)}>
+                    <label
+                      htmlFor="nombre"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Nombre
+                    </label>
                     <input
-                      id={`habilitado_${color}`}
-                      name={`habilitado_${color}`}
-                      type="checkbox"
-                      checked={form.habilitado[color]}
+                      id="nombre"
+                      name="nombre"
+                      value={form.nombre || ""}
+                      disabled={!!editingId}
                       onChange={handleInputChange}
-                      className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                      className={numberFieldClass}
                     />
-                    Deuda {color}
-                  </label>
-                  <input
-                    id={`deuda_${color}`}
-                    name={`deuda_${color}`}
-                    type="number"
-                    value={form.deuda[color]}
-                    disabled={!form.habilitado[color]}
-                    onChange={handleInputChange}
-                    className={numberFieldClass}
-                  />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="rotacion"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Rotación (días)
+                    </label>
+                    <input
+                      id="rotacion"
+                      name="rotacion"
+                      type="number"
+                      value={form.rotacion || 0}
+                      onChange={handleInputChange}
+                      className={numberFieldClass}
+                    />
+                  </div>
                 </div>
-              ))}
-              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                <div key={`cajas_rotas_${color}`}>
-                  <label
-                    htmlFor={`cajas_rotas_${color}`}
-                    className="mb-2 block text-sm font-medium text-slate-600"
-                  >
-                    Cajas {color} rotas
-                  </label>
-                  <input
-                    id={`cajas_rotas_${color}`}
-                    name={`cajas_rotas_${color}`}
-                    type="number"
-                    value={form.roturas.cajas[color] ?? 0}
-                    disabled={!form.habilitado[color]}
-                    onChange={handleInputChange}
-                    className={numberFieldClass}
-                  />
-                </div>
-              ))}
-              {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                <div key={`tapas_rota_s${color}`}>
-                  <label
-                    htmlFor={`tapas_rotas_${color}`}
-                    className="mb-2 block text-sm font-medium text-slate-600"
-                  >
-                    Tapas {color} rotas
-                  </label>
-                  <input
-                    id={`tapas_rotas_${color}`}
-                    name={`tapas_rotas_${color}`}
-                    type="number"
-                    value={form.roturas.tapas[color] ?? 0}
-                    disabled={!form.habilitado[color]}
-                    onChange={handleInputChange}
-                    className={numberFieldClass}
-                  />
-                </div>
-              ))}
-            </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-600 to-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(217,119,6,0.9)] transition hover:from-amber-500 hover:to-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {!editingId && <Plus size={14} />}
-                {editingId ? "Guardar cambios" : "Agregar centro"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
+                <div
+                  className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}
                 >
-                  <X size={14} />
-                  Cancelar
-                </button>
-              )}
-            </div>
-          </form>
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <div key={color}>
+                      <label
+                        htmlFor={`deuda_${color}`}
+                        className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600"
+                      >
+                        <input
+                          id={`habilitado_${color}`}
+                          name={`habilitado_${color}`}
+                          type="checkbox"
+                          checked={form.habilitado[color]}
+                          onChange={handleInputChange}
+                          className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                        />
+                        Deuda {color}
+                      </label>
+                      <input
+                        id={`deuda_${color}`}
+                        name={`deuda_${color}`}
+                        type="number"
+                        value={form.deuda[color]}
+                        disabled={!form.habilitado[color]}
+                        onChange={handleInputChange}
+                        className={numberFieldClass}
+                      />
+                    </div>
+                  ))}
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <div key={`cajas_rotas_${color}`}>
+                      <label
+                        htmlFor={`cajas_rotas_${color}`}
+                        className="mb-2 block text-sm font-medium text-slate-600"
+                      >
+                        Cajas {color} rotas
+                      </label>
+                      <input
+                        id={`cajas_rotas_${color}`}
+                        name={`cajas_rotas_${color}`}
+                        type="number"
+                        value={form.roturas.cajas[color] ?? 0}
+                        disabled={!form.habilitado[color]}
+                        onChange={handleInputChange}
+                        className={numberFieldClass}
+                      />
+                    </div>
+                  ))}
+                  {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                    <div key={`tapas_rota_s${color}`}>
+                      <label
+                        htmlFor={`tapas_rotas_${color}`}
+                        className="mb-2 block text-sm font-medium text-slate-600"
+                      >
+                        Tapas {color} rotas
+                      </label>
+                      <input
+                        id={`tapas_rotas_${color}`}
+                        name={`tapas_rotas_${color}`}
+                        type="number"
+                        value={form.roturas.tapas[color] ?? 0}
+                        disabled={!form.habilitado[color]}
+                        onChange={handleInputChange}
+                        className={numberFieldClass}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap justify-end gap-3">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-600 to-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(217,119,6,0.9)] transition hover:from-amber-500 hover:to-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Check size={14} />
+                    Guardar cambios
+                  </button>
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={resetForm}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <X size={14} />
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </AdminFormModal>
+          </div>
         )}
 
         {loading ? (

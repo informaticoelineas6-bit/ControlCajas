@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Globe, Pencil, Plus, X, ToggleLeft, ToggleRight } from "lucide-react";
+import {
+  Check,
+  Globe,
+  Pencil,
+  Plus,
+  X,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import {
   CentroDistribucion,
   Provincia,
@@ -12,6 +20,7 @@ import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
+import AdminFormModal from "./AdminFormModal";
 
 export default function TablaProvincias({
   usuario,
@@ -25,6 +34,7 @@ export default function TablaProvincias({
     centro_distribucion: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -102,6 +112,7 @@ export default function TablaProvincias({
     });
     setEditingId(null);
     setError("");
+    setIsFormOpen(false);
   };
 
   const handleInputChange = (
@@ -154,6 +165,8 @@ export default function TablaProvincias({
   const startEdit = (provincia: Provincia) => {
     setForm(provincia);
     setEditingId(provincia.nombre ?? null);
+    setError("");
+    setIsFormOpen(true);
   };
 
   const enableProvincia = async (target: Provincia, habilitado: boolean) => {
@@ -232,70 +245,101 @@ export default function TablaProvincias({
         )}
 
         {usuario.rol === "informatico" && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="nombre"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Nombre
-                </label>
-                <input
-                  id="nombre"
-                  name="nombre"
-                  required
-                  disabled={!!editingId}
-                  value={form.nombre || ""}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="centro_distribucion"
-                  className="mb-2 block text-sm font-medium text-slate-600"
-                >
-                  Centro de distribución
-                </label>
-                <select
-                  id="centro_distribucion"
-                  name="centro_distribucion"
-                  required
-                  value={form.centro_distribucion}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
-                >
-                  {centros.map((centro) => (
-                    <option key={centro.nombre} value={centro.nombre}>
-                      {centro.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setIsFormOpen(true);
+              }}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(79,70,229,0.9)] transition hover:from-indigo-500 hover:to-violet-400"
+            >
+              <Plus size={14} />
+              Agregar provincia
+            </button>
+            <AdminFormModal
+              description={
+                editingId
+                  ? "Actualiza el centro asignado a la provincia."
+                  : "Asocia la provincia con su centro de distribución."
+              }
+              headerClassName="bg-[linear-gradient(135deg,_rgba(99,102,241,0.12),_rgba(255,255,255,0.96))]"
+              icon={<Globe size={18} className="text-indigo-500" />}
+              isBusy={submitting}
+              isOpen={isFormOpen}
+              onDismiss={resetForm}
+              title={editingId ? "Editar provincia" : "Agregar provincia"}
+            >
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                    {error}
+                  </div>
+                )}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="nombre"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Nombre
+                    </label>
+                    <input
+                      id="nombre"
+                      name="nombre"
+                      required
+                      disabled={!!editingId}
+                      value={form.nombre || ""}
+                      onChange={handleInputChange}
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="centro_distribucion"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Centro de distribución
+                    </label>
+                    <select
+                      id="centro_distribucion"
+                      name="centro_distribucion"
+                      required
+                      value={form.centro_distribucion}
+                      onChange={handleInputChange}
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                    >
+                      {centros.map((centro) => (
+                        <option key={centro.nombre} value={centro.nombre}>
+                          {centro.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(79,70,229,0.9)] transition hover:from-indigo-500 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {!editingId && <Plus size={14} />}
-                {editingId ? "Guardar cambios" : "Agregar provincia"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
-                >
-                  <X size={14} />
-                  Cancelar
-                </button>
-              )}
-            </div>
-          </form>
+                <div className="flex flex-wrap justify-end gap-3">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(79,70,229,0.9)] transition hover:from-indigo-500 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Check size={14} />
+                    Guardar cambios
+                  </button>
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={resetForm}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <X size={14} />
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </AdminFormModal>
+          </div>
         )}
 
         {loading ? (

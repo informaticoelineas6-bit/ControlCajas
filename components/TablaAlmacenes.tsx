@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  Check,
   Warehouse,
   Pencil,
   Plus,
@@ -22,6 +23,7 @@ import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
+import AdminFormModal from "./AdminFormModal";
 
 export default function TablaAlmacenes({
   usuario,
@@ -47,6 +49,7 @@ export default function TablaAlmacenes({
     },
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -114,6 +117,7 @@ export default function TablaAlmacenes({
     });
     setEditingId(null);
     setError("");
+    setIsFormOpen(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,6 +272,8 @@ export default function TablaAlmacenes({
       roturas: almacen.roturas,
     });
     setEditingId(almacen.nombre ?? null);
+    setError("");
+    setIsFormOpen(true);
   };
 
   const enableAlmacen = async (target: Almacen, habilitado: boolean) => {
@@ -346,112 +352,145 @@ export default function TablaAlmacenes({
         )}
 
         {usuario.rol === "informatico" && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}>
-              <div className={"md:col-span-" + CAJAS_ARRAY.length}>
-                <label
-                  htmlFor="nombre"
-                  className="mb-2 block text-sm font-medium text-slate-600"
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setIsFormOpen(true);
+              }}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(5,150,105,0.9)] transition hover:from-emerald-500 hover:to-teal-400"
+            >
+              <Plus size={14} />
+              Agregar almacén
+            </button>
+            <AdminFormModal
+              description={
+                editingId
+                  ? "Actualiza stock, roturas y colores del almacén."
+                  : "Configura stock inicial y colores habilitados."
+              }
+              headerClassName="bg-[linear-gradient(135deg,_rgba(16,185,129,0.08),_rgba(255,255,255,0.96))]"
+              icon={<Warehouse size={18} className="text-emerald-600" />}
+              isBusy={submitting}
+              isOpen={isFormOpen}
+              onDismiss={resetForm}
+              title={editingId ? "Editar almacén" : "Agregar almacén"}
+            >
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                    {error}
+                  </div>
+                )}
+                <div
+                  className={"grid gap-4 md:grid-cols-" + CAJAS_ARRAY.length}
                 >
-                  Nombre
-                </label>
-                <input
-                  id="nombre"
-                  name="nombre"
-                  value={form.nombre || ""}
-                  disabled={!!editingId}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                />
-              </div>
-              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                <div key={color}>
-                  <label
-                    htmlFor={`stock_${color}`}
-                    className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600"
-                  >
+                  <div className={"md:col-span-" + CAJAS_ARRAY.length}>
+                    <label
+                      htmlFor="nombre"
+                      className="mb-2 block text-sm font-medium text-slate-600"
+                    >
+                      Nombre
+                    </label>
                     <input
-                      id={`habilitado_${color}`}
-                      name={`habilitado_${color}`}
-                      type="checkbox"
-                      checked={form.habilitado[color]}
+                      id="nombre"
+                      name="nombre"
+                      value={form.nombre || ""}
+                      disabled={!!editingId}
                       onChange={handleInputChange}
-                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
-                    Stock de cajas {color}
-                  </label>
-                  <input
-                    id={`stock_${color}`}
-                    name={`stock_${color}`}
-                    type="number"
-                    value={form.stock[color]}
-                    disabled={!form.habilitado[color]}
-                    onChange={handleInputChange}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                  />
+                  </div>
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <div key={color}>
+                      <label
+                        htmlFor={`stock_${color}`}
+                        className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600"
+                      >
+                        <input
+                          id={`habilitado_${color}`}
+                          name={`habilitado_${color}`}
+                          type="checkbox"
+                          checked={form.habilitado[color]}
+                          onChange={handleInputChange}
+                          className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                        />
+                        Stock de cajas {color}
+                      </label>
+                      <input
+                        id={`stock_${color}`}
+                        name={`stock_${color}`}
+                        type="number"
+                        value={form.stock[color]}
+                        disabled={!form.habilitado[color]}
+                        onChange={handleInputChange}
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                      />
+                    </div>
+                  ))}
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <div key={`cajas_rotas_${color}`}>
+                      <label
+                        htmlFor={`cajas_rotas_${color}`}
+                        className="mb-2 block text-sm font-medium text-slate-600"
+                      >
+                        Roturas de cajas {color}
+                      </label>
+                      <input
+                        id={`cajas_rotas_${color}`}
+                        name={`cajas_rotas_${color}`}
+                        type="number"
+                        value={form.roturas.cajas[color] ?? 0}
+                        disabled={!form.habilitado[color]}
+                        onChange={handleInputChange}
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                      />
+                    </div>
+                  ))}
+                  {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                    <div key={`tapas_rotas_${color}`}>
+                      <label
+                        htmlFor={`tapas_rotas_${color}`}
+                        className="mb-2 block text-sm font-medium text-slate-600"
+                      >
+                        Roturas de tapas {color}
+                      </label>
+                      <input
+                        id={`tapas_rotas_${color}`}
+                        name={`tapas_rotas_${color}`}
+                        type="number"
+                        value={form.roturas.tapas[color] ?? 0}
+                        disabled={!form.habilitado[color]}
+                        onChange={handleInputChange}
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                <div key={`cajas_rotas_${color}`}>
-                  <label
-                    htmlFor={`cajas_rotas_${color}`}
-                    className="mb-2 block text-sm font-medium text-slate-600"
-                  >
-                    Roturas de cajas {color}
-                  </label>
-                  <input
-                    id={`cajas_rotas_${color}`}
-                    name={`cajas_rotas_${color}`}
-                    type="number"
-                    value={form.roturas.cajas[color] ?? 0}
-                    disabled={!form.habilitado[color]}
-                    onChange={handleInputChange}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                  />
-                </div>
-              ))}
-              {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                <div key={`tapas_rotas_${color}`}>
-                  <label
-                    htmlFor={`tapas_rotas_${color}`}
-                    className="mb-2 block text-sm font-medium text-slate-600"
-                  >
-                    Roturas de tapas {color}
-                  </label>
-                  <input
-                    id={`tapas_rotas_${color}`}
-                    name={`tapas_rotas_${color}`}
-                    type="number"
-                    value={form.roturas.tapas[color] ?? 0}
-                    disabled={!form.habilitado[color]}
-                    onChange={handleInputChange}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                  />
-                </div>
-              ))}
-            </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(5,150,105,0.9)] transition hover:from-emerald-500 hover:to-teal-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {!editingId && <Plus size={14} />}
-                {editingId ? "Guardar cambios" : "Agregar almacén"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300"
-                >
-                  <X size={14} />
-                  Cancelar
-                </button>
-              )}
-            </div>
-          </form>
+                <div className="flex flex-wrap justify-end gap-3">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(5,150,105,0.9)] transition hover:from-emerald-500 hover:to-teal-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Check size={14} />
+                    Guardar cambios
+                  </button>
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={resetForm}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <X size={14} />
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </AdminFormModal>
+          </div>
         )}
 
         {loading ? (
