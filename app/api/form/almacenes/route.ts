@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import { Almacen, TABLAS } from "@/lib/constants";
-import { getUsuario } from "@/lib/auth";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const usuario = await getUsuario(request);
+    const usuario = await usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 

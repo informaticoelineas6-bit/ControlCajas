@@ -14,12 +14,12 @@ import {
   Traspaso,
   Vehiculo,
 } from "@/lib/constants";
-import { getUsuario } from "@/lib/auth";
+import { usuarioCookie } from "@/lib/auth";
 import { format } from "date-fns";
 
 export async function GET(request: NextRequest) {
   try {
-    const usuario = await getUsuario(request);
+    const usuario = await usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 

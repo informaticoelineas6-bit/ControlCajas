@@ -56,15 +56,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const token = await signToken({ nombre: usuario.nombre, rol: usuario.rol });
+    const token = await signToken({
+      nombre: usuario.nombre,
+      rol: usuario.rol,
+    });
 
     const response = NextResponse.json({
       success: true,
+      token,
       usuario: {
         nombre: usuario.nombre,
         rol: usuario.rol,
       },
-      token,
     });
 
     response.cookies.set(

@@ -22,7 +22,7 @@ import {
   sameCajas,
   sumCajas,
 } from "@/lib/utils";
-import { getUsuario } from "@/lib/auth";
+import { usuarioCookie } from "@/lib/auth";
 import { EventoCreateForm } from "@/lib/constants";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { format } from "date-fns";
@@ -89,7 +89,7 @@ async function buildMessage(
 
 export async function POST(request: NextRequest) {
   try {
-    const usuario = await getUsuario(request);
+    const usuario = await usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 

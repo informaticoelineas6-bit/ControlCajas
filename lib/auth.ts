@@ -14,29 +14,28 @@ export async function comparePassword(
   return await bcryptjs.compare(password, hashedPassword);
 }
 
-// JWT helper functions using Web Crypto API (edge-runtime compatible)
-
 type TokenPayload = Pick<Usuario, "nombre" | "rol">;
 
 function b64urlEncode(str: string): string {
-  return btoa(String.fromCharCode(...new TextEncoder().encode(str)))
+  const bytes = new TextEncoder().encode(str);
+  return btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(""))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=/g, "");
 }
 
 function b64urlFromBuffer(buf: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+  return btoa(
+    Array.from(new Uint8Array(buf), (b) => String.fromCharCode(b)).join(""),
+  )
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=/g, "");
 }
 
 function b64urlDecode(str: string): string {
-  const bytes = Uint8Array.from(
-    atob(str.replace(/-/g, "+").replace(/_/g, "/")),
-    (c) => c.charCodeAt(0),
-  );
+  const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
   return new TextDecoder().decode(bytes);
 }
 
@@ -97,25 +96,30 @@ export async function verifyToken(token: string): Promise<TokenPayload | null> {
   }
 }
 
-// getUsuario: checks Bearer token (cross-origin) or httpOnly cookie (same-origin).
-// Use this in every route handler instead of usuarioCookie.
-export async function getUsuario(request: NextRequest): Promise<Usuario | null> {
+// Checks Bearer token (cross-origin) then falls back to cookie (same-origin).
+export async function usuarioCookie(
+  request: NextRequest,
+): Promise<Usuario | null> {
   const authHeader = request.headers.get("Authorization");
   if (authHeader?.startsWith("Bearer ")) {
     const usuario = await verifyToken(authHeader.slice(7));
     if (usuario) return usuario;
   }
-  return usuarioCookie(request);
+  return getUsuario(request);
 }
 
-// usuarioCookie: synchronous cookie-only read, kept for same-origin pages.
-export function usuarioCookie(request: NextRequest): Usuario | null {
-  const cookieVal = request.cookies.get("usuario");
-  if (!cookieVal) return null;
-  try {
-    const usuario = JSON.parse(cookieVal.value) as Usuario;
-    return usuario ?? null;
-  } catch {
-    return null;
+export function getUsuario(request: NextRequest): Usuario | null {
+  const usuarioCookie = request.cookies.get("usuario");
+  let usuario: Usuario | null = null;
+  if (usuarioCookie) {
+    try {
+      usuario = JSON.parse(usuarioCookie.value);
+      if (!usuario) {
+        return null;
+      }
+    } catch {
+      return null;
+    }
   }
+  return usuario ?? null;
 }

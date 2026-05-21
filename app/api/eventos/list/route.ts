@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import { applyAjuste } from "@/lib/utils";
-import { getUsuario } from "@/lib/auth";
+import { usuarioCookie } from "@/lib/auth";
 import {
   Evento,
   EVENTOS_ARRAY,
@@ -11,7 +11,7 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const usuario = await getUsuario(request);
+    const usuario = await usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 

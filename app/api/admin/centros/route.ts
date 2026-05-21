@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, getErrorMessage, LogAudit } from "@/lib/server";
 import { CentroDistribucion, TABLAS } from "@/lib/constants";
-import { getUsuario } from "@/lib/auth";
+import { usuarioCookie } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const usuario = await getUsuario(request);
+    const usuario = await usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     if (usuario.rol !== "informatico" && usuario.rol !== "auditor")
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const usuario = await getUsuario(request);
+    const usuario = await usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     if (usuario.rol !== "informatico")
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const usuario = await getUsuario(request);
+    const usuario = await usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     if (usuario.rol !== "informatico")
@@ -151,7 +151,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const usuario = await getUsuario(request);
+    const usuario = await usuarioCookie(request);
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     if (usuario.rol !== "informatico")
