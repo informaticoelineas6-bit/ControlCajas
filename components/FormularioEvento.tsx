@@ -1,7 +1,7 @@
 "use client";
 
-import { EventoResponse } from "@/lib/constants";
 import {
+  EventoResponse,
   CAJAS_ARRAY,
   CajasHabilitadas,
   Usuario,

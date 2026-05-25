@@ -106,11 +106,13 @@ export function formatDate(date: string): string {
 
 export function formatCajas(
   item: Cajas,
-  options: { fullName: boolean; separator: string } = {
-    fullName: true,
-    separator: "\n",
-  },
+  options?: { fullName: boolean; separator: string },
 ): string {
+  options = {
+    fullName: options?.fullName ?? true,
+    separator: options?.separator ?? "\n",
+  };
+
   return CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
     const capitalize =
       color.charAt(0).toUpperCase() + (options.fullName ? color.slice(1) : "");
@@ -120,11 +122,13 @@ export function formatCajas(
 
 export function formatTapas(
   item: Tapas,
-  options: { fullName: boolean; separator: string } = {
-    fullName: true,
-    separator: "\n",
-  },
+  options?: { fullName: boolean; separator: string },
 ): string {
+  options = {
+    fullName: options?.fullName ?? true,
+    separator: options?.separator ?? "\n",
+  };
+
   return TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
     const capitalize =
       color.charAt(0).toUpperCase() + (options.fullName ? color.slice(1) : "");

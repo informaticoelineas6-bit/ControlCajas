@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 interface FechaContextValue {
   fecha: string;
@@ -16,11 +16,12 @@ export function useFecha() {
   return ctx;
 }
 
-export function FechaProvider({ children }: { children: React.ReactNode }) {
+export function FechaProvider({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   const [fecha, setFecha] = useState(format(new Date(), "yyyy-MM-dd"));
+  const payload = useMemo(() => ({ fecha, setFecha }), [fecha, setFecha]);
   return (
-    <FechaContext.Provider value={{ fecha, setFecha }}>
-      {children}
-    </FechaContext.Provider>
+    <FechaContext.Provider value={payload}>{children}</FechaContext.Provider>
   );
 }

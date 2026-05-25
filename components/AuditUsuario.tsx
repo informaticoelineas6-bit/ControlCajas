@@ -9,8 +9,7 @@ import {
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
-import type { EventoAudit } from "@/lib/constants";
-import type { UsuarioAudit } from "@/lib/constants";
+import type { EventoAudit, UsuarioAudit } from "@/lib/constants";
 import { formatDate, prettyName } from "@/lib/utils";
 
 export default function AuditUsuario() {

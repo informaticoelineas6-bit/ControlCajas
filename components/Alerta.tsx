@@ -1,8 +1,7 @@
 "use client";
 
-import { AlertaResponse } from "@/lib/constants";
+import { AlertaResponse, TABLAS, Usuario } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
-import { TABLAS, Usuario } from "@/lib/constants";
 import { useCallback, useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { format } from "date-fns";

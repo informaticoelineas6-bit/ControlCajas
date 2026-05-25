@@ -60,9 +60,5 @@ export default function Auditoria() {
     }
   };
 
-  return (
-    <div className={contentCardClass}>
-      {RenderContent(activeContent)}
-    </div>
-  );
+  return <div className={contentCardClass}>{RenderContent(activeContent)}</div>;
 }

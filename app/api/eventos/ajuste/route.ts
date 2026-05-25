@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
-import { AjusteCajas, AjusteRoturas, EventoAjusteForm } from "@/lib/constants";
-import { EVENTOS_ARRAY, getEventTable } from "@/lib/constants";
+import {
+  EventoAjusteForm,
+  EVENTOS_ARRAY,
+  getEventTable,
+} from "@/lib/constants";
 import { format } from "date-fns";
 
 export async function POST(request: NextRequest) {
@@ -44,7 +47,7 @@ export async function POST(request: NextRequest) {
                   tapas: ajuste.roturas.tapas,
                 }
               : undefined,
-        } as AjusteCajas | AjusteRoturas,
+        },
       })
       .eq("id", id);
 

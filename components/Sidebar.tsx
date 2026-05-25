@@ -5,7 +5,7 @@ import { NavProps, pageTabs } from "@/app/(app)/tabs";
 import { prettyName } from "@/lib/utils";
 import { useSidebarSubmenu } from "@/app/(app)/sidebar-submenu-context";
 
-export default function Sidebar({ usuario, pageAccess }: NavProps) {
+export default function Sidebar({ usuario, pageAccess }: Readonly<NavProps>) {
   const router = useRouter();
   const pathname = usePathname();
   const tabs = pageAccess[usuario.rol];

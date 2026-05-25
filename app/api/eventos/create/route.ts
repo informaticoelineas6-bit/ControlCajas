@@ -14,6 +14,7 @@ import {
   TABLAS,
   TIPOS_EVENTO,
   Traspaso,
+  EventoCreateForm,
 } from "@/lib/constants";
 import {
   AjusteStr,
@@ -23,7 +24,6 @@ import {
   sumCajas,
 } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
-import { EventoCreateForm } from "@/lib/constants";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { format } from "date-fns";
 

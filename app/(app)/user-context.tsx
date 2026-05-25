@@ -10,9 +10,11 @@ export const useUser = () => useContext(UserContext);
 export function UserProvider({
   children,
   usuario,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   usuario: Usuario;
-}) {
-  return <UserContext.Provider value={usuario}>{children}</UserContext.Provider>;
+}>) {
+  return (
+    <UserContext.Provider value={usuario}>{children}</UserContext.Provider>
+  );
 }

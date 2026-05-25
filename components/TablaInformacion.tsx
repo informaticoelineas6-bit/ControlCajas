@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardData } from "@/lib/constants";
+import { DashboardData, TABLAS } from "@/lib/constants";
 import { formatDate, totalCajas } from "@/lib/utils";
 import { frontendClient } from "@/lib/client";
-import { TABLAS } from "@/lib/constants";
 import { differenceInDays, parseISO } from "date-fns";
 
 interface MetricCardProps {

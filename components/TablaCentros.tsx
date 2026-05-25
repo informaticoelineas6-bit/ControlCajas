@@ -20,7 +20,6 @@ import {
   Usuario,
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
-import { ObjetoAjusteForm } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
 import AdminFormModal from "./AdminFormModal";
@@ -289,7 +288,7 @@ export default function TablaCentros({
           ajuste: {
             habilitado: habilitado,
           },
-        } as ObjetoAjusteForm),
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -694,7 +693,7 @@ export default function TablaCentros({
                             ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
                             : undefined
                         }
-                        className={`px-5 py-4 text-slate-600${!!item.ajuste ? " hover:bg-slate-300" : ""}`}
+                        className={`px-5 py-4 text-slate-600${item.ajuste ? " hover:bg-slate-300" : ""}`}
                       >
                         {item.ajuste?.nombre
                           ? prettyName(item.ajuste?.nombre)

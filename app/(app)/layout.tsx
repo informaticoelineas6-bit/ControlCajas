@@ -11,7 +11,9 @@ import Sidebar from "@/components/Sidebar";
 import NavFooter from "@/components/NavFooter";
 import { SidebarSubmenuProvider } from "./sidebar-submenu-context";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   const router = useRouter();
   const pathname = usePathname();
   const [usuario, setUsuario] = useState<Usuario | null>(null);

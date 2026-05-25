@@ -10,7 +10,6 @@ import {
   Expedicion,
   Recogida,
   Traspaso,
-  DashboardData,
   DashboardRow,
   DeudaAct,
 } from "@/lib/constants";
@@ -160,14 +159,14 @@ export async function GET(request: NextRequest) {
 
     const deudaTotal: Cajas = centros.reduce(
       (acc: Cajas, centro: CentroDistribucion) => {
-        return sumCajas(acc, centro.deuda) as Cajas;
+        return sumCajas(acc, centro.deuda);
       },
       { blancas: 0, negras: 0, verdes: 0 },
     );
 
     const stockTotal: Cajas = almacenes.reduce(
       (acc: Cajas, almacen: Almacen) => {
-        return sumCajas(acc, almacen.stock) as Cajas;
+        return sumCajas(acc, almacen.stock);
       },
       { blancas: 0, negras: 0, verdes: 0 },
     );
@@ -226,7 +225,7 @@ export async function GET(request: NextRequest) {
       stockTotal,
       roturaTotal,
       roturaActual,
-    } as DashboardData);
+    });
   } catch (error) {
     console.error("Error fetching data:", error);
     return NextResponse.json(

@@ -1,9 +1,7 @@
-import { getErrorMessage } from "@/lib/server";
+import { getErrorMessage, connectToDatabase } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/server";
 import { usuarioCookie } from "@/lib/auth";
 import {
-  AjusteObjetos,
   getObjectTable,
   ObjetoAjusteForm,
   OBJETOS_ARRAY,
@@ -42,7 +40,7 @@ export async function PUT(request: NextRequest) {
           fechaHora: format(new Date(), "yyyy-MM-dd"),
           habilitado: ajuste.habilitado,
           nombre: usuario.nombre,
-        } as AjusteObjetos,
+        },
       })
       .eq(tipo_objeto === "Vehiculo" ? "chapa" : "nombre", id);
 
