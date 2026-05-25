@@ -156,10 +156,6 @@ export default function FormularioEvento({
 
       const cierreExistente = Boolean(data.existente);
       setExistente(cierreExistente);
-      if (cierreExistente) {
-        setTipoEvento(undefined);
-        setMensaje("");
-      }
       return cierreExistente;
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
@@ -256,10 +252,9 @@ export default function FormularioEvento({
       return;
     }
 
-    const cierreExistente = await fetchExistente();
-    if (cierreExistente) {
+    if (bloqueadoPorCierre) {
       setMensaje(
-        "Ya se ha realizado el cierre del día. No es posible registrar más eventos.",
+        "Ya se ha realizado el cierre del día. No es posible registrar nuevas expediciones, traspasos o entregas.",
       );
       return;
     }
@@ -365,13 +360,11 @@ export default function FormularioEvento({
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
-    if (!isAdjustment) {
-      if (existente) {
-        setMensaje(
-          "Ya se ha realizado el cierre del día. No es posible registrar más eventos.",
-        );
-        return;
-      }
+    if (!isAdjustment && bloqueadoPorCierre) {
+      setMensaje(
+        "Ya se ha realizado el cierre del día. No es posible registrar nuevas expediciones, traspasos o entregas.",
+      );
+      return;
     }
 
     const check = checkData();
@@ -499,6 +492,11 @@ export default function FormularioEvento({
     }
   })();
 
+  const bloqueadoPorCierre =
+    existente &&
+    !!tipoEvento &&
+    ["Expedicion", "Traspaso", "Entrega"].includes(tipoEvento);
+
   const mostrarAlmacen =
     tipoEvento === undefined
       ? false
@@ -554,8 +552,8 @@ export default function FormularioEvento({
             <div className="space-y-5">
               {existente && (
                 <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
-                  Ya se ha realizado el cierre del día. No es posible registrar
-                  más eventos.
+                  Ya se ha realizado el cierre del día. Las expediciones,
+                  traspasos y entregas están deshabilitados.
                 </div>
               )}
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
@@ -571,7 +569,11 @@ export default function FormularioEvento({
                   <button
                     key={tipo}
                     onClick={() => handleSelectEvento(tipo)}
-                    disabled={loading || existente}
+                    disabled={
+                      loading ||
+                      (existente &&
+                        ["Expedicion", "Traspaso", "Entrega"].includes(tipo))
+                    }
                     className="w-full m-2 rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95),_rgba(239,246,255,0.95))] px-5 py-5 text-left transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_22px_38px_-24px_rgba(59,130,246,0.55)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:border-slate-200 disabled:hover:shadow-none"
                   >
                     <div className="mb-2 flex items-center gap-2 text-blue-500">
@@ -636,7 +638,12 @@ export default function FormularioEvento({
                     onChange={handleInputChange}
                     required
                     disabled={
-                      !!(isAdjustment || loading || existente || submitted)
+                      !!(
+                        isAdjustment ||
+                        loading ||
+                        bloqueadoPorCierre ||
+                        submitted
+                      )
                     }
                     className={fieldClass}
                   >
@@ -682,7 +689,12 @@ export default function FormularioEvento({
                       onChange={handleInputChange}
                       required
                       disabled={
-                        !!(isAdjustment || loading || existente || submitted)
+                        !!(
+                          isAdjustment ||
+                          loading ||
+                          bloqueadoPorCierre ||
+                          submitted
+                        )
                       }
                       className={fieldClass}
                     >
@@ -720,7 +732,12 @@ export default function FormularioEvento({
                       onChange={handleInputChange}
                       required
                       disabled={
-                        !!(isAdjustment || loading || existente || submitted)
+                        !!(
+                          isAdjustment ||
+                          loading ||
+                          bloqueadoPorCierre ||
+                          submitted
+                        )
                       }
                       className={fieldClass}
                     >
@@ -850,7 +867,7 @@ export default function FormularioEvento({
               ) : (
                 <button
                   type="submit"
-                  disabled={!!(loading || existente || submitted)}
+                  disabled={!!(loading || bloqueadoPorCierre || submitted)}
                   className="inline-flex items-center justify-center gap-2 w-full rounded-[22px] bg-[linear-gradient(135deg,_#0f766e,_#059669)] px-4 py-3 text-base font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:bg-slate-400"
                 >
                   {!loading && <Save size={16} />}
@@ -903,7 +920,9 @@ export default function FormularioEvento({
                   name={`${prefix}_${color}`}
                   value={value}
                   onChange={handleInputChange}
-                  disabled={disabled || loading || existente || submitted}
+                  disabled={
+                    disabled || loading || bloqueadoPorCierre || submitted
+                  }
                   className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
                     value === 0
                       ? "border-slate-200 bg-slate-50"
