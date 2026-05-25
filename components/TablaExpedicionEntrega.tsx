@@ -9,10 +9,16 @@ import { useCallback, useEffect, useState } from "react";
 export default function TablaExpedicionEntrega({
   fecha,
   datos = [],
+  parentLoading = false,
+  parentError = "",
+  cierreExistente = false,
   setDatos,
 }: Readonly<{
   fecha: string;
   datos: ItemComparacionEntrega[];
+  parentLoading: boolean;
+  parentError: string;
+  cierreExistente: boolean;
   setDatos: (datos: ItemComparacionEntrega[]) => void;
 }>) {
   const [loading, setLoading] = useState(false);
@@ -20,6 +26,12 @@ export default function TablaExpedicionEntrega({
 
   const fetchDatos = useCallback(
     async (signal: AbortSignal) => {
+      if (parentLoading || parentError) {
+        setLoading(true);
+        setError("");
+        setDatos([]);
+        return;
+      }
       setLoading(true);
       setError("");
       try {
@@ -44,7 +56,7 @@ export default function TablaExpedicionEntrega({
         }
       }
     },
-    [fecha, setDatos],
+    [fecha, parentError, parentLoading, setDatos],
   );
 
   useEffect(() => {
@@ -111,7 +123,7 @@ export default function TablaExpedicionEntrega({
           </div>
         )}
 
-        {loading ? (
+        {loading || parentLoading || parentError ? (
           <p className="p-6 text-sm text-slate-500">Cargando...</p>
         ) : (
           <>
@@ -125,9 +137,11 @@ export default function TablaExpedicionEntrega({
                   <article
                     key={item.centro_distribucion}
                     className={`rounded-[24px] border p-4 shadow-sm ${
-                      item.alerta
+                      item.alerta && !cierreExistente
                         ? "border-rose-200 bg-rose-100"
-                        : "border-slate-200 bg-slate-50/70"
+                        : item.advertencia
+                          ? "border-amber-200 bg-amber-100"
+                          : "border-slate-200 bg-slate-50/70"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -331,9 +345,11 @@ export default function TablaExpedicionEntrega({
                       <tr
                         key={item.centro_distribucion}
                         className={`border-t border-slate-100 transition ${
-                          item.alerta
+                          item.alerta && !cierreExistente
                             ? "bg-gradient-to-r from-rose-100 to-rose-200 hover:bg-rose-100/70"
-                            : "hover:bg-slate-100"
+                            : item.advertencia
+                              ? "bg-gradient-to-r from-amber-200 to-amber-100 hover:bg-amber-100/70"
+                              : "hover:bg-slate-100"
                         }`}
                       >
                         <td className="px-5 py-4 font-semibold text-slate-900">

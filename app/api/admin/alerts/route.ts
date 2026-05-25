@@ -47,25 +47,7 @@ export async function GET(request: NextRequest) {
     if (error !== null) throw new Error(error.message);
 
     const alertsExpEnt: EventAlerta[] = alertsExpEntRaw
-      .filter((item: ItemComparacionEntrega) => {
-        if (!item.expedicion) {
-          return true;
-        }
-        if (
-          item.traspaso &&
-          item.entrega &&
-          !sameCajas(item.traspaso.cajas, item.entrega.cajas)
-        ) {
-          return true;
-        }
-        if (
-          item.traspaso &&
-          !sameCajas(item.expedicion.cajas, item.traspaso.cajas)
-        ) {
-          return true;
-        }
-        return false;
-      })
+      .filter((item: ItemComparacionEntrega) => item.alerta)
       .map((item: ItemComparacionEntrega): EventAlerta => {
         return {
           tipo: "expedicion_entrega",
@@ -89,28 +71,7 @@ export async function GET(request: NextRequest) {
       });
 
     const alertsDevRec: EventAlerta[] = alertsDevRecRaw
-      .filter((item: ItemComparacionRecogida) => {
-        if (!item.recogida) {
-          return true;
-        }
-        if (!item.devolucion) {
-          return false;
-        }
-        if (!sameCajas(item.recogida.cajas, item.devolucion.cajas)) {
-          return true;
-        }
-        if (
-          !sameCajas(item.recogida.roturas.cajas, item.devolucion.roturas.cajas)
-        ) {
-          return true;
-        }
-        if (
-          !sameCajas(item.recogida.roturas.tapas, item.devolucion.roturas.tapas)
-        ) {
-          return true;
-        }
-        return false;
-      })
+      .filter((item: ItemComparacionRecogida) => item.alerta)
       .map((item: ItemComparacionRecogida): EventAlerta => {
         let alertCajas = false;
         let alertRotas = false;
@@ -175,7 +136,7 @@ export async function GET(request: NextRequest) {
         (usuariosRecientes.count ?? 0) +
         alertsExpEnt.length +
         alertsDevRec.length +
-        (cierreHoy.count! > 0 ? 0 : 1),
+        (cierreHoy.count && cierreHoy.count > 0 ? 0 : 1),
       usuarios_recientes: usuariosRecientes.count ?? 0,
       inconsistencias_expedicion_entrega: alertsExpEnt,
       inconsistencias_devolucion_recogida: alertsDevRec,

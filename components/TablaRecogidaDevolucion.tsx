@@ -9,10 +9,16 @@ import { useCallback, useEffect, useState } from "react";
 export default function TablaRecogidaDevolucion({
   fecha,
   datos = [],
+  parentLoading = false,
+  parentError = "",
+  cierreExistente = false,
   setDatos,
 }: Readonly<{
   fecha: string;
   datos: ItemComparacionRecogida[];
+  parentLoading: boolean;
+  parentError: string;
+  cierreExistente: boolean;
   setDatos: (datos: ItemComparacionRecogida[]) => void;
 }>) {
   const [loading, setLoading] = useState(false);
@@ -20,11 +26,17 @@ export default function TablaRecogidaDevolucion({
 
   const fetchDatos = useCallback(
     async (signal: AbortSignal) => {
+      if (parentLoading || parentError) {
+        setLoading(true);
+        setError("");
+        setDatos([]);
+        return;
+      }
       setLoading(true);
       setError("");
       try {
         const response = await fetch(
-          `/api/eventos/comparar?fecha=${fecha}&tipo=devolucion_recogida`,
+          `/api/eventos/comparar?${cierreExistente ? "fecha=" + fecha + "&" : ""}tipo=devolucion_recogida`,
           { signal },
         );
         const data = await response.json();
@@ -44,7 +56,7 @@ export default function TablaRecogidaDevolucion({
         }
       }
     },
-    [fecha, setDatos],
+    [cierreExistente, fecha, parentError, parentLoading, setDatos],
   );
 
   useEffect(() => {
@@ -106,7 +118,7 @@ export default function TablaRecogidaDevolucion({
           </div>
         )}
 
-        {loading ? (
+        {loading || parentLoading || parentError ? (
           <p className="p-6 text-sm text-slate-500">Cargando...</p>
         ) : (
           <>
@@ -120,9 +132,9 @@ export default function TablaRecogidaDevolucion({
                   <article
                     key={item.centro_distribucion}
                     className={`rounded-[24px] border p-4 shadow-sm ${
-                      item.alerta
+                      item.alerta && !cierreExistente
                         ? "border-rose-200 bg-rose-100"
-                        : item.rotura
+                        : item.advertencia
                           ? "border-amber-200 bg-amber-100"
                           : "border-slate-200 bg-slate-50/70"
                     }`}
@@ -323,9 +335,9 @@ export default function TablaRecogidaDevolucion({
                       <tr
                         key={item.centro_distribucion}
                         className={`border-t border-slate-100 transition ${
-                          item.alerta
+                          item.alerta && !cierreExistente
                             ? "bg-gradient-to-r from-rose-100 to-rose-200 hover:bg-rose-100/70"
-                            : item.rotura
+                            : item.advertencia
                               ? "bg-gradient-to-r from-amber-200 to-amber-100 hover:bg-amber-100/70"
                               : "hover:bg-slate-100"
                         }`}

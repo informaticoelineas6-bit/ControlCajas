@@ -10,7 +10,8 @@ export async function GET(request: NextRequest) {
     if (usuario === null)
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-    const fecha = format(new Date(), "yyyy-MM-dd");
+    const { searchParams } = new URL(request.url);
+    const fecha = searchParams.get("fecha") ?? format(new Date(), "yyyy-MM-dd");
 
     const db = (await connectToDatabase()).from(TABLAS.CIERRE);
     const { count, error } = await db

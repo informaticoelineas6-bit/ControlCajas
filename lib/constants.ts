@@ -171,7 +171,7 @@ export interface Evento {
   ajuste?: AjusteCajas;
 }
 
-export type Nuevo<Evento> = Omit<Evento, "id" | "created_at">;
+export type Nuevo<Evento> = Omit<Evento, "id" | "created_at" | "fecha_cierre">;
 
 export interface EventoRotura extends Evento, CajasRoturas {
   ajuste?: AjusteRoturas;
@@ -194,10 +194,12 @@ export interface Entrega extends Evento {
 
 export interface Recogida extends EventoRotura {
   chapa: string;
+  fecha_cierre: string;
 }
 
 export interface Devolucion extends EventoRotura {
   almacen: string;
+  fecha_cierre: string;
 }
 
 export interface Cierre {

@@ -4,9 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Cierre,
   Cajas,
-  Expedicion,
-  Devolucion,
-  COLECCIONES,
   Usuario,
   CajasRoturas,
   CAJAS_ARRAY,
@@ -19,7 +16,7 @@ import {
   ItemComparacionEntrega,
   ItemComparacionRecogida,
 } from "@/lib/compares";
-import { AjusteStr, formatCajas, formatTapas, totalCajas } from "@/lib/utils";
+import { formatCajas, formatTapas, totalCajas } from "@/lib/utils";
 import { frontendClient } from "@/lib/client";
 
 export default function CierreDiario({
@@ -27,181 +24,108 @@ export default function CierreDiario({
   usuario,
   expedicionEntregaData,
   recogidaDevolucionData,
+  parentLoading = false,
+  parentError = "",
+  cierreExistente = false,
 }: Readonly<{
   fecha: string;
   usuario: Usuario;
   expedicionEntregaData: ItemComparacionEntrega[];
   recogidaDevolucionData: ItemComparacionRecogida[];
+  parentLoading: boolean;
+  parentError: string;
+  cierreExistente: boolean;
 }>) {
   const [cierre, setCierre] = useState<Cierre>({
     fecha,
     cierre_cd: [],
     cierre_almacen: [],
   });
-  const [existente, setExistente] = useState(false);
   const [alertas, setAlertas] = useState<boolean>(false);
+  const [advertencias, setAdvertencias] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setAlertas(
-      expedicionEntregaData.some((item) => item.alerta) ||
-        recogidaDevolucionData.some((item) => item.alerta),
-    );
-    setAlertas(false);
-  }, [expedicionEntregaData, recogidaDevolucionData]);
-
-  const calcularAjustes = useCallback(
-    async (signal: AbortSignal) => {
-      const stockMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
-      const deudaMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
-
-      const [devolucionData, expedicionData] = await Promise.all([
-        (
-          await fetch(
-            `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.DEVOLUCION}`,
-            { signal },
-          )
-        ).json() as Promise<AjusteStr<Devolucion>[]>,
-        (
-          await fetch(
-            `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.EXPEDICION}`,
-            { signal },
-          )
-        ).json() as Promise<AjusteStr<Expedicion>[]>,
-      ]);
-
-      devolucionData.forEach((item: AjusteStr<Devolucion>) => {
-        if (!deudaMap[item.centro_distribucion]) {
-          deudaMap[item.centro_distribucion] = {
-            cajas: { blancas: 0, negras: 0, verdes: 0 },
-            roturas: {
-              cajas: { blancas: 0, negras: 0, verdes: 0 },
-              tapas: { blancas: 0, negras: 0 },
-            },
-          };
-        }
-
-        deudaMap[item.centro_distribucion].cajas.blancas -=
-          item.cajas.blancas ?? 0;
-        deudaMap[item.centro_distribucion].cajas.negras -=
-          item.cajas.negras ?? 0;
-        deudaMap[item.centro_distribucion].cajas.verdes -=
-          item.cajas.verdes ?? 0;
-
-        deudaMap[item.centro_distribucion].roturas.cajas.blancas +=
-          item.roturas.cajas.blancas ?? 0;
-        deudaMap[item.centro_distribucion].roturas.cajas.negras +=
-          item.roturas.cajas.negras ?? 0;
-        deudaMap[item.centro_distribucion].roturas.cajas.verdes +=
-          item.roturas.cajas.verdes ?? 0;
-        deudaMap[item.centro_distribucion].roturas.tapas.blancas +=
-          item.roturas.tapas.blancas ?? 0;
-        deudaMap[item.centro_distribucion].roturas.tapas.negras +=
-          item.roturas.tapas.negras ?? 0;
-
-        if (!stockMap[item.almacen]) {
-          stockMap[item.almacen] = {
-            cajas: { blancas: 0, negras: 0, verdes: 0 },
-            roturas: {
-              cajas: { blancas: 0, negras: 0, verdes: 0 },
-              tapas: { blancas: 0, negras: 0 },
-            },
-          };
-        }
-        stockMap[item.almacen].cajas.blancas += item.cajas.blancas ?? 0;
-        stockMap[item.almacen].cajas.negras += item.cajas.negras ?? 0;
-        stockMap[item.almacen].cajas.verdes += item.cajas.verdes ?? 0;
-
-        stockMap[item.almacen].roturas.cajas.blancas +=
-          item.roturas.cajas.blancas ?? 0;
-        stockMap[item.almacen].roturas.cajas.negras +=
-          item.roturas.cajas.negras ?? 0;
-        stockMap[item.almacen].roturas.cajas.verdes +=
-          item.roturas.cajas.verdes ?? 0;
-        stockMap[item.almacen].roturas.tapas.blancas +=
-          item.roturas.tapas.blancas ?? 0;
-        stockMap[item.almacen].roturas.tapas.negras +=
-          item.roturas.tapas.negras ?? 0;
-      });
-
-      expedicionData.forEach((item: AjusteStr<Expedicion>) => {
-        if (!stockMap[item.almacen]) {
-          stockMap[item.almacen] = {
-            cajas: { blancas: 0, negras: 0, verdes: 0 },
-            roturas: {
-              cajas: { blancas: 0, negras: 0, verdes: 0 },
-              tapas: { blancas: 0, negras: 0 },
-            },
-          };
-        }
-        stockMap[item.almacen].cajas.blancas -= item.cajas.blancas ?? 0;
-        stockMap[item.almacen].cajas.negras -= item.cajas.negras ?? 0;
-        stockMap[item.almacen].cajas.verdes -= item.cajas.verdes ?? 0;
-
-        if (!deudaMap[item.centro_distribucion]) {
-          deudaMap[item.centro_distribucion] = {
-            cajas: { blancas: 0, negras: 0, verdes: 0 },
-            roturas: {
-              cajas: { blancas: 0, negras: 0, verdes: 0 },
-              tapas: { blancas: 0, negras: 0 },
-            },
-          };
-        }
-        deudaMap[item.centro_distribucion].cajas.blancas +=
-          item.cajas.blancas ?? 0;
-        deudaMap[item.centro_distribucion].cajas.negras +=
-          item.cajas.negras ?? 0;
-        deudaMap[item.centro_distribucion].cajas.verdes +=
-          item.cajas.verdes ?? 0;
-      });
-
-      return { deudaMap, stockMap };
-    },
-    [fecha],
-  );
+    if (cierreExistente || parentLoading || parentError) {
+      setAlertas(false);
+      setAdvertencias(false);
+    } else {
+      setAlertas(
+        expedicionEntregaData.some((item) => item.alerta) ||
+          recogidaDevolucionData.some((item) => item.alerta),
+      );
+      setAdvertencias(
+        expedicionEntregaData.some((item) => item.advertencia) ||
+          recogidaDevolucionData.some((item) => item.advertencia),
+      );
+    }
+  }, [
+    cierreExistente,
+    expedicionEntregaData,
+    parentError,
+    parentLoading,
+    recogidaDevolucionData,
+  ]);
 
   const nuevoCierre = useCallback(
-    async (signal: AbortSignal): Promise<Cierre> => {
-      const { stockMap: ajustesStock, deudaMap: ajustesDeuda } =
-        await calcularAjustes(signal);
-
+    ({
+      stockMap,
+      deudaMap,
+    }: {
+      stockMap: Record<string, { cajas: Cajas } & CajasRoturas>;
+      deudaMap: Record<string, { cajas: Cajas } & CajasRoturas>;
+    }): Cierre => {
       return {
         fecha,
-        cierre_cd: Object.entries(ajustesDeuda).map(([cd, data]) => ({
+        cierre_cd: Object.entries(deudaMap).map(([cd, data]) => ({
           centro_distribucion: cd,
           ajuste_deuda: data.cajas,
           roturas: { cajas: data.roturas.cajas, tapas: data.roturas.tapas },
         })),
-        cierre_almacen: Object.entries(ajustesStock).map(([almacen, data]) => ({
+        cierre_almacen: Object.entries(stockMap).map(([almacen, data]) => ({
           almacen,
           ajuste_stock: data.cajas,
           roturas: { cajas: data.roturas.cajas, tapas: data.roturas.tapas },
         })),
       };
     },
-    [calcularAjustes, fecha],
+    [fecha],
   );
 
   const fetchDatos = useCallback(
     async (signal: AbortSignal) => {
+      if (parentLoading || parentError) {
+        setLoading(false);
+        setError("");
+        setCierre({ fecha, cierre_cd: [], cierre_almacen: [] });
+        return;
+      }
       setLoading(true);
-      setExistente(false);
       setError("");
       try {
-        const respCierre = await fetch(`/api/eventos/cierre?fecha=${fecha}`, {
-          signal,
-        });
-        const dataCierre = await respCierre.json();
+        if (cierreExistente) {
+          const respCierre = await fetch(`/api/eventos/cierre?fecha=${fecha}`, {
+            signal,
+          });
+          const dataCierre = await respCierre.json();
 
-        if (respCierre.ok && dataCierre) {
-          setCierre(dataCierre);
-          setExistente(true);
-        } else if (respCierre.ok) {
-          const nuevo: Cierre = await nuevoCierre(signal);
-          setCierre(nuevo);
+          if (respCierre.ok) {
+            setCierre(dataCierre);
+          } else {
+            setError(dataCierre.error || "Error al cargar cierre");
+          }
         } else {
-          setError(dataCierre.error || "Error al cargar cierre");
+          const respCierre = await fetch(`/api/admin/cierre?fecha=${fecha}`, {
+            signal,
+          });
+          const dataCierre = await respCierre.json();
+
+          if (respCierre.ok) {
+            setCierre(nuevoCierre(dataCierre));
+          } else {
+            setError(dataCierre.error || "Error al cargar cierre");
+          }
         }
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
@@ -215,7 +139,7 @@ export default function CierreDiario({
         }
       }
     },
-    [fecha, nuevoCierre],
+    [cierreExistente, fecha, nuevoCierre, parentError, parentLoading],
   );
 
   useEffect(() => {
@@ -223,36 +147,19 @@ export default function CierreDiario({
 
     fetchDatos(abortController.signal);
 
-    let fetchTimeout: NodeJS.Timeout;
-    const debouncedFetch = () => {
-      clearTimeout(fetchTimeout);
-      fetchTimeout = setTimeout(() => {
-        fetchDatos(abortController.signal);
-      }, 200);
-    };
-
     const channel = frontendClient
-      .channel("cierre_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: TABLAS.EXPEDICION },
-        debouncedFetch,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: TABLAS.DEVOLUCION },
-        debouncedFetch,
-      )
+      .channel("cierre_changes_diario")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: TABLAS.CIERRE },
-        debouncedFetch,
+        () => {
+          fetchDatos(abortController.signal);
+        },
       )
       .subscribe();
 
     return () => {
       abortController.abort();
-      clearTimeout(fetchTimeout);
       channel.unsubscribe();
     };
   }, [fetchDatos]);
@@ -300,17 +207,17 @@ export default function CierreDiario({
         <div className="flex flex-wrap gap-3">
           <span
             className={`rounded-full px-4 py-2 text-sm font-semibold ${
-              existente
+              cierreExistente
                 ? "bg-emerald-100 text-emerald-700"
                 : "bg-amber-100 text-amber-700"
             }`}
           >
-            {existente ? "Día cerrado" : "Pendiente de cierre"}
+            {cierreExistente ? "Día cerrado" : "Pendiente de cierre"}
           </span>
-          {!existente && usuario.rol === "informatico" && (
+          {!cierreExistente && usuario.rol === "informatico" && (
             <button
               onClick={handleCrearCierre}
-              disabled={loading}
+              disabled={loading || alertas}
               className="rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_-18px_rgba(37,99,235,0.9)] transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Creando..." : "Crear cierre"}
@@ -325,14 +232,19 @@ export default function CierreDiario({
         </div>
       )}
 
-      {alertas && !loading && (
+      {alertas && !loading ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-          Existen inconsistencias en los datos. Se recomienda resolverlas antes
-          de crear un nuevo cierre.
+          ⚠️ Existen inconsistencias críticas en los datos. No se puede crear un
+          nuevo cierre hasta que se resuelvan.
         </div>
-      )}
+      ) : advertencias ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+          ⚠️ Existen inconsistencias en los datos. Se recomienda resolverlas
+          antes de crear un nuevo cierre.
+        </div>
+      ) : null}
 
-      {loading ? (
+      {loading || parentLoading || parentError ? (
         <p className="text-sm text-slate-500">Cargando...</p>
       ) : (
         <div className="grid gap-6 xl:grid-cols-2">
@@ -362,9 +274,7 @@ export default function CierreDiario({
                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-600">
-                            Ajuste {color}
-                          </p>
+                          <p className="text-slate-600">Ajuste {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.ajuste_stock[color] ?? "-"}
                           </p>
@@ -380,9 +290,7 @@ export default function CierreDiario({
                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-600">
-                            Cajas rotas {color}
-                          </p>
+                          <p className="text-slate-600">Cajas rotas {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.roturas.cajas[color] ?? "-"}
                           </p>
@@ -390,18 +298,14 @@ export default function CierreDiario({
                       ))}
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <div key={color}>
-                          <p className="text-slate-600">
-                            Tapas rotas {color}
-                          </p>
+                          <p className="text-slate-600">Tapas rotas {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.roturas.tapas[color] ?? "-"}
                           </p>
                         </div>
                       ))}
                       <div>
-                        <p className="text-slate-600">
-                          Total roturas
-                        </p>
+                        <p className="text-slate-600">Total roturas</p>
                         <p className="font-medium text-slate-700">
                           {totalCajas(item.roturas.cajas) +
                             totalCajas(item.roturas.tapas)}
@@ -515,9 +419,7 @@ export default function CierreDiario({
                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-600">
-                            Ajuste {color}
-                          </p>
+                          <p className="text-slate-600">Ajuste {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.ajuste_deuda[color] ?? "-"}
                           </p>
@@ -533,9 +435,7 @@ export default function CierreDiario({
                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
-                          <p className="text-slate-600">
-                            Cajas rotas {color}
-                          </p>
+                          <p className="text-slate-600">Cajas rotas {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.roturas.cajas[color] ?? "-"}
                           </p>
@@ -543,18 +443,14 @@ export default function CierreDiario({
                       ))}
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <div key={color}>
-                          <p className="text-slate-600">
-                            Tapas rotas {color}
-                          </p>
+                          <p className="text-slate-600">Tapas rotas {color}</p>
                           <p className="font-medium text-slate-700">
                             {item.roturas.tapas[color] ?? "-"}
                           </p>
                         </div>
                       ))}
                       <div>
-                        <p className="text-slate-600">
-                          Total roturas
-                        </p>
+                        <p className="text-slate-600">Total roturas</p>
                         <p className="font-medium text-slate-700">
                           {totalCajas(item.roturas.cajas) +
                             totalCajas(item.roturas.tapas)}

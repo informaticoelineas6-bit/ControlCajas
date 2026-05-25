@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, getErrorMessage } from "@/lib/server";
-import { sameCajas } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import {
   getComparacionEntrega,
@@ -21,7 +20,7 @@ export async function GET(request: NextRequest) {
     const fecha = searchParams.get("fecha");
     const tipo = searchParams.get("tipo"); // 'expedicion_entrega' o 'devolucion_recogida'
 
-    if (!fecha || !tipo) {
+    if (!tipo) {
       return NextResponse.json(
         { error: "Fecha y tipo son requeridos" },
         { status: 400 },
@@ -31,45 +30,26 @@ export async function GET(request: NextRequest) {
     const db = await connectToDatabase();
 
     if (tipo === "expedicion_entrega") {
+      if (!fecha) {
+        return NextResponse.json(
+          { error: "Fecha y tipo son requeridos" },
+          { status: 400 },
+        );
+      }
+
       const resultados: ItemComparacionEntrega[] = (
         await getComparacionEntrega(db, fecha)
-      )
-        .map((item: ItemComparacionEntrega): ItemComparacionEntrega => {
-          item.alerta =
-            !item.expedicion ||
-            !item.traspaso ||
-            !item.entrega ||
-            !sameCajas(item.expedicion.cajas, item.traspaso.cajas) ||
-            !sameCajas(item.traspaso.cajas, item.entrega.cajas);
-          return item;
-        })
-        .sort((a, b) =>
-          a.centro_distribucion.localeCompare(b.centro_distribucion),
-        );
+      ).sort((a, b) =>
+        a.centro_distribucion.localeCompare(b.centro_distribucion),
+      );
 
       return NextResponse.json(resultados);
     } else if (tipo === "devolucion_recogida") {
       const resultados: ItemComparacionRecogida[] = (
-        await getComparacionRecogida(db, fecha)
-      )
-        .map((item: ItemComparacionRecogida): ItemComparacionRecogida => {
-          item.alerta =
-            !item.recogida ||
-            !item.devolucion ||
-            !sameCajas(item.recogida.cajas, item.devolucion.cajas) ||
-            !sameCajas(
-              item.recogida.roturas.cajas,
-              item.devolucion.roturas.cajas,
-            ) ||
-            !sameCajas(
-              item.recogida.roturas.tapas,
-              item.devolucion.roturas.tapas,
-            );
-          return item;
-        })
-        .sort((a, b) =>
-          a.centro_distribucion.localeCompare(b.centro_distribucion),
-        );
+        await getComparacionRecogida(db, fecha || null)
+      ).sort((a, b) =>
+        a.centro_distribucion.localeCompare(b.centro_distribucion),
+      );
 
       return NextResponse.json(resultados);
     }

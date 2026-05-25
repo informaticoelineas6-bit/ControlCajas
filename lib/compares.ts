@@ -18,6 +18,7 @@ import {
   sameCajas,
   sumCajas,
   sumTapas,
+  totalCajas,
 } from "./utils";
 
 export async function getComparacionEntrega(
@@ -61,7 +62,7 @@ export async function getComparacionEntrega(
   for (const current of expediciones) {
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste = prettyName(current.ajuste) as string;
+      current.ajuste = prettyName(current.ajuste);
     }
     const centro = current.provincia ?? current.centro_distribucion;
     if (centrosExp.has(centro)) {
@@ -87,6 +88,7 @@ export async function getComparacionEntrega(
         traspaso: null,
         entrega: null,
         alerta: false,
+        advertencia: false,
       });
     }
   }
@@ -94,7 +96,7 @@ export async function getComparacionEntrega(
   for (const current of traspasos) {
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste = prettyName(current.ajuste) as string;
+      current.ajuste = prettyName(current.ajuste);
     }
     const centro = current.provincia ?? current.centro_distribucion;
     if (centrosExp.has(centro)) {
@@ -121,6 +123,7 @@ export async function getComparacionEntrega(
         },
         entrega: null,
         alerta: false,
+        advertencia: false,
       });
     }
   }
@@ -128,7 +131,7 @@ export async function getComparacionEntrega(
   for (const current of entregas) {
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste = prettyName(current.ajuste) as string;
+      current.ajuste = prettyName(current.ajuste);
     }
     const centro = current.provincia ?? current.centro_distribucion;
     if (centrosExp.has(centro)) {
@@ -154,22 +157,50 @@ export async function getComparacionEntrega(
           ajuste: current.ajuste,
         },
         alerta: true,
+        advertencia: false,
       });
     }
   }
 
-  return Array.from(centrosExp.values());
+  //Advertencia para flujos incompletos, alertas para problemas de cantidades de cajas.
+  const result = Array.from(centrosExp.values()).map((item) => {
+    item.advertencia = !item.expedicion || !item.traspaso || !item.entrega;
+    if (item.expedicion && item.traspaso) {
+      item.alerta =
+        item.alerta || !sameCajas(item.expedicion.cajas, item.traspaso.cajas);
+    }
+    if (item.traspaso && item.entrega) {
+      item.alerta =
+        item.alerta || !sameCajas(item.traspaso.cajas, item.entrega.cajas);
+    }
+    return item;
+  });
+
+  return result;
 }
 
 export async function getComparacionRecogida(
   db: SupabaseClient,
-  fecha: string,
+  fecha: string | null = null,
 ): Promise<ItemComparacionRecogida[]> {
   // Obtener devoluciones y recogidas
 
+  let [queryRecogidas, queryDevoluciones] = [
+    db.from(TABLAS.RECOGIDA).select<string, Recogida>(),
+    db.from(TABLAS.DEVOLUCION).select<string, Devolucion>(),
+  ];
+
+  if (fecha == null) {
+    queryRecogidas = queryRecogidas.is("fecha_cierre", null);
+    queryDevoluciones = queryDevoluciones.is("fecha_cierre", null);
+  } else {
+    queryRecogidas = queryRecogidas.eq("fecha_cierre", fecha);
+    queryDevoluciones = queryDevoluciones.eq("fecha_cierre", fecha);
+  }
+
   const [recogidasRaw, devolucionesRaw] = await Promise.all([
-    db.from(TABLAS.RECOGIDA).select<string, Recogida>().eq("fecha", fecha),
-    db.from(TABLAS.DEVOLUCION).select<string, Devolucion>().eq("fecha", fecha),
+    queryRecogidas,
+    queryDevoluciones,
   ]);
 
   const error = recogidasRaw.error || devolucionesRaw.error;
@@ -195,7 +226,7 @@ export async function getComparacionRecogida(
     const centro = current.centro_distribucion;
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste = prettyName(current.ajuste) as string;
+      current.ajuste = prettyName(current.ajuste);
     }
     if (centrosRec.has(centro)) {
       const item = centrosRec.get(centro) as ItemComparacionRecogida;
@@ -227,7 +258,7 @@ export async function getComparacionRecogida(
         },
         devolucion: null,
         alerta: false,
-        rotura: false,
+        advertencia: false,
       });
     }
   }
@@ -236,7 +267,7 @@ export async function getComparacionRecogida(
     const centro = current.centro_distribucion;
     current.nombre = prettyName(current.nombre);
     if (current.ajuste) {
-      current.ajuste = prettyName(current.ajuste) as string;
+      current.ajuste = prettyName(current.ajuste);
     }
     if (centrosRec.has(centro)) {
       const item = centrosRec.get(centro) as ItemComparacionRecogida;
@@ -269,12 +300,44 @@ export async function getComparacionRecogida(
           ajuste: current.ajuste,
         },
         alerta: false,
-        rotura: false,
+        advertencia: false,
       });
     }
   }
 
-  return Array.from(centrosRec.values());
+  //Advertencia para roturas de cajas, alertas para flujo incompleto y problemas de cantidades de cajas.
+  const result = Array.from(centrosRec.values()).map(
+    (item: ItemComparacionRecogida) => {
+      if (item.recogida && item.devolucion) {
+        item.alerta =
+          !sameCajas(item.recogida.cajas, item.devolucion.cajas) ||
+          !sameCajas(
+            item.recogida.roturas.cajas,
+            item.devolucion.roturas.cajas,
+          ) ||
+          !sameCajas(
+            item.recogida.roturas.tapas,
+            item.devolucion.roturas.tapas,
+          );
+      } else {
+        item.alerta = true;
+      }
+      if (item.recogida) {
+        item.advertencia =
+          totalCajas(item.recogida.roturas.cajas) > 0 ||
+          totalCajas(item.recogida.roturas.tapas) > 0;
+      }
+      if (item.devolucion) {
+        item.advertencia =
+          item.advertencia ||
+          totalCajas(item.devolucion.roturas.cajas) > 0 ||
+          totalCajas(item.devolucion.roturas.tapas) > 0;
+      }
+      return item;
+    },
+  );
+
+  return result;
 }
 
 export function alertCompare(
@@ -313,6 +376,7 @@ export interface ItemComparacionEntrega {
   traspaso: ItemComparacion | null;
   entrega: ItemComparacion | null;
   alerta: boolean;
+  advertencia: boolean;
 }
 
 export interface ItemComparacionRecogida {
@@ -322,5 +386,5 @@ export interface ItemComparacionRecogida {
   recogida: (ItemComparacion & CajasRoturas) | null;
   devolucion: (ItemComparacion & CajasRoturas) | null;
   alerta: boolean;
-  rotura: boolean;
+  advertencia: boolean;
 }
