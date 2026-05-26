@@ -56,7 +56,7 @@ export default function FormularioEvento({
   const [isSuccess, setIsSuccess] = useState(false);
   const [isWarning, setIsWarning] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [habilitado, setHabilitado] = useState<CajasHabilitadas>({
+  const [habilitadas, setHabilitadas] = useState<CajasHabilitadas>({
     blancas: false,
     negras: false,
     verdes: false,
@@ -85,6 +85,35 @@ export default function FormularioEvento({
   // populate when editing/adjustment
   useEffect(() => {
     if (initialData) {
+      const initialCajas = initialData.cajas ?? {
+        blancas: 0,
+        negras: 0,
+        verdes: 0,
+      };
+      const initialRoturas = initialData.roturas ?? {
+        cajas: {
+          blancas: 0,
+          negras: 0,
+          verdes: 0,
+        },
+        tapas: { blancas: 0, negras: 0 },
+      };
+      const initialAjuste = initialData.id
+        ? {
+            cajas: { ...initialCajas },
+            roturas: {
+              cajas: { ...initialRoturas.cajas },
+              tapas: { ...initialRoturas.tapas },
+            },
+          }
+        : (initialData.ajuste ?? {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            roturas: {
+              cajas: { blancas: 0, negras: 0, verdes: 0 },
+              tapas: { blancas: 0, negras: 0 },
+            },
+          });
+
       resetForm();
       setOriginalId(initialData.id ?? null);
       // show ajuste mode
@@ -93,22 +122,9 @@ export default function FormularioEvento({
         centro_distribucion: initialData.centro_distribucion,
         almacen: initialData.almacen,
         chapa: initialData.chapa,
-        cajas: initialData.cajas ?? { blancas: 0, negras: 0, verdes: 0 },
-        roturas: initialData.roturas ?? {
-          cajas: {
-            blancas: 0,
-            negras: 0,
-            verdes: 0,
-          },
-          tapas: { blancas: 0, negras: 0 },
-        },
-        ajuste: initialData.ajuste ?? {
-          cajas: { blancas: 0, negras: 0, verdes: 0 },
-          roturas: {
-            cajas: { blancas: 0, negras: 0, verdes: 0 },
-            tapas: { blancas: 0, negras: 0 },
-          },
-        },
+        cajas: initialCajas,
+        roturas: initialRoturas,
+        ajuste: initialAjuste,
       });
     }
   }, [initialData]);
@@ -199,9 +215,9 @@ export default function FormularioEvento({
       formData.centro_distribucion &&
       formData.centro_distribucion in response
     ) {
-      setHabilitado(response[formData.centro_distribucion].habilitado);
+      setHabilitadas(response[formData.centro_distribucion].habilitadas);
     } else {
-      setHabilitado({
+      setHabilitadas({
         blancas: false,
         negras: false,
         verdes: false,
@@ -216,7 +232,7 @@ export default function FormularioEvento({
     setSubmitted(false);
     setIsSuccess(false);
     setIsWarning(false);
-    setHabilitado({
+    setHabilitadas({
       blancas: false,
       negras: false,
       verdes: false,
@@ -277,10 +293,32 @@ export default function FormularioEvento({
     if (name === "chapa" && value.startsWith("Selecciona"))
       return setMensaje("Debe escoger una chapa.");
 
+    if (numValue < 0) {
+      setMensaje("Los valores no pueden ser negativos");
+      return;
+    }
+
     // Ajuste names: ajuste_cajas_{color} | ajuste_roturas_cajas_{color} | ajuste_roturas_tapas_{color}
     if (name.startsWith("ajuste_")) {
       const parts = name.split("_");
       const color = parts.at(-1) as COLORES_CAJAS;
+      const ajusteCajas = formData.ajuste.cajas;
+      if (name.startsWith("ajuste_roturas_tapas_")) {
+        if (numValue > ajusteCajas[color]) {
+          setMensaje(
+            `Las tapas ${color} rotas no pueden ser más que el total de cajas ${color}`,
+          );
+          return;
+        }
+      } else if (name.startsWith("ajuste_roturas_cajas_")) {
+        if (numValue > ajusteCajas[color]) {
+          setMensaje(
+            `Las cajas ${color} rotas no pueden ser más que el total de cajas ${color}`,
+          );
+          return;
+        }
+      }
+
       setFormData((prev) => {
         const ajuste = prev.ajuste ?? {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
@@ -295,7 +333,8 @@ export default function FormularioEvento({
           };
         }
         const subKey = parts[2] as "cajas" | "tapas";
-        const roturas = (ajuste as { cajas: Cajas } & CajasRoturas).roturas ?? {
+        const roturas = (ajuste as { cajas: Cajas; roturas: CajasRoturas })
+          .roturas ?? {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
           tapas: { blancas: 0, negras: 0 },
         };
@@ -313,11 +352,6 @@ export default function FormularioEvento({
       return;
     }
 
-    if (numValue < 0) {
-      setMensaje("Los valores no pueden ser negativos");
-      return;
-    }
-
     const color = name.split("_").at(-1) as COLORES_CAJAS;
 
     if (name.startsWith("roturas_tapas_")) {
@@ -330,8 +364,14 @@ export default function FormularioEvento({
       setFormData((prev) => ({
         ...prev,
         roturas: {
-          ...prev.roturas,
-          tapas: { ...prev.roturas.tapas, [color]: numValue || 0 },
+          ...(prev.roturas ?? {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas: { blancas: 0, negras: 0 },
+          }),
+          tapas: {
+            ...(prev.roturas?.tapas ?? { blancas: 0, negras: 0 }),
+            [color]: numValue || 0,
+          },
         },
       }));
     } else if (name.startsWith("roturas_cajas_")) {
@@ -344,8 +384,14 @@ export default function FormularioEvento({
       setFormData((prev) => ({
         ...prev,
         roturas: {
-          ...prev.roturas,
-          cajas: { ...prev.roturas.cajas, [color]: numValue || 0 },
+          ...(prev.roturas ?? {
+            cajas: { blancas: 0, negras: 0, verdes: 0 },
+            tapas: { blancas: 0, negras: 0 },
+          }),
+          cajas: {
+            ...(prev.roturas?.cajas ?? { blancas: 0, negras: 0, verdes: 0 }),
+            [color]: numValue || 0,
+          },
         },
       }));
     } else if (name.startsWith("cajas_")) {
@@ -391,7 +437,8 @@ export default function FormularioEvento({
           ajuste: {
             cajas: formData.ajuste.cajas,
             roturas:
-              "roturas" in formData.ajuste
+              formData.ajuste.roturas &&
+              (tipoEvento === "Recogida" || tipoEvento === "Devolucion")
                 ? {
                     cajas: formData.ajuste.roturas.cajas,
                     tapas: formData.ajuste.roturas.tapas,
@@ -410,10 +457,12 @@ export default function FormularioEvento({
           almacen: formData.almacen,
           centro_distribucion: formData.centro_distribucion,
           chapa: formData.chapa,
-          roturas: {
-            cajas: formData.roturas.cajas,
-            tapas: formData.roturas.tapas,
-          },
+          roturas: formData.roturas
+            ? {
+                cajas: formData.roturas.cajas,
+                tapas: formData.roturas.tapas,
+              }
+            : undefined,
         };
         response = await fetch(`/api/eventos/create?tipo=${tipoEvento}`, {
           method: "POST",
@@ -778,6 +827,7 @@ export default function FormularioEvento({
               )}
 
               {mostrarRoturas &&
+                formData.roturas &&
                 formCajas(
                   formData.roturas.cajas,
                   "Cajas Rotas",
@@ -792,6 +842,7 @@ export default function FormularioEvento({
                 )}
 
               {mostrarRoturas &&
+                formData.roturas &&
                 formCajas(
                   formData.roturas.tapas,
                   "Tapas Rotas",
@@ -819,6 +870,7 @@ export default function FormularioEvento({
                   )}
 
                   {mostrarRoturas &&
+                    formData.ajuste.roturas &&
                     "roturas" in formData.ajuste &&
                     formCajas(
                       formData.ajuste?.roturas.cajas || {
@@ -832,6 +884,7 @@ export default function FormularioEvento({
                     )}
 
                   {mostrarRoturas &&
+                    formData.ajuste.roturas &&
                     "roturas" in formData.ajuste &&
                     formCajas(
                       formData.ajuste?.roturas.tapas || {
@@ -895,13 +948,13 @@ export default function FormularioEvento({
       verdes: "border-emerald-200 bg-emerald-100 text-emerald-900",
     };
 
-    if (Object.values(habilitado).every((val: boolean) => !val)) return;
+    if (Object.values(habilitadas).every((val: boolean) => !val)) return;
     return (
       <div className="rounded-[26px] border border-slate-200 bg-[linear-gradient(180deg,_rgba(248,250,252,0.96),_rgba(241,245,249,0.82))] p-5">
         <h3 className="mb-4 text-lg font-semibold text-slate-900">{title}</h3>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
-            if (!habilitado[color] || !(color in object)) return null;
+            if (!habilitadas[color] || !(color in object)) return null;
             const value = (object as Cajas)[color];
             return (
               <div

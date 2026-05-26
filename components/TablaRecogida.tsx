@@ -3,20 +3,13 @@
 import { frontendClient } from "@/lib/client";
 import {
   CAJAS_ARRAY,
-  COLECCIONES,
   COLORES_CAJAS,
   Recogida,
   TABLAS,
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
-import {
-  AjusteStr,
-  formatCajas,
-  formatTapas,
-  prettyName,
-  totalCajas,
-} from "@/lib/utils";
+import { formatCajas, formatTapas, prettyName, totalCajas } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaRecogida({
@@ -28,7 +21,7 @@ export default function TablaRecogida({
   fecha: string;
   onAjustar?: (tipo: TIPOS_EVENTO, id: number) => void;
 }>) {
-  const [datos, setDatos] = useState<AjusteStr<Recogida>[]>([]);
+  const [datos, setDatos] = useState<Recogida[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -38,7 +31,7 @@ export default function TablaRecogida({
       setError("");
       try {
         const res = await fetch(
-          `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.RECOGIDA}`,
+          `/api/eventos/list?fecha=${fecha}&tipo=${"Recogida" as TIPOS_EVENTO}`,
           { signal },
         );
         const data = await res.json();

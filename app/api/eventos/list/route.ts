@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase, getErrorMessage } from "@/lib/server";
-import { applyAjuste } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import {
   Evento,
@@ -56,7 +55,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw new Error(error.message);
 
-    const adjItems = data.map(applyAjuste);
+    const adjItems = data;
 
     return NextResponse.json(adjItems);
   } catch (error) {

@@ -3,55 +3,53 @@ import {
   CAJAS_ARRAY,
   COLORES_CAJAS,
   COLORES_TAPAS,
-  Evento,
-  EventoRotura,
   Tapas,
   TAPAS_ARRAY,
 } from "@/lib/constants";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
-export type AjusteStr<Str> = Omit<Str, "ajuste"> & { ajuste?: string };
+// export type AjusteStr<Str> = Omit<Str, "ajuste"> & { ajuste?: string };
 
-export function applyAjuste(
-  item: Evento | EventoRotura,
-): AjusteStr<Evento | EventoRotura> {
-  if (!item.ajuste) {
-    return { ...item, ajuste: undefined };
-  }
-  item.cajas = {
-    blancas: (item.cajas.blancas ?? 0) + (item.ajuste.cajas.blancas ?? 0),
-    negras: (item.cajas.negras ?? 0) + (item.ajuste.cajas.negras ?? 0),
-    verdes: (item.cajas.verdes ?? 0) + (item.ajuste.cajas.verdes ?? 0),
-  };
-  if ("roturas" in item) {
-    item.roturas = {
-      cajas: {
-        blancas:
-          (item.roturas.cajas.blancas ?? 0) +
-          (item.ajuste.roturas.cajas.blancas ?? 0),
-        negras:
-          (item.roturas.cajas.negras ?? 0) +
-          (item.ajuste.roturas.cajas.negras ?? 0),
-        verdes:
-          (item.roturas.cajas.verdes ?? 0) +
-          (item.ajuste.roturas.cajas.verdes ?? 0),
-      },
-      tapas: {
-        blancas:
-          (item.roturas.tapas.blancas ?? 0) +
-          (item.ajuste.roturas.tapas.blancas ?? 0),
-        negras:
-          (item.roturas.tapas.negras ?? 0) +
-          (item.ajuste.roturas.tapas.negras ?? 0),
-      },
-    };
-  }
-  return {
-    ...item,
-    ajuste: item.ajuste?.nombre,
-  };
-}
+// export function applyAjuste(
+//   item: Evento | EventoRotura,
+// ): AjusteStr<Evento | EventoRotura> {
+//   if (!item.ajuste) {
+//     return { ...item, ajuste: undefined };
+//   }
+//   item.cajas = {
+//     blancas: (item.cajas.blancas ?? 0) + (item.ajuste.cajas.blancas ?? 0),
+//     negras: (item.cajas.negras ?? 0) + (item.ajuste.cajas.negras ?? 0),
+//     verdes: (item.cajas.verdes ?? 0) + (item.ajuste.cajas.verdes ?? 0),
+//   };
+//   if ("roturas" in item) {
+//     item.roturas = {
+//       cajas: {
+//         blancas:
+//           (item.roturas.cajas.blancas ?? 0) +
+//           (item.ajuste.roturas.cajas.blancas ?? 0),
+//         negras:
+//           (item.roturas.cajas.negras ?? 0) +
+//           (item.ajuste.roturas.cajas.negras ?? 0),
+//         verdes:
+//           (item.roturas.cajas.verdes ?? 0) +
+//           (item.ajuste.roturas.cajas.verdes ?? 0),
+//       },
+//       tapas: {
+//         blancas:
+//           (item.roturas.tapas.blancas ?? 0) +
+//           (item.ajuste.roturas.tapas.blancas ?? 0),
+//         negras:
+//           (item.roturas.tapas.negras ?? 0) +
+//           (item.ajuste.roturas.tapas.negras ?? 0),
+//       },
+//     };
+//   }
+//   return {
+//     ...item,
+//     ajuste: item.ajuste,
+//   };
+// }
 
 export function sumCajas(actuales: Cajas, nuevas: Cajas): Cajas {
   return {

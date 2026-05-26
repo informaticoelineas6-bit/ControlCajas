@@ -10,10 +10,10 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import { TABLAS, Usuario, Vehiculo } from "@/lib/constants";
+import { Nuevo, TABLAS, Usuario, Vehiculo } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
-import { formatDate, prettyName } from "@/lib/utils";
+import { prettyName } from "@/lib/utils";
 import FormModal from "./AdminFormModal";
 
 export default function TablaVehiculos({
@@ -22,7 +22,7 @@ export default function TablaVehiculos({
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<Partial<Vehiculo>>({
+  const [form, setForm] = useState<Nuevo<Vehiculo>>({
     chapa: "",
     marca: "",
     modelo: "",
@@ -102,18 +102,11 @@ export default function TablaVehiculos({
     setSubmitting(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const body: Vehiculo = {
+      const body: Nuevo<Vehiculo> = {
         categoria: form.categoria,
         chapa: form.chapa,
-        marca: form.marca!,
-        modelo: form.modelo!,
-        ajuste: editingId
-          ? {
-              fechaHora: new Date().toISOString(),
-              habilitado: true,
-              nombre: usuario.nombre,
-            }
-          : undefined,
+        marca: form.marca,
+        modelo: form.modelo,
       };
       const res = await fetch("/api/admin/vehiculos", {
         method,
@@ -372,22 +365,20 @@ export default function TablaVehiculos({
                           </button>
                           <button
                             onClick={() =>
-                              enableVehiculo(item, !item.ajuste?.habilitado)
+                              enableVehiculo(item, !item.habilitado)
                             }
                             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                              item.ajuste?.habilitado
+                              item.habilitado
                                 ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
-                            {item.ajuste?.habilitado ? (
+                            {item.habilitado ? (
                               <ToggleLeft size={12} />
                             ) : (
                               <ToggleRight size={12} />
                             )}
-                            {item.ajuste?.habilitado
-                              ? "Deshabilitar"
-                              : "Habilitar"}
+                            {item.habilitado ? "Deshabilitar" : "Habilitar"}
                           </button>
                           <ConfirmDeleteButton
                             entityName={`el centro ${item.chapa}`}
@@ -425,22 +416,18 @@ export default function TablaVehiculos({
                         <p className="text-slate-600">Estado</p>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            item.ajuste?.habilitado
+                            item.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"
                           }`}
                         >
-                          {item.ajuste?.habilitado
-                            ? "Habilitado"
-                            : "Deshabilitado"}
+                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
                         </span>
                       </div>
                       <div>
                         <p className="text-slate-600">Editado por</p>
                         <p className="font-medium text-slate-700">
-                          {item.ajuste?.nombre
-                            ? prettyName(item.ajuste?.nombre)
-                            : "-"}
+                          {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </p>
                       </div>
                     </div>
@@ -497,27 +484,16 @@ export default function TablaVehiculos({
                       <td className="px-5 py-4 text-slate-600">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            item.ajuste?.habilitado
+                            item.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"
                           }`}
                         >
-                          {item.ajuste?.habilitado
-                            ? "Habilitado"
-                            : "Deshabilitado"}
+                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
                         </span>
                       </td>
-                      <td
-                        title={
-                          item.ajuste?.fechaHora
-                            ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
-                            : undefined
-                        }
-                        className={`px-5 py-4 text-slate-600${item.ajuste ? " hover:bg-slate-300" : ""}`}
-                      >
-                        {item.ajuste?.nombre
-                          ? prettyName(item.ajuste?.nombre)
-                          : "-"}
+                      <td className="px-5 py-4 text-slate-600">
+                        {item.ajuste ? prettyName(item.ajuste) : "-"}
                       </td>
                       {usuario.rol === "informatico" && (
                         <td className="px-5 py-4 text-center">
@@ -532,22 +508,20 @@ export default function TablaVehiculos({
                             <button
                               disabled={submitting}
                               onClick={() =>
-                                enableVehiculo(item, !item.ajuste?.habilitado)
+                                enableVehiculo(item, !item.habilitado)
                               }
                               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                                item.ajuste?.habilitado
+                                item.habilitado
                                   ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               }`}
                             >
-                              {item.ajuste?.habilitado ? (
+                              {item.habilitado ? (
                                 <ToggleLeft size={12} />
                               ) : (
                                 <ToggleRight size={12} />
                               )}
-                              {item.ajuste?.habilitado
-                                ? "Deshabilitar"
-                                : "Habilitar"}
+                              {item.habilitado ? "Deshabilitar" : "Habilitar"}
                             </button>
                             <ConfirmDeleteButton
                               entityName={`el ${item.categoria} ${item.chapa}`}

@@ -34,21 +34,6 @@ export const OBJETOS_ARRAY = [
 export const CAJAS_ARRAY = ["blancas", "negras", "verdes"] as const;
 export const TAPAS_ARRAY = ["blancas", "negras"] as const;
 
-export enum COLECCIONES {
-  ALMACEN = "Almacen",
-  CENTRO_DISTRIBUCION = "CentroDistribucion",
-  USUARIO = "Usuario",
-  VEHICULO = "Vehiculo",
-  EXPEDICION = "Expedicion",
-  ENTREGA = "Entrega",
-  TRASPASO = "Traspaso",
-  DEVOLUCION = "Devolucion",
-  RECOGIDA = "Recogida",
-  CIERRE = "Cierre",
-  PROVINCIA = "Provincia",
-  AUDITORIA = "AuditLog",
-}
-
 export enum TABLAS {
   ALMACEN = "almacen",
   CENTRO_DISTRIBUCION = "centro_distribucion",
@@ -98,26 +83,28 @@ export interface CajasHabilitadas {
 }
 
 export interface CajasRoturas {
-  roturas: {
-    cajas: Cajas;
-    tapas: Tapas;
-  };
+  cajas: Cajas;
+  tapas: Tapas;
 }
 
 export type Created<Evento> = Evento & { created_at: string };
 
-export interface Usuario {
+export interface Objetos {
+  ajuste: string | null;
+  habilitado: boolean;
+}
+
+export interface Usuario extends Objetos {
   nombre: string;
   rol: ROLES;
   contrasena?: string;
-  ajuste?: AjusteObjetos;
 }
 
-export interface Almacen extends CajasRoturas {
+export interface Almacen extends Objetos {
   nombre: string;
-  habilitado: CajasHabilitadas;
+  habilitadas: CajasHabilitadas;
   stock: Cajas;
-  ajuste?: AjusteObjetos;
+  roturas: CajasRoturas;
 }
 
 export type DeudaAct<Centro> = Centro & {
@@ -125,41 +112,24 @@ export type DeudaAct<Centro> = Centro & {
   fecha_liquidacion: string | null;
 };
 
-export interface CentroDistribucion extends CajasRoturas {
+export interface CentroDistribucion extends Objetos {
   nombre: string;
-  habilitado: CajasHabilitadas;
+  habilitadas: CajasHabilitadas;
   deuda: Cajas;
+  roturas: CajasRoturas;
   rotacion: number;
-  ajuste?: AjusteObjetos;
 }
 
-export interface Provincia {
+export interface Provincia extends Objetos {
   nombre: string;
   centro_distribucion: string;
-  ajuste?: AjusteObjetos;
 }
 
-export interface Vehiculo {
+export interface Vehiculo extends Objetos {
   categoria: string;
   chapa: string;
   marca: string;
   modelo: string;
-  ajuste?: AjusteObjetos;
-}
-
-export interface Ajuste {
-  nombre: string;
-  fechaHora: string;
-}
-
-export interface AjusteCajas extends Ajuste {
-  cajas: Cajas;
-}
-
-export interface AjusteRoturas extends AjusteCajas, CajasRoturas {}
-
-export interface AjusteObjetos extends Ajuste {
-  habilitado: boolean;
 }
 
 export interface Evento {
@@ -168,50 +138,62 @@ export interface Evento {
   fecha: string;
   nombre: string;
   cajas: Cajas;
-  ajuste?: AjusteCajas;
+  ajuste: string;
 }
 
-export type Nuevo<Evento> = Omit<Evento, "id" | "created_at" | "fecha_cierre">;
+export type Nuevo<Evento> = Omit<
+  Evento,
+  | "id"
+  | "created_at"
+  | "fecha"
+  | "ajuste"
+  | "habilitado"
+  | "provincia"
+  | "fecha_cierre"
+>;
 
-export interface EventoRotura extends Evento, CajasRoturas {
-  ajuste?: AjusteRoturas;
+export interface EventoIda extends Evento {
+  provincia: string | null;
 }
-export interface Expedicion extends Evento {
+
+export interface EventoVuelta extends Evento {
+  roturas: CajasRoturas;
+  fecha_cierre: string | null;
+}
+
+export interface Expedicion extends EventoIda {
   almacen: string;
-  provincia?: string;
 }
 
-export interface Traspaso extends Evento {
+export interface Traspaso extends EventoIda {
   almacen: string;
   chapa: string;
-  provincia?: string;
 }
 
-export interface Entrega extends Evento {
+export interface Entrega extends EventoIda {
   chapa: string;
-  provincia?: string;
 }
 
-export interface Recogida extends EventoRotura {
+export interface Recogida extends EventoVuelta {
   chapa: string;
-  fecha_cierre: string;
 }
 
-export interface Devolucion extends EventoRotura {
+export interface Devolucion extends EventoVuelta {
   almacen: string;
-  fecha_cierre: string;
 }
 
 export interface Cierre {
   fecha: string;
-  cierre_cd: ({
+  cierre_cd: {
     centro_distribucion: string;
     ajuste_deuda: Cajas;
-  } & CajasRoturas)[];
-  cierre_almacen: ({
+    roturas: CajasRoturas;
+  }[];
+  cierre_almacen: {
     almacen: string;
     ajuste_stock: Cajas;
-  } & CajasRoturas)[];
+    roturas: CajasRoturas;
+  }[];
 }
 
 export interface AuditLog {
@@ -230,6 +212,32 @@ export interface ObjetoAjusteForm {
     habilitado: boolean;
   };
 }
+
+export interface EventoCreateForm {
+  almacen?: string;
+  centro_distribucion?: string;
+  chapa?: string;
+  cajas: Cajas;
+  roturas?: CajasRoturas;
+}
+
+export interface EventoAjusteForm {
+  tipo_evento?: TIPOS_EVENTO;
+  ajuste: {
+    cajas: Cajas;
+    roturas?: CajasRoturas;
+  };
+}
+
+export type EventoResponse = Record<
+  string,
+  {
+    almacenes: string[];
+    vehiculos: Vehiculo[];
+    habilitadas: CajasHabilitadas;
+    deuda_activa?: Cajas;
+  }
+>;
 
 export interface AlertaResponse {
   total: number;
@@ -274,18 +282,20 @@ export interface DashboardRow {
 
 export interface AlmacenAudit {
   almacen: Almacen;
-  cierres: ({
+  cierres: {
     fecha: string;
     ajuste_stock: Cajas;
-  } & CajasRoturas)[];
+    roturas: CajasRoturas;
+  }[];
 }
 
 export interface CentroAudit {
   centro: CentroDistribucion;
-  cierres: ({
+  cierres: {
     fecha: string;
     ajuste_deuda: Cajas;
-  } & CajasRoturas)[];
+    roturas: CajasRoturas;
+  }[];
 }
 
 export interface UsuarioAudit {
@@ -304,31 +314,3 @@ export interface EventoAudit {
     tapas: Tapas;
   };
 }
-
-export interface EventoCreateForm extends CajasRoturas {
-  almacen?: string;
-  centro_distribucion?: string;
-  chapa?: string;
-  cajas: Cajas;
-}
-
-export interface EventoAjusteForm {
-  tipo_evento?: TIPOS_EVENTO;
-  ajuste:
-    | {
-        cajas: Cajas;
-      }
-    | ({
-        cajas: Cajas;
-      } & CajasRoturas);
-}
-
-export type EventoResponse = Record<
-  string,
-  {
-    almacenes: string[];
-    vehiculos: Vehiculo[];
-    habilitado: CajasHabilitadas;
-    deuda_activa?: Cajas;
-  }
->;

@@ -209,12 +209,12 @@ export default function AuditAlmacen() {
                     <p className="text-slate-600">Estado</p>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                        datos.almacen.ajuste?.habilitado
+                        datos.almacen.habilitado
                           ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                           : "bg-rose-50 text-rose-700 ring-rose-200"
                       }`}
                     >
-                      {datos.almacen.ajuste?.habilitado
+                      {datos.almacen.habilitado
                         ? "Habilitado"
                         : "Deshabilitado"}
                     </span>
@@ -222,8 +222,8 @@ export default function AuditAlmacen() {
                   <div>
                     <p className="text-slate-600">Editado por</p>
                     <p className="font-medium text-slate-700">
-                      {datos.almacen.ajuste?.nombre
-                        ? prettyName(datos.almacen.ajuste?.nombre)
+                      {datos.almacen.ajuste
+                        ? prettyName(datos.almacen.ajuste)
                         : "-"}
                     </p>
                   </div>

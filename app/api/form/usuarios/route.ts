@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await db
       .select<string, Usuario>("nombre, rol")
-      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+      .is("habilitado", true)
       .order("nombre");
 
     if (error) throw new Error(error.message);

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const db = (await connectToDatabase()).from(TABLAS.USUARIO);
 
     const { data, error } = await db
-      .select("nombre, rol, ajuste")
+      .select("nombre, rol, habilitado, ajuste")
       .order("nombre");
 
     if (error) throw new Error(error.message);
@@ -64,18 +64,18 @@ export async function PUT(request: NextRequest) {
 
     if (data.length === 0) throw new Error("Usuario no encontrada");
 
-    LogAudit(db, "UPDATE", data[0], "Usuario", usuario.nombre, body);
-
-    const hashedPassword = body.contrasena
+    body.contrasena = body.contrasena
       ? await hashPassword(body.contrasena)
       : undefined;
+
+    LogAudit(db, "UPDATE", data[0], "Usuario", usuario.nombre, body);
 
     const { error } = await db
       .from(TABLAS.USUARIO)
       .update({
         rol: body.rol,
         ajuste: body.ajuste,
-        contrasena: hashedPassword,
+        contrasena: body.contrasena,
       })
       .eq("nombre", nombre);
 

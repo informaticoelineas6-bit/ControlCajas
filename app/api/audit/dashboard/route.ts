@@ -13,13 +13,7 @@ import {
   DashboardRow,
   DeudaAct,
 } from "@/lib/constants";
-import {
-  AjusteStr,
-  applyAjuste,
-  hasCajas,
-  sumCajas,
-  totalCajas,
-} from "@/lib/utils";
+import { hasCajas, sumCajas, totalCajas } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import { addDays, format, isAfter, isBefore, parseISO } from "date-fns";
 
@@ -49,7 +43,7 @@ export async function GET(request: NextRequest) {
       db
         .from(TABLAS.ALMACEN)
         .select<string, Almacen>("stock, roturas, ajuste")
-        .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null"),
+        .is("habilitado", true),
       db
         .from(TABLAS.EXPEDICION)
         .select<string, Expedicion>("fecha, cajas, ajuste")
@@ -87,29 +81,19 @@ export async function GET(request: NextRequest) {
     const centros: DeudaAct<CentroDistribucion>[] = centrosRaw.data ?? [];
     const almacenes = almacenesRaw.data ?? [];
     const expediciones = expedicionesRaw.data
-      ? (expedicionesRaw.data
-          .map(applyAjuste)
-          .filter(hasCajas) as AjusteStr<Expedicion>[])
+      ? (expedicionesRaw.data.filter(hasCajas) as Expedicion[])
       : [];
     const traspasos = traspasosRaw.data
-      ? (traspasosRaw.data
-          .map(applyAjuste)
-          .filter(hasCajas) as AjusteStr<Traspaso>[])
+      ? (traspasosRaw.data.filter(hasCajas) as Traspaso[])
       : [];
     const entregas = entregasRaw.data
-      ? (entregasRaw.data
-          .map(applyAjuste)
-          .filter(hasCajas) as AjusteStr<Entrega>[])
+      ? (entregasRaw.data.filter(hasCajas) as Entrega[])
       : [];
     const recogidas = recogidasRaw.data
-      ? (recogidasRaw.data
-          .map(applyAjuste)
-          .filter(hasCajas) as AjusteStr<Recogida>[])
+      ? (recogidasRaw.data.filter(hasCajas) as Recogida[])
       : [];
     const devoluciones = devolucionesRaw.data
-      ? (devolucionesRaw.data
-          .map(applyAjuste)
-          .filter(hasCajas) as AjusteStr<Devolucion>[])
+      ? (devolucionesRaw.data.filter(hasCajas) as Devolucion[])
       : [];
 
     const dashboardData: DashboardRow[] = [];
@@ -191,21 +175,21 @@ export async function GET(request: NextRequest) {
     }, 0);
 
     const enviosHoy = expediciones.reduce(
-      (acc: number, expedicion: AjusteStr<Expedicion>) => {
+      (acc: number, expedicion: Expedicion) => {
         return acc + totalCajas(expedicion.cajas);
       },
       0,
     );
 
     const recogidasHoy = devoluciones.reduce(
-      (acc: number, devolucion: AjusteStr<Devolucion>) => {
+      (acc: number, devolucion: Devolucion) => {
         return acc + totalCajas(devolucion.cajas);
       },
       0,
     );
 
     const rotasHoy = devoluciones.reduce(
-      (acc: number, devolucion: AjusteStr<Devolucion>) => {
+      (acc: number, devolucion: Devolucion) => {
         return (
           acc +
           totalCajas(devolucion.roturas.cajas) +

@@ -209,21 +209,19 @@ export default function AuditCentro() {
                     <p className="text-slate-600">Estado</p>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                        datos.centro.ajuste?.habilitado
+                        datos.centro.habilitado
                           ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                           : "bg-rose-50 text-rose-700 ring-rose-200"
                       }`}
                     >
-                      {datos.centro.ajuste?.habilitado
-                        ? "Habilitado"
-                        : "Deshabilitado"}
+                      {datos.centro.habilitado ? "Habilitado" : "Deshabilitado"}
                     </span>
                   </div>
                   <div>
                     <p className="text-slate-600">Editado por</p>
                     <p className="font-medium text-slate-700">
-                      {datos.centro.ajuste?.nombre
-                        ? prettyName(datos.centro.ajuste?.nombre)
+                      {datos.centro.ajuste
+                        ? prettyName(datos.centro.ajuste)
                         : "-"}
                     </p>
                   </div>

@@ -2,8 +2,6 @@ import {
   Created,
   Devolucion,
   Entrega,
-  Evento,
-  EventoRotura,
   Expedicion,
   Recogida,
   TABLAS,
@@ -12,7 +10,7 @@ import {
   UsuarioAudit,
 } from "@/lib/constants";
 import { connectToDatabase, getErrorMessage } from "@/lib/server";
-import { AjusteStr, applyAjuste, hasCajas } from "@/lib/utils";
+import { hasCajas } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -110,46 +108,36 @@ export async function GET(request: NextRequest) {
       if (error) throw new Error(error.message);
 
       eventos = [
-        ...(expedicionesRaw.data.map(applyAjuste) as AjusteStr<Evento>[])
-          .filter(hasCajas)
-          .map((evento) => ({
-            ...evento,
-            id: undefined,
-            ajuste: undefined,
-            tipo_evento: "Expedicion" as const,
-          })),
-        ...(traspasosRaw.data.map(applyAjuste) as AjusteStr<Evento>[])
-          .filter(hasCajas)
-          .map((evento) => ({
-            ...evento,
-            id: undefined,
-            ajuste: undefined,
-            tipo_evento: "Traspaso" as const,
-          })),
-        ...(entregasRaw.data.map(applyAjuste) as AjusteStr<Evento>[])
-          .filter(hasCajas)
-          .map((evento) => ({
-            ...evento,
-            id: undefined,
-            ajuste: undefined,
-            tipo_evento: "Entrega" as const,
-          })),
-        ...(recogidasRaw.data.map(applyAjuste) as AjusteStr<EventoRotura>[])
-          .filter(hasCajas)
-          .map((evento) => ({
-            ...evento,
-            id: undefined,
-            ajuste: undefined,
-            tipo_evento: "Recogida" as const,
-          })),
-        ...(devolucionesRaw.data.map(applyAjuste) as AjusteStr<EventoRotura>[])
-          .filter(hasCajas)
-          .map((evento) => ({
-            ...evento,
-            id: undefined,
-            ajuste: undefined,
-            tipo_evento: "Devolucion" as const,
-          })),
+        ...expedicionesRaw.data.filter(hasCajas).map((evento) => ({
+          ...evento,
+          id: undefined,
+          ajuste: undefined,
+          tipo_evento: "Expedicion" as const,
+        })),
+        ...traspasosRaw.data.filter(hasCajas).map((evento) => ({
+          ...evento,
+          id: undefined,
+          ajuste: undefined,
+          tipo_evento: "Traspaso" as const,
+        })),
+        ...entregasRaw.data.filter(hasCajas).map((evento) => ({
+          ...evento,
+          id: undefined,
+          ajuste: undefined,
+          tipo_evento: "Entrega" as const,
+        })),
+        ...recogidasRaw.data.filter(hasCajas).map((evento) => ({
+          ...evento,
+          id: undefined,
+          ajuste: undefined,
+          tipo_evento: "Recogida" as const,
+        })),
+        ...devolucionesRaw.data.filter(hasCajas).map((evento) => ({
+          ...evento,
+          id: undefined,
+          ajuste: undefined,
+          tipo_evento: "Devolucion" as const,
+        })),
       ].sort((a, b) => b.fecha.localeCompare(a.fecha));
     }
 

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!usuario.ajuste?.habilitado) {
+    if (!usuario.habilitado) {
       return NextResponse.json(
         {
           error:

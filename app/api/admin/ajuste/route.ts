@@ -6,7 +6,6 @@ import {
   ObjetoAjusteForm,
   OBJETOS_ARRAY,
 } from "@/lib/constants";
-import { format } from "date-fns";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -36,11 +35,8 @@ export async function PUT(request: NextRequest) {
 
     const { error } = await db
       .update({
-        ajuste: {
-          fechaHora: format(new Date(), "yyyy-MM-dd"),
-          habilitado: ajuste.habilitado,
-          nombre: usuario.nombre,
-        },
+        ajuste: usuario.nombre,
+        habilitado: ajuste.habilitado || false,
       })
       .eq(tipo_objeto === "Vehiculo" ? "chapa" : "nombre", id);
 

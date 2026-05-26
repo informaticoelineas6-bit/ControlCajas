@@ -212,12 +212,12 @@ export default function AuditUsuario() {
                     <p className="text-slate-600">Estado</p>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                        datos.usuario.ajuste?.habilitado
+                        datos.usuario.habilitado
                           ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                           : "bg-rose-50 text-rose-700 ring-rose-200"
                       }`}
                     >
-                      {datos.usuario.ajuste?.habilitado
+                      {datos.usuario.habilitado
                         ? "Habilitado"
                         : "Deshabilitado"}
                     </span>
@@ -225,16 +225,8 @@ export default function AuditUsuario() {
                   <div>
                     <p className="text-slate-600">Autorizado por</p>
                     <p className="font-medium text-slate-700">
-                      {datos.usuario.ajuste?.nombre
-                        ? prettyName(datos.usuario.ajuste?.nombre)
-                        : "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-600">Fecha ajuste</p>
-                    <p className="font-medium text-slate-700">
-                      {datos.usuario.ajuste?.fechaHora
-                        ? formatDate(datos.usuario.ajuste.fechaHora)
+                      {datos.usuario.ajuste
+                        ? prettyName(datos.usuario.ajuste)
                         : "-"}
                     </p>
                   </div>
@@ -259,9 +251,6 @@ export default function AuditUsuario() {
                     <th className="px-5 py-4 text-left font-semibold">
                       Ajustado por
                     </th>
-                    <th className="px-5 py-4 text-left font-semibold">
-                      Fecha ajuste
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -280,24 +269,19 @@ export default function AuditUsuario() {
                     <td className="px-5 py-4">
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                          datos.usuario.ajuste?.habilitado
+                          datos.usuario.habilitado
                             ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                             : "bg-rose-50 text-rose-700 ring-rose-200"
                         }`}
                       >
-                        {datos.usuario.ajuste?.habilitado
+                        {datos.usuario.habilitado
                           ? "Habilitado"
                           : "Deshabilitado"}
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      {datos.usuario.ajuste?.nombre
-                        ? prettyName(datos.usuario.ajuste.nombre)
-                        : "-"}
-                    </td>
-                    <td className="px-5 py-4">
-                      {datos.usuario.ajuste?.fechaHora
-                        ? formatDate(datos.usuario.ajuste.fechaHora)
+                      {datos.usuario.ajuste
+                        ? prettyName(datos.usuario.ajuste)
                         : "-"}
                     </td>
                   </tr>

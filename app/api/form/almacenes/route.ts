@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
     const db = (await connectToDatabase()).from(TABLAS.ALMACEN);
 
     const { data, error } = await db
-      .select<string, Almacen>("nombre, habilitado, stock, roturas")
-      .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+      .select<string, Almacen>("nombre, habilitadas, stock, roturas")
+      .is("habilitado", true)
       .order("nombre");
 
     if (error) throw new Error(error.message);

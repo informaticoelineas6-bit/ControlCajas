@@ -99,8 +99,10 @@ function extractDifferences(
 ) {
   prevObj.ajuste = undefined;
   prevObj.created_at = undefined;
+  prevObj.habilitado = undefined;
   newObj.ajuste = undefined;
   newObj.created_at = undefined;
+  newObj.habilitado = undefined;
 
   const oldDiff: Record<string, unknown> = {};
   const newDiff: Record<string, unknown> = {};

@@ -16,13 +16,7 @@ import {
   Traspaso,
   EventoCreateForm,
 } from "@/lib/constants";
-import {
-  AjusteStr,
-  applyAjuste,
-  hasCajas,
-  sameCajas,
-  sumCajas,
-} from "@/lib/utils";
+import { hasCajas, sameCajas, sumCajas } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { format } from "date-fns";
@@ -69,10 +63,10 @@ async function buildMessage(
   if (error)
     return `Evento creado exitosamente.\nNo se pudo comprobar la cantidad de cajas (${error.message}).`;
 
-  const eventos = data.map(applyAjuste).filter(hasCajas) as AjusteStr<Evento>[];
+  const eventos = data.filter(hasCajas);
 
   const referenciaTotal: Cajas = eventos.reduce(
-    (acc: Cajas, item: AjusteStr<Evento>) => sumCajas(acc, item.cajas),
+    (acc: Cajas, item: Evento) => sumCajas(acc, item.cajas),
     { blancas: 0, negras: 0, verdes: 0 },
   );
 

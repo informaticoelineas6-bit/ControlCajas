@@ -6,7 +6,6 @@ import {
   EVENTOS_ARRAY,
   getEventTable,
 } from "@/lib/constants";
-import { format } from "date-fns";
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,18 +35,14 @@ export async function POST(request: NextRequest) {
 
     const { error } = await db
       .update({
-        ajuste: {
-          fechaHora: format(new Date(), "yyyy-MM-dd"),
-          nombre: usuario.nombre,
-          cajas: ajuste.cajas,
-          roturas:
-            "roturas" in ajuste
-              ? {
-                  cajas: ajuste.roturas.cajas,
-                  tapas: ajuste.roturas.tapas,
-                }
-              : undefined,
-        },
+        ajuste: usuario.nombre,
+        cajas: ajuste.cajas,
+        roturas: ajuste.roturas
+          ? {
+              cajas: ajuste.roturas.cajas,
+              tapas: ajuste.roturas.tapas,
+            }
+          : undefined,
       })
       .eq("id", id);
 

@@ -11,10 +11,10 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import { ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
+import { Nuevo, ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
-import { formatDate, prettyName } from "@/lib/utils";
+import { prettyName } from "@/lib/utils";
 import FormModal from "./AdminFormModal";
 
 export default function TablaUsuarios({
@@ -23,7 +23,7 @@ export default function TablaUsuarios({
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<Usuario>({
+  const [form, setForm] = useState<Nuevo<Usuario>>({
     nombre: "",
     rol: "chofer",
     contrasena: "",
@@ -128,15 +128,10 @@ export default function TablaUsuarios({
         return;
       }
       const method = "PUT";
-      const body: Usuario = {
+      const body: Nuevo<Usuario> = {
         nombre: editingId,
         rol: form.rol,
         contrasena: passwordChange ? form.contrasena : undefined,
-        ajuste: {
-          nombre: usuario.nombre,
-          fechaHora: new Date().toISOString(),
-          habilitado: form.ajuste?.habilitado ?? false,
-        },
       };
       const res = await fetch("/api/admin/usuarios", {
         method,
@@ -422,22 +417,20 @@ export default function TablaUsuarios({
                           </button>
                           <button
                             onClick={() =>
-                              enableUsuario(item, !item.ajuste?.habilitado)
+                              enableUsuario(item, !item.habilitado)
                             }
                             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                              item.ajuste?.habilitado
+                              item.habilitado
                                 ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
-                            {item.ajuste?.habilitado ? (
+                            {item.habilitado ? (
                               <ToggleLeft size={12} />
                             ) : (
                               <ToggleRight size={12} />
                             )}
-                            {item.ajuste?.habilitado
-                              ? "Deshabilitar"
-                              : "Habilitar"}
+                            {item.habilitado ? "Deshabilitar" : "Habilitar"}
                           </button>
                           <ConfirmDeleteButton
                             entityName={`el centro ${item.nombre}`}
@@ -463,22 +456,18 @@ export default function TablaUsuarios({
                         <p className="text-slate-600">Estado</p>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            item.ajuste?.habilitado
+                            item.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"
                           }`}
                         >
-                          {item.ajuste?.habilitado
-                            ? "Habilitado"
-                            : "Deshabilitado"}
+                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
                         </span>
                       </div>
                       <div>
                         <p className="text-slate-600">Autorizado por</p>
                         <p className="font-medium text-slate-700">
-                          {item.ajuste?.nombre
-                            ? prettyName(item.ajuste?.nombre)
-                            : "-"}
+                          {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </p>
                       </div>
                     </div>
@@ -525,27 +514,16 @@ export default function TablaUsuarios({
                       <td className="px-5 py-4">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            item.ajuste?.habilitado
+                            item.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"
                           }`}
                         >
-                          {item.ajuste?.habilitado
-                            ? "Habilitado"
-                            : "Deshabilitado"}
+                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
                         </span>
                       </td>
-                      <td
-                        title={
-                          item.ajuste?.fechaHora
-                            ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
-                            : undefined
-                        }
-                        className={`px-5 py-4 text-slate-600${item.ajuste ? " hover:bg-slate-300" : ""}`}
-                      >
-                        {item.ajuste?.nombre
-                          ? prettyName(item.ajuste?.nombre)
-                          : "-"}
+                      <td className="px-5 py-4 text-slate-600">
+                        {item.ajuste ? prettyName(item.ajuste) : "-"}
                       </td>
                       {usuario.rol === "informatico" && (
                         <td className="px-5 py-4 text-center">
@@ -553,22 +531,20 @@ export default function TablaUsuarios({
                             <button
                               disabled={submitting}
                               onClick={() =>
-                                enableUsuario(item, !item.ajuste?.habilitado)
+                                enableUsuario(item, !item.habilitado)
                               }
                               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                                item.ajuste?.habilitado
+                                item.habilitado
                                   ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               }`}
                             >
-                              {item.ajuste?.habilitado ? (
+                              {item.habilitado ? (
                                 <ToggleLeft size={12} />
                               ) : (
                                 <ToggleRight size={12} />
                               )}
-                              {item.ajuste?.habilitado
-                                ? "Deshabilitar"
-                                : "Habilitar"}
+                              {item.habilitado ? "Deshabilitar" : "Habilitar"}
                             </button>
                             <button
                               onClick={() => startEdit(item)}

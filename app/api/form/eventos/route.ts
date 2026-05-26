@@ -45,18 +45,18 @@ export async function GET(request: NextRequest) {
         const [centrosRaw, almacenesRaw, provinciasRaw] = await Promise.all([
           db
             .from(TABLAS.CENTRO_DISTRIBUCION)
-            .select<string, CentroDistribucion>("nombre, habilitado")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .select<string, CentroDistribucion>("nombre, habilitadas")
+            .is("habilitado", true)
             .order("nombre"),
           db
             .from(TABLAS.ALMACEN)
             .select<string, Almacen>("nombre")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .is("habilitado", true)
             .order("nombre"),
           db
             .from(TABLAS.PROVINCIA)
             .select<string, Provincia>("nombre, centro_distribucion")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .is("habilitado", true)
             .order("nombre"),
         ]);
 
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         for (const centro of centrosRaw.data) {
           resultado[centro.nombre] = {
             almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
-            habilitado: centro.habilitado ?? {
+            habilitadas: centro.habilitadas ?? {
               blancas: false,
               negras: false,
               verdes: false,
@@ -79,16 +79,16 @@ export async function GET(request: NextRequest) {
         for (const prov of provinciasRaw.data) {
           resultado[prov.nombre] = {
             almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
-            habilitado: centrosRaw.data.find(
+            habilitadas: centrosRaw.data.find(
               (centro) => centro.nombre === prov.centro_distribucion,
-            )?.habilitado ?? { blancas: false, negras: false, verdes: false },
+            )?.habilitadas ?? { blancas: false, negras: false, verdes: false },
             vehiculos: new Set([]),
           };
         }
         for (const key in resultado) {
           respuesta[key] = {
             almacenes: Array.from(resultado[key].almacenes),
-            habilitado: resultado[key].habilitado,
+            habilitadas: resultado[key].habilitadas,
             vehiculos: Array.from(resultado[key].vehiculos),
           };
         }
@@ -113,13 +113,13 @@ export async function GET(request: NextRequest) {
             .order("provincia"),
           db
             .from(TABLAS.CENTRO_DISTRIBUCION)
-            .select<string, CentroDistribucion>("nombre, habilitado")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .select<string, CentroDistribucion>("nombre, habilitadas")
+            .is("habilitado", true)
             .order("nombre"),
           db
             .from(TABLAS.VEHICULO)
             .select<string, Vehiculo>("categoria, chapa, marca, modelo")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .is("habilitado", true)
             .order("categoria")
             .order("chapa"),
         ]);
@@ -143,9 +143,13 @@ export async function GET(request: NextRequest) {
           } else {
             resultado[index] = {
               almacenes: new Set([element.almacen]),
-              habilitado: centrosRaw.data.find(
+              habilitadas: centrosRaw.data.find(
                 (centro) => centro.nombre === element.centro_distribucion,
-              )?.habilitado ?? { blancas: false, negras: false, verdes: false },
+              )?.habilitadas ?? {
+                blancas: false,
+                negras: false,
+                verdes: false,
+              },
               vehiculos: new Set(vehiculosRaw.data),
             };
           }
@@ -153,7 +157,7 @@ export async function GET(request: NextRequest) {
         for (const key in resultado) {
           respuesta[key] = {
             almacenes: Array.from(resultado[key].almacenes),
-            habilitado: resultado[key].habilitado,
+            habilitadas: resultado[key].habilitadas,
             vehiculos: Array.from(resultado[key].vehiculos),
           };
         }
@@ -176,13 +180,13 @@ export async function GET(request: NextRequest) {
             .order("provincia"),
           db
             .from(TABLAS.CENTRO_DISTRIBUCION)
-            .select<string, CentroDistribucion>("nombre, habilitado")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .select<string, CentroDistribucion>("nombre, habilitadas")
+            .is("habilitado", true)
             .order("nombre"),
           db
             .from(TABLAS.VEHICULO)
             .select<string, Vehiculo>("categoria, chapa, marca, modelo")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .is("habilitado", true)
             .order("categoria")
             .order("chapa"),
         ]);
@@ -208,9 +212,13 @@ export async function GET(request: NextRequest) {
           } else {
             resultado[index] = {
               almacenes: new Set([]),
-              habilitado: centrosRaw.data.find(
+              habilitadas: centrosRaw.data.find(
                 (centro) => centro.nombre === element.centro_distribucion,
-              )?.habilitado ?? { blancas: false, negras: false, verdes: false },
+              )?.habilitadas ?? {
+                blancas: false,
+                negras: false,
+                verdes: false,
+              },
               vehiculos: new Set([
                 vehiculosRaw.data.find((veh) => veh.chapa === element.chapa)!,
               ]),
@@ -220,7 +228,7 @@ export async function GET(request: NextRequest) {
         for (const key in resultado) {
           respuesta[key] = {
             almacenes: Array.from(resultado[key].almacenes),
-            habilitado: resultado[key].habilitado,
+            habilitadas: resultado[key].habilitadas,
             vehiculos: Array.from(resultado[key].vehiculos),
           };
         }
@@ -243,7 +251,7 @@ export async function GET(request: NextRequest) {
           db
             .from(TABLAS.VEHICULO)
             .select<string, Vehiculo>("categoria, chapa, marca, modelo")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .is("habilitado", true)
             .order("categoria")
             .order("chapa"),
         ]);
@@ -255,7 +263,7 @@ export async function GET(request: NextRequest) {
         for (const centro of centrosRaw.data) {
           resultado[centro.nombre] = {
             almacenes: new Set([]),
-            habilitado: centro.habilitado,
+            habilitadas: centro.habilitado,
             vehiculos: new Set(vehiculosRaw.data),
             deuda_activa: centro.deuda_activa,
           };
@@ -263,7 +271,7 @@ export async function GET(request: NextRequest) {
         for (const key in resultado) {
           respuesta[key] = {
             almacenes: Array.from(resultado[key].almacenes),
-            habilitado: resultado[key].habilitado,
+            habilitadas: resultado[key].habilitadas,
             vehiculos: Array.from(resultado[key].vehiculos),
             deuda_activa: resultado[key].deuda_activa,
           };
@@ -283,7 +291,7 @@ export async function GET(request: NextRequest) {
           db
             .from(TABLAS.ALMACEN)
             .select<string, Almacen>("nombre")
-            .or("ajuste->habilitado.neq.false, ajuste->habilitado.is.null")
+            .is("habilitado", true)
             .order("nombre"),
         ]);
 
@@ -305,7 +313,7 @@ export async function GET(request: NextRequest) {
           );
           resultado[element.centro_distribucion] = {
             almacenes: new Set(almacenesRaw.data.map((alm) => alm.nombre)),
-            habilitado: centro.habilitado,
+            habilitadas: centro.habilitadas,
             vehiculos: new Set([]),
             deuda_activa: centro.deuda_activa,
           };
@@ -313,7 +321,7 @@ export async function GET(request: NextRequest) {
         for (const key in resultado) {
           respuesta[key] = {
             almacenes: Array.from(resultado[key].almacenes),
-            habilitado: resultado[key].habilitado,
+            habilitadas: resultado[key].habilitadas,
             vehiculos: Array.from(resultado[key].vehiculos),
             deuda_activa: resultado[key].deuda_activa,
           };
@@ -337,7 +345,7 @@ export type EventoBuilder = Record<
   {
     almacenes: Set<string>;
     vehiculos: Set<Vehiculo>;
-    habilitado: CajasHabilitadas;
+    habilitadas: CajasHabilitadas;
     deuda_activa?: Cajas;
   }
 >;

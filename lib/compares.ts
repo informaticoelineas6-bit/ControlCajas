@@ -11,8 +11,6 @@ import {
   Traspaso,
 } from "./constants";
 import {
-  AjusteStr,
-  applyAjuste,
   hasCajas,
   prettyName,
   sameCajas,
@@ -39,21 +37,15 @@ export async function getComparacionEntrega(
   if (error !== null) throw new Error(error.message);
 
   const expediciones = expedicionesRaw.data
-    ? (expedicionesRaw.data
-        .map(applyAjuste)
-        .filter(hasCajas) as AjusteStr<Expedicion>[])
+    ? (expedicionesRaw.data.filter(hasCajas) as Expedicion[])
     : [];
 
   const traspasos = traspasosRaw.data
-    ? (traspasosRaw.data
-        .map(applyAjuste)
-        .filter(hasCajas) as AjusteStr<Traspaso>[])
+    ? (traspasosRaw.data.filter(hasCajas) as Traspaso[])
     : [];
 
   const entregas = entregasRaw.data
-    ? (entregasRaw.data
-        .map(applyAjuste)
-        .filter(hasCajas) as AjusteStr<Entrega>[])
+    ? (entregasRaw.data.filter(hasCajas) as Entrega[])
     : [];
 
   // Agrupar por centro de distribución
@@ -208,15 +200,11 @@ export async function getComparacionRecogida(
   if (error !== null) throw new Error(error.message);
 
   const recogidas = recogidasRaw.data
-    ? (recogidasRaw.data
-        .map(applyAjuste)
-        .filter(hasCajas) as AjusteStr<Recogida>[])
+    ? (recogidasRaw.data.filter(hasCajas) as Recogida[])
     : [];
 
   const devoluciones = devolucionesRaw.data
-    ? (devolucionesRaw.data
-        .map(applyAjuste)
-        .filter(hasCajas) as AjusteStr<Devolucion>[])
+    ? (devolucionesRaw.data.filter(hasCajas) as Devolucion[])
     : [];
 
   // Agrupar por centro de distribución
@@ -383,8 +371,8 @@ export interface ItemComparacionRecogida {
   centro_distribucion: string;
   almacen?: string;
   chapa?: string;
-  recogida: (ItemComparacion & CajasRoturas) | null;
-  devolucion: (ItemComparacion & CajasRoturas) | null;
+  recogida: (ItemComparacion & { roturas: CajasRoturas }) | null;
+  devolucion: (ItemComparacion & { roturas: CajasRoturas }) | null;
   alerta: boolean;
   advertencia: boolean;
 }

@@ -15,13 +15,14 @@ import {
   CentroDistribucion,
   COLORES_CAJAS,
   COLORES_TAPAS,
+  Nuevo,
   TABLAS,
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
-import { formatDate, prettyName } from "@/lib/utils";
+import { prettyName } from "@/lib/utils";
 import FormModal from "./AdminFormModal";
 
 export default function TablaCentros({
@@ -30,7 +31,7 @@ export default function TablaCentros({
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<CentroDistribucion>({
+  const [form, setForm] = useState<Nuevo<CentroDistribucion>>({
     nombre: "",
     deuda: {
       blancas: 0,
@@ -38,7 +39,7 @@ export default function TablaCentros({
       verdes: 0,
     },
     rotacion: 0,
-    habilitado: { blancas: false, negras: false, verdes: false },
+    habilitadas: { blancas: false, negras: false, verdes: false },
     roturas: {
       cajas: { blancas: 0, negras: 0, verdes: 0 },
       tapas: { blancas: 0, negras: 0 },
@@ -104,7 +105,7 @@ export default function TablaCentros({
         verdes: 0,
       },
       rotacion: 0,
-      habilitado: { blancas: false, negras: false, verdes: false },
+      habilitadas: { blancas: false, negras: false, verdes: false },
       roturas: {
         cajas: { blancas: 0, negras: 0, verdes: 0 },
         tapas: { blancas: 0, negras: 0 },
@@ -119,66 +120,58 @@ export default function TablaCentros({
     const { name, value, type, checked } = e.target;
     const color = name.split("_").pop() as COLORES_CAJAS;
     if (type === "checkbox") {
-      setForm(
-        (current): CentroDistribucion => ({
-          ...current,
-          habilitado: { ...current.habilitado, [color]: checked },
-          deuda: { ...current.deuda, [color]: 0 },
-          roturas: {
-            ...current.roturas,
-            cajas: {
-              ...current.roturas.cajas,
-              [color]: 0,
-            },
-            tapas: {
-              ...current.roturas.tapas,
-              [color]: 0,
-            },
+      setForm((current) => ({
+        ...current,
+        habilitadas: { ...current.habilitadas, [color]: checked },
+        deuda: { ...current.deuda, [color]: 0 },
+        roturas: {
+          ...current.roturas,
+          cajas: {
+            ...current.roturas.cajas,
+            [color]: 0,
           },
-        }),
-      );
+          tapas: {
+            ...current.roturas.tapas,
+            [color]: 0,
+          },
+        },
+      }));
     } else if (name.startsWith("tapas_rotas_")) {
-      setForm(
-        (current): CentroDistribucion => ({
-          ...current,
-          roturas: {
-            ...current.roturas,
-            cajas: {
-              ...current.roturas.cajas,
-            },
-            tapas: {
-              ...current.roturas.tapas,
-              [color]: value,
-            },
+      setForm((current) => ({
+        ...current,
+        roturas: {
+          ...current.roturas,
+          cajas: {
+            ...current.roturas.cajas,
           },
-        }),
-      );
-    } else if (name.startsWith("cajas_rotas_")) {
-      setForm(
-        (current): CentroDistribucion => ({
-          ...current,
-          roturas: {
-            ...current.roturas,
-            cajas: {
-              ...current.roturas.cajas,
-              [color]: value,
-            },
-            tapas: {
-              ...current.roturas.tapas,
-            },
-          },
-        }),
-      );
-    } else if (name.startsWith("deuda_")) {
-      setForm(
-        (current): CentroDistribucion => ({
-          ...current,
-          deuda: {
-            ...current.deuda,
+          tapas: {
+            ...current.roturas.tapas,
             [color]: value,
           },
-        }),
-      );
+        },
+      }));
+    } else if (name.startsWith("cajas_rotas_")) {
+      setForm((current) => ({
+        ...current,
+        roturas: {
+          ...current.roturas,
+          cajas: {
+            ...current.roturas.cajas,
+            [color]: value,
+          },
+          tapas: {
+            ...current.roturas.tapas,
+          },
+        },
+      }));
+    } else if (name.startsWith("deuda_")) {
+      setForm((current) => ({
+        ...current,
+        deuda: {
+          ...current.deuda,
+          [color]: value,
+        },
+      }));
     } else {
       setForm((current) => ({
         ...current,
@@ -199,49 +192,42 @@ export default function TablaCentros({
     setSubmitting(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const body: CentroDistribucion = {
+      const body: Nuevo<CentroDistribucion> = {
         nombre: form.nombre,
         deuda: {
-          blancas: form.habilitado.blancas
+          blancas: form.habilitadas.blancas
             ? Number(form.deuda.blancas) || 0
             : 0,
-          negras: form.habilitado.negras ? Number(form.deuda.negras) || 0 : 0,
-          verdes: form.habilitado.verdes ? Number(form.deuda.verdes) || 0 : 0,
+          negras: form.habilitadas.negras ? Number(form.deuda.negras) || 0 : 0,
+          verdes: form.habilitadas.verdes ? Number(form.deuda.verdes) || 0 : 0,
         },
-        habilitado: {
-          blancas: form.habilitado.blancas,
-          negras: form.habilitado.negras,
-          verdes: form.habilitado.verdes,
+        habilitadas: {
+          blancas: form.habilitadas.blancas,
+          negras: form.habilitadas.negras,
+          verdes: form.habilitadas.verdes,
         },
         rotacion: Number(form.rotacion) || 0,
         roturas: {
           cajas: {
-            blancas: form.habilitado.blancas
+            blancas: form.habilitadas.blancas
               ? Number(form.roturas.cajas.blancas) || 0
               : 0,
-            negras: form.habilitado.negras
+            negras: form.habilitadas.negras
               ? Number(form.roturas.cajas.negras) || 0
               : 0,
-            verdes: form.habilitado.verdes
+            verdes: form.habilitadas.verdes
               ? Number(form.roturas.cajas.verdes) || 0
               : 0,
           },
           tapas: {
-            blancas: form.habilitado.blancas
+            blancas: form.habilitadas.blancas
               ? Number(form.roturas.tapas.blancas) || 0
               : 0,
-            negras: form.habilitado.negras
+            negras: form.habilitadas.negras
               ? Number(form.roturas.tapas.negras) || 0
               : 0,
           },
         },
-        ajuste: editingId
-          ? {
-              nombre: usuario.nombre,
-              fechaHora: new Date().toISOString(),
-              habilitado: true,
-            }
-          : undefined,
       };
       const res = await fetch("/api/admin/centros", {
         method,
@@ -266,7 +252,7 @@ export default function TablaCentros({
       nombre: centro.nombre,
       deuda: centro.deuda,
       rotacion: centro.rotacion,
-      habilitado: centro.habilitado,
+      habilitadas: centro.habilitadas,
       roturas: centro.roturas,
     });
     setEditingId(centro.nombre ?? null);
@@ -434,7 +420,7 @@ export default function TablaCentros({
                           id={`habilitado_${color}`}
                           name={`habilitado_${color}`}
                           type="checkbox"
-                          checked={form.habilitado[color]}
+                          checked={form.habilitadas[color]}
                           onChange={handleInputChange}
                           className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
                         />
@@ -445,7 +431,7 @@ export default function TablaCentros({
                         name={`deuda_${color}`}
                         type="number"
                         value={form.deuda[color]}
-                        disabled={!form.habilitado[color]}
+                        disabled={!form.habilitadas[color]}
                         onChange={handleInputChange}
                         className={numberFieldClass}
                       />
@@ -464,7 +450,7 @@ export default function TablaCentros({
                         name={`cajas_rotas_${color}`}
                         type="number"
                         value={form.roturas.cajas[color] ?? 0}
-                        disabled={!form.habilitado[color]}
+                        disabled={!form.habilitadas[color]}
                         onChange={handleInputChange}
                         className={numberFieldClass}
                       />
@@ -483,7 +469,7 @@ export default function TablaCentros({
                         name={`tapas_rotas_${color}`}
                         type="number"
                         value={form.roturas.tapas[color] ?? 0}
-                        disabled={!form.habilitado[color]}
+                        disabled={!form.habilitadas[color]}
                         onChange={handleInputChange}
                         className={numberFieldClass}
                       />
@@ -549,23 +535,19 @@ export default function TablaCentros({
                             Editar
                           </button>
                           <button
-                            onClick={() =>
-                              enableCentro(item, !item.ajuste?.habilitado)
-                            }
+                            onClick={() => enableCentro(item, !item.habilitado)}
                             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                              item.ajuste?.habilitado
+                              item.habilitado
                                 ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
-                            {item.ajuste?.habilitado ? (
+                            {item.habilitado ? (
                               <ToggleLeft size={12} />
                             ) : (
                               <ToggleRight size={12} />
                             )}
-                            {item.ajuste?.habilitado
-                              ? "Deshabilitar"
-                              : "Habilitar"}
+                            {item.habilitado ? "Deshabilitar" : "Habilitar"}
                           </button>
                           <ConfirmDeleteButton
                             entityName={`el centro ${item.nombre}`}
@@ -599,22 +581,18 @@ export default function TablaCentros({
                         <p className="text-slate-600">Estado</p>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            item.ajuste?.habilitado
+                            item.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"
                           }`}
                         >
-                          {item.ajuste?.habilitado
-                            ? "Habilitado"
-                            : "Deshabilitado"}
+                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
                         </span>
                       </div>
                       <div>
                         <p className="text-slate-600">Editado por</p>
                         <p className="font-medium text-slate-700">
-                          {item.ajuste?.nombre
-                            ? prettyName(item.ajuste?.nombre)
-                            : "-"}
+                          {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </p>
                       </div>
                     </div>
@@ -677,27 +655,16 @@ export default function TablaCentros({
                       <td className="px-5 py-4 text-slate-600">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            item.ajuste?.habilitado
+                            item.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"
                           }`}
                         >
-                          {item.ajuste?.habilitado
-                            ? "Habilitado"
-                            : "Deshabilitado"}
+                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
                         </span>
                       </td>
-                      <td
-                        title={
-                          item.ajuste?.fechaHora
-                            ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
-                            : undefined
-                        }
-                        className={`px-5 py-4 text-slate-600${item.ajuste ? " hover:bg-slate-300" : ""}`}
-                      >
-                        {item.ajuste?.nombre
-                          ? prettyName(item.ajuste?.nombre)
-                          : "-"}
+                      <td className="px-5 py-4 text-slate-600">
+                        {item.ajuste ? prettyName(item.ajuste) : "-"}
                       </td>
                       {usuario.rol === "informatico" && (
                         <td className="px-5 py-4 text-center">
@@ -712,22 +679,20 @@ export default function TablaCentros({
                             <button
                               disabled={submitting}
                               onClick={() =>
-                                enableCentro(item, !item.ajuste?.habilitado)
+                                enableCentro(item, !item.habilitado)
                               }
                               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                                item.ajuste?.habilitado
+                                item.habilitado
                                   ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               }`}
                             >
-                              {item.ajuste?.habilitado ? (
+                              {item.habilitado ? (
                                 <ToggleLeft size={12} />
                               ) : (
                                 <ToggleRight size={12} />
                               )}
-                              {item.ajuste?.habilitado
-                                ? "Deshabilitar"
-                                : "Habilitar"}
+                              {item.habilitado ? "Deshabilitar" : "Habilitar"}
                             </button>
                             <ConfirmDeleteButton
                               entityName={`el centro ${item.nombre}`}

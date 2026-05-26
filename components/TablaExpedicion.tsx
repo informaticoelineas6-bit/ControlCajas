@@ -3,14 +3,13 @@
 import { frontendClient } from "@/lib/client";
 import {
   CAJAS_ARRAY,
-  COLECCIONES,
   COLORES_CAJAS,
   Expedicion,
   TABLAS,
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
-import { AjusteStr, prettyName } from "@/lib/utils";
+import { prettyName } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaExpedicion({
@@ -22,7 +21,7 @@ export default function TablaExpedicion({
   fecha: string;
   onAjustar?: (tipo: TIPOS_EVENTO, id: number) => void;
 }>) {
-  const [datos, setDatos] = useState<AjusteStr<Expedicion>[]>([]);
+  const [datos, setDatos] = useState<Expedicion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,7 +31,7 @@ export default function TablaExpedicion({
       setError("");
       try {
         const res = await fetch(
-          `/api/eventos/list?fecha=${fecha}&tipo=${COLECCIONES.EXPEDICION}`,
+          `/api/eventos/list?fecha=${fecha}&tipo=${"Expedicion" as TIPOS_EVENTO}`,
           { signal },
         );
         const data = await res.json();

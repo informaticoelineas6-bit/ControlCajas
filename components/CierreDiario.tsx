@@ -73,8 +73,8 @@ export default function CierreDiario({
       stockMap,
       deudaMap,
     }: {
-      stockMap: Record<string, { cajas: Cajas } & CajasRoturas>;
-      deudaMap: Record<string, { cajas: Cajas } & CajasRoturas>;
+      stockMap: Record<string, { cajas: Cajas; roturas: CajasRoturas }>;
+      deudaMap: Record<string, { cajas: Cajas; roturas: CajasRoturas }>;
     }): Cierre => {
       return {
         fecha,

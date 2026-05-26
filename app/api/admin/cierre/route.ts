@@ -8,7 +8,7 @@ import {
   Expedicion,
   TABLAS,
 } from "@/lib/constants";
-import { AjusteStr, applyAjuste, hasCajas } from "@/lib/utils";
+import { hasCajas } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,8 +30,10 @@ export async function GET(request: NextRequest) {
 
     const db = await connectToDatabase();
 
-    const stockMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
-    const deudaMap: Record<string, { cajas: Cajas } & CajasRoturas> = {};
+    const stockMap: Record<string, { cajas: Cajas; roturas: CajasRoturas }> =
+      {};
+    const deudaMap: Record<string, { cajas: Cajas; roturas: CajasRoturas }> =
+      {};
 
     const [devolucionRaw, expedicionRaw] = await Promise.all([
       db.from(TABLAS.DEVOLUCION).select("*").is("fecha_cierre", null),
@@ -44,18 +46,14 @@ export async function GET(request: NextRequest) {
 
     const [devolucionData, expedicionData] = [
       devolucionRaw
-        ? (devolucionRaw.data
-            .map(applyAjuste)
-            .filter(hasCajas) as AjusteStr<Devolucion>[])
+        ? (devolucionRaw.data.filter(hasCajas) as Devolucion[])
         : [],
       expedicionRaw
-        ? (expedicionRaw.data
-            .map(applyAjuste)
-            .filter(hasCajas) as AjusteStr<Expedicion>[])
+        ? (expedicionRaw.data.filter(hasCajas) as Expedicion[])
         : [],
     ];
 
-    devolucionData.forEach((item: AjusteStr<Devolucion>) => {
+    devolucionData.forEach((item: Devolucion) => {
       if (!deudaMap[item.centro_distribucion]) {
         deudaMap[item.centro_distribucion] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },
@@ -107,7 +105,7 @@ export async function GET(request: NextRequest) {
         item.roturas.tapas.negras ?? 0;
     });
 
-    expedicionData.forEach((item: AjusteStr<Expedicion>) => {
+    expedicionData.forEach((item: Expedicion) => {
       if (!stockMap[item.almacen]) {
         stockMap[item.almacen] = {
           cajas: { blancas: 0, negras: 0, verdes: 0 },

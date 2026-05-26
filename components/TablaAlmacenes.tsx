@@ -15,13 +15,14 @@ import {
   CAJAS_ARRAY,
   COLORES_CAJAS,
   COLORES_TAPAS,
+  Nuevo,
   TABLAS,
   TAPAS_ARRAY,
   Usuario,
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
-import { formatDate, prettyName } from "@/lib/utils";
+import { prettyName } from "@/lib/utils";
 import FormModal from "./AdminFormModal";
 
 export default function TablaAlmacenes({
@@ -30,14 +31,14 @@ export default function TablaAlmacenes({
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<Almacen>({
+  const [form, setForm] = useState<Nuevo<Almacen>>({
     nombre: "",
     stock: {
       blancas: 0,
       negras: 0,
       verdes: 0,
     },
-    habilitado: {
+    habilitadas: {
       blancas: false,
       negras: false,
       verdes: false,
@@ -104,7 +105,7 @@ export default function TablaAlmacenes({
         negras: 0,
         verdes: 0,
       },
-      habilitado: {
+      habilitadas: {
         blancas: false,
         negras: false,
         verdes: false,
@@ -123,66 +124,58 @@ export default function TablaAlmacenes({
     const { name, value, type, checked } = e.target;
     const color = name.split("_").pop() as COLORES_CAJAS;
     if (type === "checkbox") {
-      setForm(
-        (current): Almacen => ({
-          ...current,
-          habilitado: { ...current.habilitado, [color]: checked },
-          stock: { ...current.stock, [color]: 0 },
-          roturas: {
-            ...current.roturas,
-            cajas: {
-              ...current.roturas.cajas,
-              [color]: 0,
-            },
-            tapas: {
-              ...current.roturas.tapas,
-              [color]: 0,
-            },
+      setForm((current) => ({
+        ...current,
+        habilitadas: { ...current.habilitadas, [color]: checked },
+        stock: { ...current.stock, [color]: 0 },
+        roturas: {
+          ...current.roturas,
+          cajas: {
+            ...current.roturas.cajas,
+            [color]: 0,
           },
-        }),
-      );
+          tapas: {
+            ...current.roturas.tapas,
+            [color]: 0,
+          },
+        },
+      }));
     } else if (name.startsWith("tapas_rotas_")) {
-      setForm(
-        (current): Almacen => ({
-          ...current,
-          roturas: {
-            ...current.roturas,
-            cajas: {
-              ...current.roturas.cajas,
-            },
-            tapas: {
-              ...current.roturas.tapas,
-              [color]: value,
-            },
+      setForm((current) => ({
+        ...current,
+        roturas: {
+          ...current.roturas,
+          cajas: {
+            ...current.roturas.cajas,
           },
-        }),
-      );
-    } else if (name.startsWith("cajas_rotas_")) {
-      setForm(
-        (current): Almacen => ({
-          ...current,
-          roturas: {
-            ...current.roturas,
-            cajas: {
-              ...current.roturas.cajas,
-              [color]: value,
-            },
-            tapas: {
-              ...current.roturas.tapas,
-            },
-          },
-        }),
-      );
-    } else if (name.startsWith("stock_")) {
-      setForm(
-        (current): Almacen => ({
-          ...current,
-          stock: {
-            ...current.stock,
+          tapas: {
+            ...current.roturas.tapas,
             [color]: value,
           },
-        }),
-      );
+        },
+      }));
+    } else if (name.startsWith("cajas_rotas_")) {
+      setForm((current) => ({
+        ...current,
+        roturas: {
+          ...current.roturas,
+          cajas: {
+            ...current.roturas.cajas,
+            [color]: value,
+          },
+          tapas: {
+            ...current.roturas.tapas,
+          },
+        },
+      }));
+    } else if (name.startsWith("stock_")) {
+      setForm((current) => ({
+        ...current,
+        stock: {
+          ...current.stock,
+          [color]: value,
+        },
+      }));
     } else {
       setForm((current) => ({
         ...current,
@@ -202,48 +195,41 @@ export default function TablaAlmacenes({
     setSubmitting(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const body: Almacen = {
+      const body: Nuevo<Almacen> = {
         nombre: form.nombre,
         stock: {
-          blancas: form.habilitado.blancas
+          blancas: form.habilitadas.blancas
             ? Number(form.stock.blancas) || 0
             : 0,
-          negras: form.habilitado.negras ? Number(form.stock.negras) || 0 : 0,
-          verdes: form.habilitado.verdes ? Number(form.stock.verdes) || 0 : 0,
+          negras: form.habilitadas.negras ? Number(form.stock.negras) || 0 : 0,
+          verdes: form.habilitadas.verdes ? Number(form.stock.verdes) || 0 : 0,
         },
-        habilitado: {
-          blancas: form.habilitado.blancas,
-          negras: form.habilitado.negras,
-          verdes: form.habilitado.verdes,
+        habilitadas: {
+          blancas: form.habilitadas.blancas,
+          negras: form.habilitadas.negras,
+          verdes: form.habilitadas.verdes,
         },
         roturas: {
           cajas: {
-            blancas: form.habilitado.blancas
+            blancas: form.habilitadas.blancas
               ? Number(form.roturas.cajas.blancas) || 0
               : 0,
-            negras: form.habilitado.negras
+            negras: form.habilitadas.negras
               ? Number(form.roturas.cajas.negras) || 0
               : 0,
-            verdes: form.habilitado.verdes
+            verdes: form.habilitadas.verdes
               ? Number(form.roturas.cajas.verdes) || 0
               : 0,
           },
           tapas: {
-            blancas: form.habilitado.blancas
+            blancas: form.habilitadas.blancas
               ? Number(form.roturas.tapas.blancas) || 0
               : 0,
-            negras: form.habilitado.negras
+            negras: form.habilitadas.negras
               ? Number(form.roturas.tapas.negras) || 0
               : 0,
           },
         },
-        ajuste: editingId
-          ? {
-              nombre: usuario.nombre,
-              fechaHora: new Date().toISOString(),
-              habilitado: true,
-            }
-          : undefined,
       };
       const res = await fetch("/api/admin/almacenes", {
         method,
@@ -267,7 +253,7 @@ export default function TablaAlmacenes({
     setForm({
       nombre: almacen.nombre,
       stock: almacen.stock,
-      habilitado: almacen.habilitado,
+      habilitadas: almacen.habilitadas,
       roturas: almacen.roturas,
     });
     setEditingId(almacen.nombre ?? null);
@@ -411,7 +397,7 @@ export default function TablaAlmacenes({
                           id={`habilitado_${color}`}
                           name={`habilitado_${color}`}
                           type="checkbox"
-                          checked={form.habilitado[color]}
+                          checked={form.habilitadas[color]}
                           onChange={handleInputChange}
                           className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                         />
@@ -422,7 +408,7 @@ export default function TablaAlmacenes({
                         name={`stock_${color}`}
                         type="number"
                         value={form.stock[color]}
-                        disabled={!form.habilitado[color]}
+                        disabled={!form.habilitadas[color]}
                         onChange={handleInputChange}
                         className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                       />
@@ -441,7 +427,7 @@ export default function TablaAlmacenes({
                         name={`cajas_rotas_${color}`}
                         type="number"
                         value={form.roturas.cajas[color] ?? 0}
-                        disabled={!form.habilitado[color]}
+                        disabled={!form.habilitadas[color]}
                         onChange={handleInputChange}
                         className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                       />
@@ -460,7 +446,7 @@ export default function TablaAlmacenes({
                         name={`tapas_rotas_${color}`}
                         type="number"
                         value={form.roturas.tapas[color] ?? 0}
-                        disabled={!form.habilitado[color]}
+                        disabled={!form.habilitadas[color]}
                         onChange={handleInputChange}
                         className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                       />
@@ -527,22 +513,20 @@ export default function TablaAlmacenes({
                           </button>
                           <button
                             onClick={() =>
-                              enableAlmacen(item, !item.ajuste?.habilitado)
+                              enableAlmacen(item, !item.habilitado)
                             }
                             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                              item.ajuste?.habilitado
+                              item.habilitado
                                 ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                 : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             }`}
                           >
-                            {item.ajuste?.habilitado ? (
+                            {item.habilitado ? (
                               <ToggleLeft size={12} />
                             ) : (
                               <ToggleRight size={12} />
                             )}
-                            {item.ajuste?.habilitado
-                              ? "Deshabilitar"
-                              : "Habilitar"}
+                            {item.habilitado ? "Deshabilitar" : "Habilitar"}
                           </button>
                           <ConfirmDeleteButton
                             entityName={`el centro ${item.nombre}`}
@@ -570,22 +554,18 @@ export default function TablaAlmacenes({
                         <p className="text-slate-600">Estado</p>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            item.ajuste?.habilitado
+                            item.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"
                           }`}
                         >
-                          {item.ajuste?.habilitado
-                            ? "Habilitado"
-                            : "Deshabilitado"}
+                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
                         </span>
                       </div>
                       <div>
                         <p className="text-slate-600">Editado por</p>
                         <p className="font-medium text-slate-700">
-                          {item.ajuste?.nombre
-                            ? prettyName(item.ajuste?.nombre)
-                            : "-"}
+                          {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </p>
                       </div>
                     </div>
@@ -639,27 +619,16 @@ export default function TablaAlmacenes({
                       <td className="px-5 py-4 text-slate-600">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            item.ajuste?.habilitado
+                            item.habilitado
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : "bg-rose-50 text-rose-700 ring-rose-200"
                           }`}
                         >
-                          {item.ajuste?.habilitado
-                            ? "Habilitado"
-                            : "Deshabilitado"}
+                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
                         </span>
                       </td>
-                      <td
-                        title={
-                          item.ajuste?.fechaHora
-                            ? "Ajustado el " + formatDate(item.ajuste.fechaHora)
-                            : undefined
-                        }
-                        className={`px-5 py-4 text-slate-600${item.ajuste ? " hover:bg-slate-300" : ""}`}
-                      >
-                        {item.ajuste?.nombre
-                          ? prettyName(item.ajuste?.nombre)
-                          : "-"}
+                      <td className="px-5 py-4 text-slate-600">
+                        {item.ajuste ? prettyName(item.ajuste) : "-"}
                       </td>
                       {usuario.rol === "informatico" && (
                         <td className="px-5 py-4 text-center">
@@ -674,22 +643,20 @@ export default function TablaAlmacenes({
                             <button
                               disabled={submitting}
                               onClick={() =>
-                                enableAlmacen(item, !item.ajuste?.habilitado)
+                                enableAlmacen(item, !item.habilitado)
                               }
                               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                                item.ajuste?.habilitado
+                                item.habilitado
                                   ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
                                   : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               }`}
                             >
-                              {item.ajuste?.habilitado ? (
+                              {item.habilitado ? (
                                 <ToggleLeft size={12} />
                               ) : (
                                 <ToggleRight size={12} />
                               )}
-                              {item.ajuste?.habilitado
-                                ? "Deshabilitar"
-                                : "Habilitar"}
+                              {item.habilitado ? "Deshabilitar" : "Habilitar"}
                             </button>
                             <ConfirmDeleteButton
                               entityName={`el almacén ${item.nombre}`}
