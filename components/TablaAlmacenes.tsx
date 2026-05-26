@@ -22,7 +22,7 @@ import {
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
-import AdminFormModal from "./AdminFormModal";
+import FormModal from "./AdminFormModal";
 
 export default function TablaAlmacenes({
   usuario,
@@ -363,7 +363,7 @@ export default function TablaAlmacenes({
               <Plus size={14} />
               Agregar almacén
             </button>
-            <AdminFormModal
+            <FormModal
               description={
                 editingId
                   ? "Actualiza stock, roturas y colores del almacén."
@@ -488,7 +488,7 @@ export default function TablaAlmacenes({
                   </button>
                 </div>
               </form>
-            </AdminFormModal>
+            </FormModal>
           </div>
         )}
 

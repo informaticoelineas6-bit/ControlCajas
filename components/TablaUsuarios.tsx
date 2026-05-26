@@ -15,7 +15,7 @@ import { ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
-import AdminFormModal from "./AdminFormModal";
+import FormModal from "./AdminFormModal";
 
 export default function TablaUsuarios({
   usuario,
@@ -239,7 +239,7 @@ export default function TablaUsuarios({
         )}
 
         {usuario.rol === "informatico" && (
-          <AdminFormModal
+          <FormModal
             description="Actualiza rol y credenciales del usuario seleccionado."
             headerClassName="bg-[linear-gradient(135deg,_rgba(168,85,247,0.08),_rgba(255,255,255,0.96))]"
             icon={<Users size={18} className="text-violet-600" />}
@@ -384,7 +384,7 @@ export default function TablaUsuarios({
                 </button>
               </div>
             </form>
-          </AdminFormModal>
+          </FormModal>
         )}
 
         {loading ? (

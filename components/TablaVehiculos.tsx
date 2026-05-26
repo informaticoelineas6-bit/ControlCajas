@@ -14,7 +14,7 @@ import { TABLAS, Usuario, Vehiculo } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
-import AdminFormModal from "./AdminFormModal";
+import FormModal from "./AdminFormModal";
 
 export default function TablaVehiculos({
   usuario,
@@ -228,7 +228,7 @@ export default function TablaVehiculos({
               <Plus size={14} />
               Agregar vehículo
             </button>
-            <AdminFormModal
+            <FormModal
               description={
                 editingId
                   ? "Actualiza los datos base del vehículo seleccionado."
@@ -333,7 +333,7 @@ export default function TablaVehiculos({
                   </button>
                 </div>
               </form>
-            </AdminFormModal>
+            </FormModal>
           </div>
         )}
 

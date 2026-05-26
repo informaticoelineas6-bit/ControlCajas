@@ -19,7 +19,7 @@ import {
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
-import AdminFormModal from "./AdminFormModal";
+import FormModal from "./AdminFormModal";
 
 export default function TablaProvincias({
   usuario,
@@ -256,7 +256,7 @@ export default function TablaProvincias({
               <Plus size={14} />
               Agregar provincia
             </button>
-            <AdminFormModal
+            <FormModal
               description={
                 editingId
                   ? "Actualiza el centro asignado a la provincia."
@@ -337,7 +337,7 @@ export default function TablaProvincias({
                   </button>
                 </div>
               </form>
-            </AdminFormModal>
+            </FormModal>
           </div>
         )}
 

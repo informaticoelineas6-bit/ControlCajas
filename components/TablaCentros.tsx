@@ -22,7 +22,7 @@ import {
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
 import { formatDate, prettyName } from "@/lib/utils";
-import AdminFormModal from "./AdminFormModal";
+import FormModal from "./AdminFormModal";
 
 export default function TablaCentros({
   usuario,
@@ -365,7 +365,7 @@ export default function TablaCentros({
               <Plus size={14} />
               Agregar centro
             </button>
-            <AdminFormModal
+            <FormModal
               description={
                 editingId
                   ? "Actualiza deuda, roturas y rotación del centro."
@@ -511,7 +511,7 @@ export default function TablaCentros({
                   </button>
                 </div>
               </form>
-            </AdminFormModal>
+            </FormModal>
           </div>
         )}
 

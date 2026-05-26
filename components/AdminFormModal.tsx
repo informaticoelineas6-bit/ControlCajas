@@ -4,7 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-interface AdminFormModalProps {
+interface FormModalProps {
   children: ReactNode;
   description: string;
   headerClassName: string;
@@ -15,7 +15,7 @@ interface AdminFormModalProps {
   title: string;
 }
 
-export default function AdminFormModal({
+export default function FormModal({
   children,
   description,
   headerClassName,
@@ -24,7 +24,7 @@ export default function AdminFormModal({
   isOpen,
   onDismiss,
   title,
-}: Readonly<AdminFormModalProps>) {
+}: Readonly<FormModalProps>) {
   useEffect(() => {
     if (!isOpen) return;
 
