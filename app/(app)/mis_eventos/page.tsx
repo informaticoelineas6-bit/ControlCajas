@@ -12,7 +12,8 @@ import TablaTraspaso from "@/components/TablaTraspaso";
 import TablaEntrega from "@/components/TablaEntrega";
 import TablaRecogida from "@/components/TablaRecogida";
 import TablaDevolucion from "@/components/TablaDevolucion";
-import { List, MapPin, Plus, Truck, Warehouse, X } from "lucide-react";
+import FormModal from "@/components/AdminFormModal";
+import { List, MapPin, Plus, Truck, Warehouse, Wrench } from "lucide-react";
 import NotAllowed from "@/app/not-allowed";
 import PageTabs from "@/components/PageTabs";
 
@@ -186,37 +187,23 @@ export default function MisEventos() {
         {RenderContent(activeContent as TIPOS_EVENTO)}
       </div>
 
-      {adjustingEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[30px] border border-white/60 bg-white shadow-[0_30px_80px_-38px_rgba(15,23,42,0.7)]">
-            <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
-                  Ajuste manual
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-                  Ajustar evento
-                </h2>
-              </div>
-              <button
-                onClick={() => setAdjustingEvent(null)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
-              >
-                <X size={14} />
-                Cerrar
-              </button>
-            </div>
-            <div className="p-6">
-              <FormularioEvento
-                usuario={usuario}
-                initialData={adjustingEvent}
-                isAdjustment={true}
-                onAdjustmentSaved={() => setAdjustingEvent(null)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <FormModal
+        description="Corrige los valores del movimiento original y registra el ajuste."
+        headerClassName="bg-[linear-gradient(135deg,_rgba(245,158,11,0.08),_rgba(255,255,255,0.96))]"
+        icon={<Wrench size={18} className="text-amber-600" />}
+        isOpen={!!adjustingEvent}
+        onDismiss={() => setAdjustingEvent(null)}
+        title="Ajustar evento"
+      >
+        {adjustingEvent && (
+          <FormularioEvento
+            usuario={usuario}
+            initialData={adjustingEvent}
+            isAdjustment={true}
+            onAdjustmentSaved={() => setAdjustingEvent(null)}
+          />
+        )}
+      </FormModal>
     </>
   );
 }
