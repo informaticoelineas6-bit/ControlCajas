@@ -38,10 +38,8 @@ async function buildMessage(
 ): Promise<string | null> {
   const referenceByTipo: Record<string, { collection: string; label: string }> =
     {
-      Expedicion: { collection: TABLAS.TRASPASO, label: "el traspaso" },
       Traspaso: { collection: TABLAS.EXPEDICION, label: "la expedición" },
       Entrega: { collection: TABLAS.TRASPASO, label: "el traspaso" },
-      Recogida: { collection: TABLAS.DEVOLUCION, label: "la devolución" },
       Devolucion: { collection: TABLAS.RECOGIDA, label: "la recogida" },
     };
 
@@ -56,17 +54,14 @@ async function buildMessage(
     .eq("fecha", fecha)
     .eq("centro_distribucion", centro_distribucion);
 
-  if (almacen && (tipoEvento === "Expedicion" || tipoEvento === "Traspaso")) {
-    query = query.eq("almacen", almacen);
-  }
+  if (tipoEvento !== "Devolucion") {
+    if (almacen) {
+      query = query.eq("almacen", almacen);
+    }
 
-  if (
-    provincia &&
-    (tipoEvento === "Expedicion" ||
-      tipoEvento === "Traspaso" ||
-      tipoEvento === "Entrega")
-  ) {
-    query = query.eq("provincia", provincia);
+    if (provincia) {
+      query = query.eq("provincia", provincia);
+    }
   }
 
   const { data, error } = await query;
