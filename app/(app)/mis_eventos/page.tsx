@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useUser } from "@/app/(app)/user-context";
 import { useFecha } from "@/app/(app)/fecha-context";
-import { pageAccess, contentCardClass } from "../tabs";
+import { pageAccess, contentCardClass, PageTabItem } from "../tabs";
 import SelectorFecha from "@/components/SelectorFecha";
 import { Evento, ROLES, TIPOS_EVENTO } from "@/lib/constants";
 import FormularioEvento, { AjusteProp } from "@/components/FormularioEvento";
@@ -14,10 +14,7 @@ import TablaRecogida from "@/components/TablaRecogida";
 import TablaDevolucion from "@/components/TablaDevolucion";
 import { List, MapPin, Plus, Truck, Warehouse, X } from "lucide-react";
 import NotAllowed from "@/app/not-allowed";
-import {
-  type SidebarSubmenuItem,
-  useSidebarSubmenu,
-} from "../sidebar-submenu-context";
+import PageTabs from "@/components/PageTabs";
 
 const userAccess: Record<ROLES, TIPOS_EVENTO[]> = {
   almacenero: ["Devolucion"],
@@ -27,7 +24,7 @@ const userAccess: Record<ROLES, TIPOS_EVENTO[]> = {
   auditor: [],
 };
 
-const userTabs: Record<ROLES, SidebarSubmenuItem[]> = {
+const userTabs: Record<ROLES, PageTabItem[]> = {
   expedidor: [
     {
       icon: <Plus size={15} />,
@@ -92,27 +89,11 @@ const userTabs: Record<ROLES, SidebarSubmenuItem[]> = {
 export default function MisEventos() {
   const usuario = useUser();
   const { fecha } = useFecha();
-  const { clearSubmenu, setSubmenu } = useSidebarSubmenu();
   const [activeContent, setActiveContent] = useState<string>(
     () => userAccess[usuario?.rol as ROLES]?.[0],
   );
   const [adjustingEvent, setAdjustingEvent] =
     useState<AjusteProp<Evento> | null>(null);
-
-  useEffect(() => {
-    if (!usuario) return;
-
-    const items: SidebarSubmenuItem[] = userTabs[usuario.rol] || [];
-
-    setSubmenu({
-      activeKey: activeContent,
-      items,
-      onSelect: setActiveContent,
-      route: "/mis_eventos",
-    });
-
-    return clearSubmenu;
-  }, [activeContent, clearSubmenu, setSubmenu, usuario]);
 
   if (!usuario) return null;
 
@@ -197,6 +178,11 @@ export default function MisEventos() {
           </div>
           <SelectorFecha />
         </div>
+        <PageTabs
+          items={userTabs[usuario.rol] || []}
+          activeKey={activeContent}
+          onSelect={setActiveContent}
+        />
         {RenderContent(activeContent as TIPOS_EVENTO)}
       </div>
 

@@ -30,6 +30,12 @@ export const pageAccess: Record<ROLES, TabNames[]> = {
   ],
 };
 
+export interface PageTabItem {
+  icon: React.ReactNode;
+  key: string;
+  name: string;
+}
+
 export interface NavProps {
   usuario: Usuario;
   pageAccess: Record<ROLES, TabNames[]>;

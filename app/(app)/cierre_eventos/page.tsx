@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useUser } from "@/app/(app)/user-context";
 import { useFecha } from "@/app/(app)/fecha-context";
-import { contentCardClass, pageAccess } from "../tabs";
+import { contentCardClass, pageAccess, PageTabItem } from "../tabs";
 import SelectorFecha from "@/components/SelectorFecha";
 import {
   ItemComparacionEntrega,
@@ -13,10 +13,7 @@ import TablaExpedicionEntrega from "@/components/TablaExpedicionEntrega";
 import TablaRecogidaDevolucion from "@/components/TablaRecogidaDevolucion";
 import CierreDiario from "@/components/CierreDiario";
 import NotAllowed from "@/app/not-allowed";
-import {
-  type SidebarSubmenuItem,
-  useSidebarSubmenu,
-} from "../sidebar-submenu-context";
+import PageTabs from "@/components/PageTabs";
 import {
   ArrowRightLeft,
   ClipboardCheck,
@@ -26,11 +23,33 @@ import {
 import { frontendClient } from "@/lib/client";
 import { TABLAS } from "@/lib/constants";
 
+const tabs: PageTabItem[] = [
+  {
+    icon: <GitCompareArrows size={15} />,
+    key: "expedicion_entrega",
+    name: "Expedición y Entrega",
+  },
+  {
+    icon: <ArrowRightLeft size={15} />,
+    key: "recogida_devolucion",
+    name: "Recogida y Devolución",
+  },
+  {
+    icon: <ClipboardCheck size={15} />,
+    key: "cierre",
+    name: "Cierre Diario",
+  },
+  {
+    icon: <LayoutGrid size={15} />,
+    key: "todo",
+    name: "Vista global",
+  },
+];
+
 export default function CierreEventos() {
   const usuario = useUser();
   const { fecha } = useFecha();
-  const { clearSubmenu, setSubmenu } = useSidebarSubmenu();
-  const [activeContent, setActiveContent] = useState<string>(() => "cierre");
+  const [activeContent, setActiveContent] = useState<string>("cierre");
   const [expedicionEntregaData, setExpedicionEntregaData] = useState<
     ItemComparacionEntrega[]
   >([]);
@@ -53,7 +72,6 @@ export default function CierreEventos() {
         const dataCierre = await respCierre.json();
 
         if (respCierre.ok) {
-          console.log(dataCierre);
           setCierreExistente(dataCierre.existente);
         } else {
           setParentError(dataCierre.error || "Error al cargar cierre");
@@ -94,40 +112,6 @@ export default function CierreEventos() {
       channel.unsubscribe();
     };
   }, [fetchDatos]);
-
-  useEffect(() => {
-    if (!usuario) return;
-
-    setSubmenu({
-      activeKey: activeContent,
-      items: [
-        {
-          icon: <GitCompareArrows size={15} />,
-          key: "expedicion_entrega",
-          name: "Expedición y Entrega",
-        },
-        {
-          icon: <ArrowRightLeft size={15} />,
-          key: "recogida_devolucion",
-          name: "Recogida y Devolución",
-        },
-        {
-          icon: <ClipboardCheck size={15} />,
-          key: "cierre",
-          name: "Cierre Diario",
-        },
-        {
-          icon: <LayoutGrid size={15} />,
-          key: "todo",
-          name: "Vista global",
-        },
-      ] as SidebarSubmenuItem[],
-      onSelect: setActiveContent,
-      route: "/cierre_eventos",
-    });
-
-    return clearSubmenu;
-  }, [activeContent, clearSubmenu, setSubmenu, usuario]);
 
   if (!usuario) return null;
 
@@ -218,10 +202,15 @@ export default function CierreEventos() {
         <SelectorFecha />
       </div>
       {parentError && !parentLoading && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+        <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
           {parentError}
         </div>
       )}
+      <PageTabs
+        items={tabs}
+        activeKey={activeContent}
+        onSelect={setActiveContent}
+      />
       {RenderContent(activeContent)}
     </div>
   );

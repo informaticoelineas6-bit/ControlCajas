@@ -1,46 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useUser } from "@/app/(app)/user-context";
-import { pageAccess, contentCardClass } from "../tabs";
+import { pageAccess, contentCardClass, PageTabItem } from "../tabs";
 import AuditAlmacen from "@/components/AuditAlmacen";
 import AuditCentro from "@/components/AuditCentro";
 import AuditUsuario from "@/components/AuditUsuario";
 import NotAllowed from "@/app/not-allowed";
-import { useSidebarSubmenu } from "../sidebar-submenu-context";
+import PageTabs from "@/components/PageTabs";
 import { MapPin, Users, Warehouse } from "lucide-react";
+
+const tabs: PageTabItem[] = [
+  { icon: <Warehouse size={15} />, key: "almacenes", name: "Almacenes" },
+  { icon: <MapPin size={15} />, key: "centros", name: "Centros" },
+  { icon: <Users size={15} />, key: "usuarios", name: "Usuarios" },
+];
 
 export default function Auditoria() {
   const usuario = useUser();
-  const { clearSubmenu, setSubmenu } = useSidebarSubmenu();
   const [activeContent, setActiveContent] = useState("almacenes");
-
-  useEffect(() => {
-    setSubmenu({
-      activeKey: activeContent,
-      items: [
-        {
-          icon: <Warehouse size={15} />,
-          key: "almacenes",
-          name: "Almacenes",
-        },
-        {
-          icon: <MapPin size={15} />,
-          key: "centros",
-          name: "Centros",
-        },
-        {
-          icon: <Users size={15} />,
-          key: "usuarios",
-          name: "Usuarios",
-        },
-      ],
-      onSelect: setActiveContent,
-      route: "/auditoria",
-    });
-
-    return clearSubmenu;
-  }, [activeContent, clearSubmenu, setSubmenu]);
 
   if (!usuario) return null;
 
@@ -60,5 +38,14 @@ export default function Auditoria() {
     }
   };
 
-  return <div className={contentCardClass}>{RenderContent(activeContent)}</div>;
+  return (
+    <div className={contentCardClass}>
+      <PageTabs
+        items={tabs}
+        activeKey={activeContent}
+        onSelect={setActiveContent}
+      />
+      {RenderContent(activeContent)}
+    </div>
+  );
 }
