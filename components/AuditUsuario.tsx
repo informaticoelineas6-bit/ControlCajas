@@ -12,10 +12,22 @@ import {
 import type { EventoAudit, UsuarioAudit } from "@/lib/constants";
 import { formatDate, formatNumber, prettyName } from "@/lib/utils";
 
+const defaultUsuarioAudit: UsuarioAudit = {
+  usuario: {
+    nombre: "Ninguno seleccionado",
+    rol: "chofer",
+    ajuste: "-",
+    habilitado: false,
+    created_at: "",
+  },
+  eventos: [],
+  logs: [],
+};
+
 export default function AuditUsuario() {
   const [nombre, setNombre] = useState("");
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [datos, setDatos] = useState<UsuarioAudit>();
+  const [datos, setDatos] = useState<UsuarioAudit>(defaultUsuarioAudit);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -23,7 +35,7 @@ export default function AuditUsuario() {
     async (signal: AbortSignal) => {
       setLoading(true);
       setError("");
-      setDatos(undefined);
+      setDatos(defaultUsuarioAudit);
 
       try {
         const res = await fetch(`/api/audit/usuario?nombre=${nombre}`, {
@@ -176,488 +188,443 @@ export default function AuditUsuario() {
           </select>
         </div>
 
-        {datos && !loading ? (
+        <div className="space-y-3 lg:hidden">
+          <article
+            key={datos.usuario.nombre}
+            className="rounded-2xl border border-blue-100 bg-blue-50 p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
+                  Nombre
+                </p>
+                <h4 className="mt-1 text-base font-semibold text-slate-900">
+                  {prettyName(datos.usuario.nombre)}
+                </h4>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              <div>
+                <p className="text-slate-600">Rol</p>
+                <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
+                  {datos.usuario.rol ?? "-"}
+                </span>
+              </div>
+              <div>
+                <p className="text-slate-600">Fecha inscripción</p>
+                <p className="font-medium text-slate-700">
+                  {datos.usuario.created_at
+                    ? formatDate(datos.usuario.created_at)
+                    : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-slate-600">Estado</p>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                    datos.usuario.habilitado
+                      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                      : "bg-rose-50 text-rose-700 ring-rose-200"
+                  }`}
+                >
+                  {datos.usuario.habilitado ? "Habilitado" : "Deshabilitado"}
+                </span>
+              </div>
+              <div>
+                <p className="text-slate-600">Autorizado por</p>
+                <p className="font-medium text-slate-700">
+                  {datos.usuario.ajuste
+                    ? prettyName(datos.usuario.ajuste)
+                    : "-"}
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div className="overflow-x-auto rounded-2xl border border-blue-100 hidden lg:block">
+          <table className="min-w-full text-sm text-center">
+            <thead className="bg-blue-50 text-blue-900">
+              <tr>
+                <th className="px-5 py-4 font-semibold">Nombre</th>
+                <th className="px-5 py-4 font-semibold">Rol</th>
+                <th className="px-5 py-4 font-semibold">Fecha inscripción</th>
+                <th className="px-5 py-4 font-semibold">Estado</th>
+                <th className="px-5 py-4 font-semibold">Ajustado por</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-blue-100 bg-white text-slate-700">
+                <td className="px-5 py-4 font-semibold text-slate-900">
+                  {prettyName(datos.usuario.nombre)}
+                </td>
+                <td className="px-5 py-4 capitalize">{datos.usuario.rol}</td>
+                <td className="px-5 py-4">
+                  {datos.usuario.created_at
+                    ? formatDate(datos.usuario.created_at)
+                    : "-"}
+                </td>
+                <td className="px-5 py-4">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                      datos.usuario.habilitado
+                        ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                        : "bg-rose-50 text-rose-700 ring-rose-200"
+                    }`}
+                  >
+                    {datos.usuario.habilitado ? "Habilitado" : "Deshabilitado"}
+                  </span>
+                </td>
+                <td className="px-5 py-4">
+                  {datos.usuario.ajuste
+                    ? prettyName(datos.usuario.ajuste)
+                    : "-"}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {datos.usuario.rol === "informatico" ? (
           <>
-            <div className="space-y-3 lg:hidden">
-              <article
-                key={datos.usuario.nombre}
-                className="rounded-2xl border border-blue-100 bg-blue-50 p-4 shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                      Nombre
-                    </p>
-                    <h4 className="mt-1 text-base font-semibold text-slate-900">
-                      {prettyName(datos.usuario.nombre)}
-                    </h4>
-                  </div>
+            <div className="space-y-3 mt-8 lg:hidden">
+              {!datos.logs || datos.logs.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                  {loading
+                    ? "Cargando..."
+                    : "Este usuario no tiene ediciones registradas."}
                 </div>
-                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                  <div>
-                    <p className="text-slate-600">Rol</p>
-                    <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold capitalize text-violet-700 ring-1 ring-violet-200">
-                      {datos.usuario.rol ?? "-"}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-slate-600">Fecha inscripción</p>
-                    <p className="font-medium text-slate-700">
-                      {datos.usuario.created_at
-                        ? formatDate(datos.usuario.created_at)
-                        : "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-600">Estado</p>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                        datos.usuario.habilitado
-                          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                          : "bg-rose-50 text-rose-700 ring-rose-200"
-                      }`}
-                    >
-                      {datos.usuario.habilitado
-                        ? "Habilitado"
-                        : "Deshabilitado"}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-slate-600">Autorizado por</p>
-                    <p className="font-medium text-slate-700">
-                      {datos.usuario.ajuste
-                        ? prettyName(datos.usuario.ajuste)
-                        : "-"}
-                    </p>
-                  </div>
-                </div>
-              </article>
+              ) : (
+                datos.logs.map((item, index) => (
+                  <article
+                    key={`${item.object_type}-${item.action}-${index}`}
+                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
+                          Fecha
+                        </p>
+                        <h4 className="mt-1 text-base font-semibold text-slate-900">
+                          {item.created_at ? formatDate(item.created_at) : "-"}
+                        </h4>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      <div>
+                        <p className="text-slate-600">Tipo</p>
+                        <span
+                          className={
+                            "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
+                            getActionClass(item.action)
+                          }
+                        >
+                          {item.action}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-slate-600">Acción</p>
+                        <span
+                          className={
+                            "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
+                            getActionClass(item.action)
+                          }
+                        >
+                          {item.action}
+                        </span>
+                      </div>
+                      {item.changes ? (
+                        <>
+                          <div>
+                            <p className="text-slate-600">Previo</p>
+                            <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
+                              {JSON.stringify(item.changes.prev, null, 2)}
+                            </pre>
+                          </div>
+                          <div>
+                            <p className="text-slate-600">Cambios</p>
+                            <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
+                              {JSON.stringify(item.changes.new, null, 2)}
+                            </pre>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="col-span-2">
+                          <p className="text-slate-600">Objeto</p>
+                          <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
+                            {JSON.stringify(item.snapshot, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                ))
+              )}
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-blue-100 hidden lg:block">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
               <table className="min-w-full text-sm text-center">
-                <thead className="bg-blue-50 text-blue-900">
+                <thead className="bg-slate-50 text-slate-800">
                   <tr>
-                    <th className="px-5 py-4 font-semibold">
-                      Nombre
-                    </th>
-                    <th className="px-5 py-4 font-semibold">Rol</th>
-                    <th className="px-5 py-4 font-semibold">
-                      Fecha inscripción
-                    </th>
-                    <th className="px-5 py-4 font-semibold">
-                      Estado
-                    </th>
-                    <th className="px-5 py-4 font-semibold">
-                      Ajustado por
-                    </th>
+                    <th className="px-5 py-4 font-semibold">Fecha</th>
+                    <th className="px-5 py-4 font-semibold">Tipo</th>
+                    <th className="px-5 py-4 font-semibold">Acción</th>
+                    <th className="px-5 py-4 font-semibold">Objeto</th>
+                    <th className="px-5 py-4 font-semibold">(Cambios)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-t border-blue-100 bg-white text-slate-700">
-                    <td className="px-5 py-4 font-semibold text-slate-900">
-                      {prettyName(datos.usuario.nombre)}
-                    </td>
-                    <td className="px-5 py-4 capitalize">
-                      {datos.usuario.rol}
-                    </td>
-                    <td className="px-5 py-4">
-                      {datos.usuario.created_at
-                        ? formatDate(datos.usuario.created_at)
-                        : "-"}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                          datos.usuario.habilitado
-                            ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                            : "bg-rose-50 text-rose-700 ring-rose-200"
-                        }`}
+                  {logs.map((item, index) => (
+                    <tr
+                      key={`${item.object_type}-${item.action}-${index}`}
+                      className="border-t border-slate-100 transition hover:bg-slate-100"
+                    >
+                      <td className="px-5 py-4 font-medium text-slate-700">
+                        {item.created_at ? formatDate(item.created_at) : "-"}
+                      </td>
+                      <td className="px-5 py-4 text-slate-700">
+                        {item.object_type}
+                      </td>
+                      <td className="px-5 py-4 text-slate-700">
+                        <span
+                          className={
+                            "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
+                            getActionClass(item.action)
+                          }
+                        >
+                          {item.action}
+                        </span>
+                      </td>
+                      {item.changes && (
+                        <td className="px-5 py-4 text-slate-700">
+                          <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
+                            {JSON.stringify(item.changes.prev, null, 2)}
+                          </pre>
+                        </td>
+                      )}
+                      <td
+                        colSpan={item.changes ? 1 : 2}
+                        className="px-5 py-4 text-slate-700"
                       >
-                        {datos.usuario.habilitado
-                          ? "Habilitado"
-                          : "Deshabilitado"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      {datos.usuario.ajuste
-                        ? prettyName(datos.usuario.ajuste)
-                        : "-"}
-                    </td>
-                  </tr>
+                        <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
+                          {JSON.stringify(
+                            item.changes?.new ?? item.snapshot,
+                            null,
+                            2,
+                          )}
+                        </pre>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {logs.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-5 py-10 text-slate-500">
+                        {loading
+                          ? "Cargando..."
+                          : "Este usuario no tiene ediciones registradas."}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
-
-            {datos.usuario.rol === "informatico" ? (
-              <>
-                <div className="space-y-3 mt-8 lg:hidden">
-                  {!datos.logs || datos.logs.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-                      Este usuario no tiene ediciones registradas.
-                    </div>
-                  ) : (
-                    datos.logs.map((item, index) => (
-                      <article
-                        key={`${item.object_type}-${item.action}-${index}`}
-                        className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                              Fecha
-                            </p>
-                            <h4 className="mt-1 text-base font-semibold text-slate-900">
-                              {item.created_at
-                                ? formatDate(item.created_at)
-                                : "-"}
-                            </h4>
-                          </div>
-                        </div>
-                        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                          <div>
-                            <p className="text-slate-600">Tipo</p>
-                            <span
-                              className={
-                                "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
-                                getActionClass(item.action)
-                              }
-                            >
-                              {item.action}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-slate-600">Acción</p>
-                            <span
-                              className={
-                                "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
-                                getActionClass(item.action)
-                              }
-                            >
-                              {item.action}
-                            </span>
-                          </div>
-                          {item.changes ? (
-                            <>
-                              <div>
-                                <p className="text-slate-600">Previo</p>
-                                <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
-                                  {JSON.stringify(item.changes.prev, null, 2)}
-                                </pre>
-                              </div>
-                              <div>
-                                <p className="text-slate-600">Cambios</p>
-                                <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
-                                  {JSON.stringify(item.changes.new, null, 2)}
-                                </pre>
-                              </div>
-                            </>
-                          ) : (
-                            <div className="col-span-2">
-                              <p className="text-slate-600">Objeto</p>
-                              <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
-                                {JSON.stringify(item.snapshot, null, 2)}
-                              </pre>
-                            </div>
-                          )}
-                        </div>
-                      </article>
-                    ))
-                  )}
-                </div>
-
-                <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
-                  <table className="min-w-full text-sm text-center">
-                    <thead className="bg-slate-50 text-slate-800">
-                      <tr>
-                        <th className="px-5 py-4 font-semibold">
-                          Fecha
-                        </th>
-                        <th className="px-5 py-4 font-semibold">
-                          Tipo
-                        </th>
-                        <th className="px-5 py-4 font-semibold">
-                          Acción
-                        </th>
-                        <th className="px-5 py-4 font-semibold">
-                          Objeto
-                        </th>
-                        <th className="px-5 py-4 font-semibold">
-                          (Cambios)
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {logs.map((item, index) => (
-                        <tr
-                          key={`${item.object_type}-${item.action}-${index}`}
-                          className="border-t border-slate-100 transition hover:bg-slate-100"
-                        >
-                          <td className="px-5 py-4 font-medium text-slate-700">
-                            {item.created_at
-                              ? formatDate(item.created_at)
-                              : "-"}
-                          </td>
-                          <td className="px-5 py-4 text-slate-700">
-                            {item.object_type}
-                          </td>
-                          <td className="px-5 py-4 text-slate-700">
-                            <span
-                              className={
-                                "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
-                                getActionClass(item.action)
-                              }
-                            >
-                              {item.action}
-                            </span>
-                          </td>
-                          {item.changes && (
-                            <td className="px-5 py-4 text-slate-700">
-                              <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-600">
-                                {JSON.stringify(item.changes.prev, null, 2)}
-                              </pre>
-                            </td>
-                          )}
-                          <td
-                            colSpan={item.changes ? 1 : 2}
-                            className="px-5 py-4 text-slate-700"
-                          >
-                            <pre className="max-w-lg overflow-x-auto whitespace-pre-wrap break-all text-xs text-slate-700">
-                              {JSON.stringify(
-                                item.changes?.new ?? item.snapshot,
-                                null,
-                                2,
-                              )}
-                            </pre>
-                          </td>
-                        </tr>
-                      ))}
-
-                      {logs.length === 0 && (
-                        <tr>
-                          <td
-                            colSpan={4}
-                            className="px-5 py-10 text-slate-500"
-                          >
-                            Este usuario no tiene ediciones registradas.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="space-y-3 mt-8 lg:hidden">
-                  {!datos.eventos || datos.eventos.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-                      Este usuario no tiene eventos registrados.
-                    </div>
-                  ) : (
-                    datos.eventos.map((item, index) => (
-                      <article
-                        key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
-                        className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                              Fecha
-                            </p>
-                            <h4 className="mt-1 text-base font-semibold text-slate-900">
-                              {item.fecha ? formatDate(item.fecha) : "-"}
-                            </h4>
-                          </div>
-                        </div>
-                        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                          <div>
-                            <p className="text-slate-600">Centro</p>
-                            <p className="font-medium text-slate-700">
-                              {item.centro_distribucion ?? "-"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-slate-600">Evento</p>
-                            <p className="font-medium text-slate-700">
-                              {item.tipo_evento ?? "-"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                          {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                            <div key={color}>
-                              <p className="text-slate-600">
-                                {"Cajas " + color}
-                              </p>
-                              <p
-                                className={`stock-number font-medium text-slate-700 ${getCajasClass(item.cajas[color])}`}
-                              >
-                                {formatNumber(item.cajas[color], "-")}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                        {item.roturas && (
-                          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                            {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                              <div key={color}>
-                                <p className="text-slate-600">
-                                  Cajas {color} rotas
-                                </p>
-                                <p
-                                  className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas?.cajas[color])}`}
-                                >
-                                  {formatNumber(
-                                    item.roturas?.cajas[color],
-                                    "-",
-                                  )}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {item.roturas && (
-                          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                            {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                              <div key={color}>
-                                <p className="text-slate-600">
-                                  Tapas {color} rotas
-                                </p>
-                                <p
-                                  className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas?.tapas[color])}`}
-                                >
-                                  {formatNumber(
-                                    item.roturas?.tapas[color],
-                                    "-",
-                                  )}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </article>
-                    ))
-                  )}
-                </div>
-
-                <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
-                  <table className="min-w-full text-sm text-center">
-                    <thead className="bg-slate-50 text-slate-800">
-                      <tr>
-                        <th className="px-5 py-4 font-semibold">
-                          Fecha
-                        </th>
-                        <th className="px-5 py-4 font-semibold">
-                          Centro
-                        </th>
-                        <th className="px-5 py-4 font-semibold">
-                          Evento
-                        </th>
-                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                          <th
-                            key={`cajas-${color}`}
-                            className="px-5 py-4 font-semibold"
-                          >
-                            Cajas {color}
-                          </th>
-                        ))}
-                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                          <th
-                            key={`rotas-${color}`}
-                            className="px-5 py-4 font-semibold"
-                          >
-                            Cajas rotas {color}
-                          </th>
-                        ))}
-                        {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                          <th
-                            key={`tapas-${color}`}
-                            className="px-5 py-4 font-semibold"
-                          >
-                            Tapas rotas {color}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {eventos.map((item, index) => (
-                        <tr
-                          key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
-                          className="border-t border-slate-100 transition hover:bg-slate-100"
-                        >
-                          <td className="px-5 py-4 font-medium text-slate-700">
-                            {item.fecha ? formatDate(item.fecha) : "-"}
-                          </td>
-                          <td className="px-5 py-4 text-slate-700">
-                            {item.centro_distribucion}
-                          </td>
-                          <td className="px-5 py-4 text-slate-700">
-                            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
-                              {item.tipo_evento}
-                            </span>
-                          </td>
-                          {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                            <td
-                              key={`cajas-${item.fecha}-${color}`}
-                              className="px-5 py-4 text-slate-700"
-                            >
-                              <span
-                                className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getCajasClass(item.cajas[color])}`}
-                              >
-                                {formatNumber(item.cajas[color], "-")}
-                              </span>
-                            </td>
-                          ))}
-                          {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                            <td
-                              key={`cajas-rotas-${item.fecha}-${color}`}
-                              className="px-5 py-4 text-slate-700"
-                            >
-                              <span
-                                className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.cajas[color])}`}
-                              >
-                                {formatNumber(item.roturas?.cajas[color], "-")}
-                              </span>
-                            </td>
-                          ))}
-                          {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                            <td
-                              key={`tapas-rotas-${item.fecha}-${color}`}
-                              className="px-5 py-4 text-slate-700"
-                            >
-                              <span
-                                className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.tapas[color])}`}
-                              >
-                                {formatNumber(item.roturas?.tapas[color], "-")}
-                              </span>
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-
-                      {eventos.length === 0 && (
-                        <tr>
-                          <td
-                            colSpan={
-                              3 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
-                            }
-                            className="px-5 py-10 text-slate-500"
-                          >
-                            Este usuario no tiene eventos registrados.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
           </>
         ) : (
-          <p className="text-sm text-slate-500">
-            {loading ? "Cargando..." : "Selecciona un usuario."}
-          </p>
+          <>
+            <div className="space-y-3 mt-8 lg:hidden">
+              {!datos.eventos || datos.eventos.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                  {loading
+                    ? "Cargando..."
+                    : "Este usuario no tiene eventos registrados."}
+                </div>
+              ) : (
+                datos.eventos.map((item, index) => (
+                  <article
+                    key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
+                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
+                          Fecha
+                        </p>
+                        <h4 className="mt-1 text-base font-semibold text-slate-900">
+                          {item.fecha ? formatDate(item.fecha) : "-"}
+                        </h4>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      <div>
+                        <p className="text-slate-600">Centro</p>
+                        <p className="font-medium text-slate-700">
+                          {item.centro_distribucion ?? "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-slate-600">Evento</p>
+                        <p className="font-medium text-slate-700">
+                          {item.tipo_evento ?? "-"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <div key={color}>
+                          <p className="text-slate-600">{"Cajas " + color}</p>
+                          <p
+                            className={`stock-number font-medium text-slate-700 ${getCajasClass(item.cajas[color])}`}
+                          >
+                            {formatNumber(item.cajas[color], "-")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    {item.roturas && (
+                      <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                          <div key={color}>
+                            <p className="text-slate-600">
+                              Cajas {color} rotas
+                            </p>
+                            <p
+                              className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas?.cajas[color])}`}
+                            >
+                              {formatNumber(item.roturas?.cajas[color], "-")}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {item.roturas && (
+                      <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                          <div key={color}>
+                            <p className="text-slate-600">
+                              Tapas {color} rotas
+                            </p>
+                            <p
+                              className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas?.tapas[color])}`}
+                            >
+                              {formatNumber(item.roturas?.tapas[color], "-")}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                ))
+              )}
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
+              <table className="min-w-full text-sm text-center">
+                <thead className="bg-slate-50 text-slate-800">
+                  <tr>
+                    <th className="px-5 py-4 font-semibold">Fecha</th>
+                    <th className="px-5 py-4 font-semibold">Centro</th>
+                    <th className="px-5 py-4 font-semibold">Evento</th>
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <th
+                        key={`cajas-${color}`}
+                        className="px-5 py-4 font-semibold"
+                      >
+                        Cajas {color}
+                      </th>
+                    ))}
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <th
+                        key={`rotas-${color}`}
+                        className="px-5 py-4 font-semibold"
+                      >
+                        Cajas rotas {color}
+                      </th>
+                    ))}
+                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                      <th
+                        key={`tapas-${color}`}
+                        className="px-5 py-4 font-semibold"
+                      >
+                        Tapas rotas {color}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {eventos.map((item, index) => (
+                    <tr
+                      key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
+                      className="border-t border-slate-100 transition hover:bg-slate-100"
+                    >
+                      <td className="px-5 py-4 font-medium text-slate-700">
+                        {item.fecha ? formatDate(item.fecha) : "-"}
+                      </td>
+                      <td className="px-5 py-4 text-slate-700">
+                        {item.centro_distribucion}
+                      </td>
+                      <td className="px-5 py-4 text-slate-700">
+                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
+                          {item.tipo_evento}
+                        </span>
+                      </td>
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <td
+                          key={`cajas-${item.fecha}-${color}`}
+                          className="px-5 py-4 text-slate-700"
+                        >
+                          <span
+                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getCajasClass(item.cajas[color])}`}
+                          >
+                            {formatNumber(item.cajas[color], "-")}
+                          </span>
+                        </td>
+                      ))}
+                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                        <td
+                          key={`cajas-rotas-${item.fecha}-${color}`}
+                          className="px-5 py-4 text-slate-700"
+                        >
+                          <span
+                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.cajas[color])}`}
+                          >
+                            {formatNumber(item.roturas?.cajas[color], "-")}
+                          </span>
+                        </td>
+                      ))}
+                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                        <td
+                          key={`tapas-rotas-${item.fecha}-${color}`}
+                          className="px-5 py-4 text-slate-700"
+                        >
+                          <span
+                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.tapas[color])}`}
+                          >
+                            {formatNumber(item.roturas?.tapas[color], "-")}
+                          </span>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+
+                  {eventos.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={
+                          3 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
+                        }
+                        className="px-5 py-10 text-slate-500"
+                      >
+                        {loading
+                          ? "Cargando..."
+                          : "Este usuario no tiene eventos registrados."}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </section>

@@ -503,232 +503,208 @@ export default function TablaCentros({
           </div>
         )}
 
-        {loading ? (
-          <p className="mt-6 text-sm text-slate-500">Cargando...</p>
-        ) : (
-          <>
-            <div className="space-y-3 mt-8 lg:hidden">
-              {centros.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-                  No hay centros registrados
-                </div>
-              ) : (
-                centros.map((item) => (
-                  <article
-                    key={item.nombre}
-                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                          Nombre
-                        </p>
-                        <h4 className="mt-1 text-base font-semibold text-slate-900">
-                          {item.nombre ?? "-"}
-                        </h4>
-                      </div>
-                      {usuario.rol === "informatico" && (
-                        <div className="flex flex-wrap flex-col justify-end gap-2">
-                          <button
-                            onClick={() => startEdit(item)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                          >
-                            <Pencil size={12} />
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => enableCentro(item, !item.habilitado)}
-                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                              item.habilitado
-                                ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                                : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                            }`}
-                          >
-                            {item.habilitado ? (
-                              <ToggleLeft size={12} />
-                            ) : (
-                              <ToggleRight size={12} />
-                            )}
-                            {item.habilitado ? "Deshabilitar" : "Habilitar"}
-                          </button>
-                          <ConfirmDeleteButton
-                            entityName={`el centro ${item.nombre}`}
-                            disabled={deletingId === item.nombre}
-                            buttonLabel={
-                              deletingId === item.nombre
-                                ? "Eliminando..."
-                                : undefined
-                            }
-                            onConfirm={() => handleDelete(item)}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <div key={color}>
-                          <p className="text-slate-600">Deuda {color}</p>
-                          <p className="stock-number font-medium text-slate-700">
-                            {formatNumber(item.deuda?.[color], "-")}
-                          </p>
-                        </div>
-                      ))}
-                      <div>
-                        <p className="text-slate-600">Rotación</p>
-                        <p className="stock-number font-medium text-slate-700">
-                          {formatNumber(item.rotacion, "-")} días
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-600">Estado</p>
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            item.habilitado
-                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                              : "bg-rose-50 text-rose-700 ring-rose-200"
-                          }`}
-                        >
-                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-slate-600">Editado por</p>
-                        <p className="font-medium text-slate-700">
-                          {item.ajuste ? prettyName(item.ajuste) : "-"}
-                        </p>
-                      </div>
-                    </div>
-                  </article>
-                ))
-              )}
+        <div className="space-y-3 mt-8 lg:hidden">
+          {centros.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+              {loading ? "Cargando..." : "No hay centros registrados"}
             </div>
-
-            <div className="mt-8 overflow-x-auto hidden lg:block">
-              <table className="min-w-full text-sm text-center">
-                <thead className="bg-slate-50 text-slate-800">
-                  <tr>
-                    <th className="px-5 py-4 font-semibold">
+          ) : (
+            centros.map((item) => (
+              <article
+                key={item.nombre}
+                className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                       Nombre
-                    </th>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={color}
-                        className="px-5 py-4 font-semibold"
+                    </p>
+                    <h4 className="mt-1 text-base font-semibold text-slate-900">
+                      {item.nombre ?? "-"}
+                    </h4>
+                  </div>
+                  {usuario.rol === "informatico" && (
+                    <div className="flex flex-wrap flex-col justify-end gap-2">
+                      <button
+                        onClick={() => startEdit(item)}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                       >
-                        Deuda {color}
-                      </th>
-                    ))}
-                    <th className="px-5 py-4 font-semibold">
-                      Rotación
-                    </th>
-                    <th className="px-5 py-4 font-semibold">
-                      Estado
-                    </th>
-                    <th className="px-5 py-4 font-semibold">
-                      Editado por
-                    </th>
-                    {usuario.rol === "informatico" && (
-                      <th className="px-5 py-4 font-semibold">
-                        Acciones
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {centros.map((item) => (
-                    <tr
-                      key={item.nombre}
-                      className="border-t border-slate-100 transition hover:bg-slate-100"
+                        <Pencil size={12} />
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => enableCentro(item, !item.habilitado)}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                          item.habilitado
+                            ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        }`}
+                      >
+                        {item.habilitado ? (
+                          <ToggleLeft size={12} />
+                        ) : (
+                          <ToggleRight size={12} />
+                        )}
+                        {item.habilitado ? "Deshabilitar" : "Habilitar"}
+                      </button>
+                      <ConfirmDeleteButton
+                        entityName={`el centro ${item.nombre}`}
+                        disabled={deletingId === item.nombre}
+                        buttonLabel={
+                          deletingId === item.nombre
+                            ? "Eliminando..."
+                            : undefined
+                        }
+                        onConfirm={() => handleDelete(item)}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <div key={color}>
+                      <p className="text-slate-600">Deuda {color}</p>
+                      <p className="stock-number font-medium text-slate-700">
+                        {formatNumber(item.deuda?.[color], "-")}
+                      </p>
+                    </div>
+                  ))}
+                  <div>
+                    <p className="text-slate-600">Rotación</p>
+                    <p className="stock-number font-medium text-slate-700">
+                      {formatNumber(item.rotacion, "-")} días
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">Estado</p>
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                        item.habilitado
+                          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                          : "bg-rose-50 text-rose-700 ring-rose-200"
+                      }`}
                     >
-                      <td className="px-5 py-4 font-semibold text-slate-900">
-                        {item.nombre}
-                      </td>
+                      {item.habilitado ? "Habilitado" : "Deshabilitado"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">Editado por</p>
+                    <p className="font-medium text-slate-700">
+                      {item.ajuste ? prettyName(item.ajuste) : "-"}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
 
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <td
-                          key={color}
-                          className="stock-number px-5 py-4 text-slate-600"
+        <div className="mt-8 overflow-x-auto hidden lg:block">
+          <table className="min-w-full text-sm text-center">
+            <thead className="bg-slate-50 text-slate-800">
+              <tr>
+                <th className="px-5 py-4 font-semibold">Nombre</th>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th key={color} className="px-5 py-4 font-semibold">
+                    Deuda {color}
+                  </th>
+                ))}
+                <th className="px-5 py-4 font-semibold">Rotación</th>
+                <th className="px-5 py-4 font-semibold">Estado</th>
+                <th className="px-5 py-4 font-semibold">Editado por</th>
+                {usuario.rol === "informatico" && (
+                  <th className="px-5 py-4 font-semibold">Acciones</th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {centros.map((item) => (
+                <tr
+                  key={item.nombre}
+                  className="border-t border-slate-100 transition hover:bg-slate-100"
+                >
+                  <td className="px-5 py-4 font-semibold text-slate-900">
+                    {item.nombre}
+                  </td>
+
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <td
+                      key={color}
+                      className="stock-number px-5 py-4 text-slate-600"
+                    >
+                      {formatNumber(item.deuda[color])}
+                    </td>
+                  ))}
+                  <td className="px-5 py-4">
+                    <span className="stock-number rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+                      {formatNumber(item.rotacion, "0")} días
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-slate-600">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                        item.habilitado
+                          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                          : "bg-rose-50 text-rose-700 ring-rose-200"
+                      }`}
+                    >
+                      {item.habilitado ? "Habilitado" : "Deshabilitado"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-slate-600">
+                    {item.ajuste ? prettyName(item.ajuste) : "-"}
+                  </td>
+                  {usuario.rol === "informatico" && (
+                    <td className="px-5 py-4">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => startEdit(item)}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                         >
-                          {formatNumber(item.deuda[color])}
-                        </td>
-                      ))}
-                      <td className="px-5 py-4">
-                        <span className="stock-number rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
-                          {formatNumber(item.rotacion, "0")} días
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                          <Pencil size={12} />
+                          Editar
+                        </button>
+                        <button
+                          disabled={submitting}
+                          onClick={() => enableCentro(item, !item.habilitado)}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                             item.habilitado
-                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                              : "bg-rose-50 text-rose-700 ring-rose-200"
+                              ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                           }`}
                         >
-                          {item.habilitado ? "Habilitado" : "Deshabilitado"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {item.ajuste ? prettyName(item.ajuste) : "-"}
-                      </td>
-                      {usuario.rol === "informatico" && (
-                        <td className="px-5 py-4">
-                          <div className="flex justify-center gap-2">
-                            <button
-                              onClick={() => startEdit(item)}
-                              className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                            >
-                              <Pencil size={12} />
-                              Editar
-                            </button>
-                            <button
-                              disabled={submitting}
-                              onClick={() =>
-                                enableCentro(item, !item.habilitado)
-                              }
-                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                                item.habilitado
-                                  ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                                  : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                              }`}
-                            >
-                              {item.habilitado ? (
-                                <ToggleLeft size={12} />
-                              ) : (
-                                <ToggleRight size={12} />
-                              )}
-                              {item.habilitado ? "Deshabilitar" : "Habilitar"}
-                            </button>
-                            <ConfirmDeleteButton
-                              entityName={`el centro ${item.nombre}`}
-                              disabled={deletingId === item.nombre}
-                              buttonLabel={
-                                deletingId === item.nombre
-                                  ? "Eliminando..."
-                                  : undefined
-                              }
-                              onConfirm={() => handleDelete(item)}
-                            />
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                  {centros.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={8}
-                        className="px-5 py-10 text-slate-500"
-                      >
-                        No hay centros registrados
-                      </td>
-                    </tr>
+                          {item.habilitado ? (
+                            <ToggleLeft size={12} />
+                          ) : (
+                            <ToggleRight size={12} />
+                          )}
+                          {item.habilitado ? "Deshabilitar" : "Habilitar"}
+                        </button>
+                        <ConfirmDeleteButton
+                          entityName={`el centro ${item.nombre}`}
+                          disabled={deletingId === item.nombre}
+                          buttonLabel={
+                            deletingId === item.nombre
+                              ? "Eliminando..."
+                              : undefined
+                          }
+                          onConfirm={() => handleDelete(item)}
+                        />
+                      </div>
+                    </td>
                   )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+                </tr>
+              ))}
+              {centros.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-5 py-10 text-slate-500">
+                    {loading ? "Cargando..." : "No hay centros registrados"}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

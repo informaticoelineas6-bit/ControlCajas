@@ -105,7 +105,11 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
         </p>
       );
     if (loading && !data.total)
-      return <p className="text-sm text-slate-500">Cargando...</p>;
+      return (
+        <p className="rounded-xl px-3 py-2 text-sm text-slate-500">
+          Cargando...
+        </p>
+      );
     if (data.total === 0)
       return (
         <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">

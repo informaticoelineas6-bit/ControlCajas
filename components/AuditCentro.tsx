@@ -11,10 +11,41 @@ import {
 import type { CentroAudit } from "@/lib/constants";
 import { formatDate, formatNumber, prettyName } from "@/lib/utils";
 
+const defaultCentroAudit: CentroAudit = {
+  centro: {
+    nombre: "Ninguno seleccionado",
+    deuda: {
+      blancas: 0,
+      negras: 0,
+      verdes: 0,
+    },
+    rotacion: 0,
+    roturas: {
+      cajas: {
+        blancas: 0,
+        negras: 0,
+        verdes: 0,
+      },
+      tapas: {
+        blancas: 0,
+        negras: 0,
+      },
+    },
+    habilitadas: {
+      blancas: false,
+      negras: false,
+      verdes: false,
+    },
+    habilitado: false,
+    ajuste: "-",
+  },
+  cierres: [],
+};
+
 export default function AuditCentro() {
   const [nombre, setNombre] = useState("");
   const [centros, setCentros] = useState<CentroDistribucion[]>([]);
-  const [datos, setDatos] = useState<CentroAudit>();
+  const [datos, setDatos] = useState<CentroAudit>(defaultCentroAudit);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,7 +53,7 @@ export default function AuditCentro() {
     async (signal: AbortSignal) => {
       setLoading(true);
       setError("");
-      setDatos(undefined);
+      setDatos(defaultCentroAudit);
 
       try {
         const res = await fetch(`/api/audit/centro?nombre=${nombre}`, {
@@ -159,29 +190,166 @@ export default function AuditCentro() {
           </select>
         </div>
 
-        {datos && !loading ? (
-          <>
-            <div className="space-y-3 lg:hidden">
+        <div className="space-y-3 lg:hidden">
+          <article
+            key={datos.centro.nombre}
+            className="rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
+                  Nombre
+                </p>
+                <h4 className="mt-1 text-base font-semibold text-slate-900">
+                  {datos.centro.nombre ?? "-"}
+                </h4>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                <div key={color}>
+                  <p className="text-slate-600">Deuda {color}</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(datos.centro.deuda?.[color], "-")}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                <div key={color}>
+                  <p className="text-slate-600">Cajas {color} rotas</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(datos.centro.roturas.cajas[color], "-")}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                <div key={color}>
+                  <p className="text-slate-600">Tapas {color} rotas</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(datos.centro.roturas.tapas[color], "-")}
+                  </p>
+                </div>
+              ))}
+              <div>
+                <p className="text-slate-600">Estado</p>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                    datos.centro.habilitado
+                      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                      : "bg-rose-50 text-rose-700 ring-rose-200"
+                  }`}
+                >
+                  {datos.centro.habilitado ? "Habilitado" : "Deshabilitado"}
+                </span>
+              </div>
+              <div>
+                <p className="text-slate-600">Editado por</p>
+                <p className="font-medium text-slate-700">
+                  {datos.centro.ajuste ? prettyName(datos.centro.ajuste) : "-"}
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div className="overflow-x-auto rounded-2xl border border-amber-100 hidden lg:block">
+          <table className="min-w-full text-sm text-center">
+            <thead className="bg-amber-50 text-amber-900">
+              <tr>
+                <th className="px-5 py-4 font-semibold">Nombre</th>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th key={color} className="px-5 py-4 font-semibold">
+                    Deuda {color}
+                  </th>
+                ))}
+                <th className="px-5 py-4 font-semibold">Rotación</th>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th
+                    key={`cajas-${color}`}
+                    className="px-5 py-4 font-semibold"
+                  >
+                    Cajas {color} rotas
+                  </th>
+                ))}
+                {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                  <th
+                    key={`tapas-${color}`}
+                    className="px-5 py-4 font-semibold"
+                  >
+                    Tapas rotas {color}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-amber-100 bg-white text-slate-700">
+                <td className="px-5 py-4 font-semibold text-slate-900">
+                  {datos.centro.nombre}
+                </td>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <td key={`deuda-${color}`} className="stock-number px-5 py-4">
+                    {formatNumber(datos.centro.deuda[color], "-")}
+                  </td>
+                ))}
+                <td className="stock-number px-5 py-4">
+                  {formatNumber(datos.centro.rotacion, "-")} días
+                </td>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <td
+                    key={`rotura-caja-${color}`}
+                    className="stock-number px-5 py-4"
+                  >
+                    {formatNumber(datos.centro.roturas.cajas[color], "-")}
+                  </td>
+                ))}
+                {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                  <td
+                    key={`rotura-tapa-${color}`}
+                    className="stock-number px-5 py-4"
+                  >
+                    {formatNumber(datos.centro.roturas.tapas[color], "-")}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="space-y-3 mt-8 lg:hidden">
+          {datos.cierres.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+              {loading
+                ? "Cargando..."
+                : "No hay cierres asociados a este centro."}
+            </div>
+          ) : (
+            datos.cierres.map((item) => (
               <article
-                key={datos.centro.nombre}
-                className="rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm"
+                key={item.fecha}
+                className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                      Nombre
+                      Fecha del cierre
                     </p>
                     <h4 className="mt-1 text-base font-semibold text-slate-900">
-                      {datos.centro.nombre ?? "-"}
+                      {item.fecha ?? "-"}
                     </h4>
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
-                      <p className="text-slate-600">Deuda {color}</p>
-                      <p className="stock-number font-medium text-slate-700">
-                        {formatNumber(datos.centro.deuda?.[color], "-")}
+                      <p className="text-slate-600">Ajuste deuda {color}</p>
+                      <p
+                        className={`stock-number font-medium text-slate-700 ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
+                      >
+                        {formatNumber(item.ajuste_deuda[color], "-")}
                       </p>
                     </div>
                   ))}
@@ -190,8 +358,10 @@ export default function AuditCentro() {
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
                       <p className="text-slate-600">Cajas {color} rotas</p>
-                      <p className="stock-number font-medium text-slate-700">
-                        {formatNumber(datos.centro.roturas.cajas[color], "-")}
+                      <p
+                        className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas.cajas[color])}`}
+                      >
+                        {formatNumber(item.roturas.cajas[color], "-")}
                       </p>
                     </div>
                   ))}
@@ -200,263 +370,113 @@ export default function AuditCentro() {
                   {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                     <div key={color}>
                       <p className="text-slate-600">Tapas {color} rotas</p>
-                      <p className="stock-number font-medium text-slate-700">
-                        {formatNumber(datos.centro.roturas.tapas[color], "-")}
+                      <p
+                        className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas.tapas[color])}`}
+                      >
+                        {formatNumber(item.roturas.tapas[color], "-")}
                       </p>
                     </div>
                   ))}
-                  <div>
-                    <p className="text-slate-600">Estado</p>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                        datos.centro.habilitado
-                          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                          : "bg-rose-50 text-rose-700 ring-rose-200"
-                      }`}
-                    >
-                      {datos.centro.habilitado ? "Habilitado" : "Deshabilitado"}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-slate-600">Editado por</p>
-                    <p className="font-medium text-slate-700">
-                      {datos.centro.ajuste
-                        ? prettyName(datos.centro.ajuste)
-                        : "-"}
-                    </p>
-                  </div>
                 </div>
               </article>
-            </div>
+            ))
+          )}
+        </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-amber-100 hidden lg:block">
-              <table className="min-w-full text-sm text-center">
-                <thead className="bg-amber-50 text-amber-900">
-                  <tr>
-                    <th className="px-5 py-4 font-semibold">Nombre</th>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th key={color} className="px-5 py-4 font-semibold">
-                        Deuda {color}
-                      </th>
-                    ))}
-                    <th className="px-5 py-4 font-semibold">Rotación</th>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={`cajas-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Cajas {color} rotas
-                      </th>
-                    ))}
-                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                      <th
-                        key={`tapas-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Tapas rotas {color}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-t border-amber-100 bg-white text-slate-700">
-                    <td className="px-5 py-4 font-semibold text-slate-900">
-                      {datos.centro.nombre}
-                    </td>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <td
-                        key={`deuda-${color}`}
-                        className="stock-number px-5 py-4"
-                      >
-                        {formatNumber(datos.centro.deuda[color], "-")}
-                      </td>
-                    ))}
-                    <td className="stock-number px-5 py-4">
-                      {formatNumber(datos.centro.rotacion, "-")} días
-                    </td>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <td
-                        key={`rotura-caja-${color}`}
-                        className="stock-number px-5 py-4"
-                      >
-                        {formatNumber(datos.centro.roturas.cajas[color], "-")}
-                      </td>
-                    ))}
-                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                      <td
-                        key={`rotura-tapa-${color}`}
-                        className="stock-number px-5 py-4"
-                      >
-                        {formatNumber(datos.centro.roturas.tapas[color], "-")}
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="space-y-3 mt-8 lg:hidden">
-              {datos.cierres.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-                  No hay cierres asociados a este centro.
-                </div>
-              ) : (
-                datos.cierres.map((item) => (
-                  <article
-                    key={item.fecha}
-                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
+          <table className="min-w-full text-sm table-center">
+            <thead className="bg-slate-50 text-slate-600">
+              <tr>
+                <th className="px-5 py-4 font-semibold">Fecha</th>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th
+                    key={`ajuste-${color}`}
+                    className="px-5 py-4 font-semibold"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                          Fecha del cierre
-                        </p>
-                        <h4 className="mt-1 text-base font-semibold text-slate-900">
-                          {item.fecha ?? "-"}
-                        </h4>
-                      </div>
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <div key={color}>
-                          <p className="text-slate-600">Ajuste deuda {color}</p>
-                          <p
-                            className={`stock-number font-medium text-slate-700 ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
-                          >
-                            {formatNumber(item.ajuste_deuda[color], "-")}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <div key={color}>
-                          <p className="text-slate-600">Cajas {color} rotas</p>
-                          <p
-                            className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas.cajas[color])}`}
-                          >
-                            {formatNumber(item.roturas.cajas[color], "-")}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                        <div key={color}>
-                          <p className="text-slate-600">Tapas {color} rotas</p>
-                          <p
-                            className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas.tapas[color])}`}
-                          >
-                            {formatNumber(item.roturas.tapas[color], "-")}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
-
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
-              <table className="min-w-full text-sm table-center">
-                <thead className="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th className="px-5 py-4 font-semibold">Fecha</th>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={`ajuste-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Ajuste deuda {color}
-                      </th>
-                    ))}
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={`cierre-caja-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Cajas rotas {color}
-                      </th>
-                    ))}
-                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                      <th
-                        key={`cierre-tapa-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Tapas rotas {color}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {datos.cierres.map((item) => (
-                    <tr
-                      key={`${item.fecha}`}
-                      className="border-t border-slate-100 transition hover:bg-slate-100"
+                    Ajuste deuda {color}
+                  </th>
+                ))}
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th
+                    key={`cierre-caja-${color}`}
+                    className="px-5 py-4 font-semibold"
+                  >
+                    Cajas rotas {color}
+                  </th>
+                ))}
+                {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                  <th
+                    key={`cierre-tapa-${color}`}
+                    className="px-5 py-4 font-semibold"
+                  >
+                    Tapas rotas {color}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {datos.cierres.map((item) => (
+                <tr
+                  key={`${item.fecha}`}
+                  className="border-t border-slate-100 transition hover:bg-slate-100"
+                >
+                  <td className="px-5 py-4 font-medium text-slate-900">
+                    {item.fecha ? formatDate(item.fecha) : "-"}
+                  </td>
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <td
+                      key={`cierre-ajuste-${item.fecha}-${color}`}
+                      className="px-5 py-4 text-slate-600"
                     >
-                      <td className="px-5 py-4 font-medium text-slate-900">
-                        {item.fecha ? formatDate(item.fecha) : "-"}
-                      </td>
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <td
-                          key={`cierre-ajuste-${item.fecha}-${color}`}
-                          className="px-5 py-4 text-slate-600"
-                        >
-                          <span
-                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
-                          >
-                            {formatNumber(item.ajuste_deuda[color], "-")}
-                          </span>
-                        </td>
-                      ))}
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <td
-                          key={`cierre-cajas-${item.fecha}-${color}`}
-                          className="px-5 py-4 text-slate-600"
-                        >
-                          <span
-                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
-                          >
-                            {formatNumber(item.roturas.cajas[color], "-")}
-                          </span>
-                        </td>
-                      ))}
-                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                        <td
-                          key={`cierre-tapas-${item.fecha}-${color}`}
-                          className="px-5 py-4 text-slate-600"
-                        >
-                          <span
-                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
-                          >
-                            {formatNumber(item.roturas.tapas[color], "-")}
-                          </span>
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-
-                  {datos.cierres.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={
-                          1 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
-                        }
-                        className="px-5 py-10 text-slate-500"
+                      <span
+                        className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
                       >
-                        Este centro no tiene cierres asociados.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-slate-500">
-            {loading ? "Cargando..." : "Selecciona un centro."}
-          </p>
-        )}
+                        {formatNumber(item.ajuste_deuda[color], "-")}
+                      </span>
+                    </td>
+                  ))}
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <td
+                      key={`cierre-cajas-${item.fecha}-${color}`}
+                      className="px-5 py-4 text-slate-600"
+                    >
+                      <span
+                        className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
+                      >
+                        {formatNumber(item.roturas.cajas[color], "-")}
+                      </span>
+                    </td>
+                  ))}
+                  {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                    <td
+                      key={`cierre-tapas-${item.fecha}-${color}`}
+                      className="px-5 py-4 text-slate-600"
+                    >
+                      <span
+                        className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
+                      >
+                        {formatNumber(item.roturas.tapas[color], "-")}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+
+              {datos.cierres.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={1 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length}
+                    className="px-5 py-10 text-slate-500"
+                  >
+                    {loading
+                      ? "Cargando..."
+                      : "Este centro no tiene cierres asociados."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

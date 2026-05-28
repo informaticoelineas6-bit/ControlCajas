@@ -11,10 +11,40 @@ import {
 import type { AlmacenAudit } from "@/lib/constants";
 import { formatDate, formatNumber, prettyName } from "@/lib/utils";
 
+const defaultAlmacenAudit: AlmacenAudit = {
+  almacen: {
+    nombre: "Ninguno seleccionado",
+    stock: {
+      blancas: 0,
+      negras: 0,
+      verdes: 0,
+    },
+    roturas: {
+      cajas: {
+        blancas: 0,
+        negras: 0,
+        verdes: 0,
+      },
+      tapas: {
+        blancas: 0,
+        negras: 0,
+      },
+    },
+    habilitadas: {
+      blancas: false,
+      negras: false,
+      verdes: false,
+    },
+    habilitado: false,
+    ajuste: "-",
+  },
+  cierres: [],
+};
+
 export default function AuditAlmacen() {
   const [nombre, setNombre] = useState("");
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
-  const [datos, setDatos] = useState<AlmacenAudit>();
+  const [datos, setDatos] = useState<AlmacenAudit>(defaultAlmacenAudit);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,7 +52,7 @@ export default function AuditAlmacen() {
     async (signal: AbortSignal) => {
       setLoading(true);
       setError("");
-      setDatos(undefined);
+      setDatos(defaultAlmacenAudit);
 
       try {
         const res = await fetch(`/api/audit/almacen?nombre=${nombre}`, {
@@ -159,29 +189,162 @@ export default function AuditAlmacen() {
           </select>
         </div>
 
-        {datos && !loading ? (
-          <>
-            <div className="space-y-3 lg:hidden">
+        <div className="space-y-3 lg:hidden">
+          <article
+            key={datos.almacen.nombre}
+            className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
+                  Nombre
+                </p>
+                <h4 className="mt-1 text-base font-semibold text-slate-900">
+                  {datos.almacen.nombre ?? "-"}
+                </h4>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                <div key={color}>
+                  <p className="text-slate-600">Stock {color}</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(datos.almacen.stock?.[color], "-")}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                <div key={color}>
+                  <p className="text-slate-600">Cajas {color} rotas</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(datos.almacen.roturas.cajas[color], "-")}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                <div key={color}>
+                  <p className="text-slate-600">Tapas {color} rotas</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(datos.almacen.roturas.tapas[color], "-")}
+                  </p>
+                </div>
+              ))}
+              <div>
+                <p className="text-slate-600">Estado</p>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                    datos.almacen.habilitado
+                      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                      : "bg-rose-50 text-rose-700 ring-rose-200"
+                  }`}
+                >
+                  {datos.almacen.habilitado ? "Habilitado" : "Deshabilitado"}
+                </span>
+              </div>
+              <div>
+                <p className="text-slate-600">Editado por</p>
+                <p className="font-medium text-slate-700">
+                  {datos.almacen.ajuste
+                    ? prettyName(datos.almacen.ajuste)
+                    : "-"}
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div className="overflow-x-auto rounded-2xl border border-emerald-100 hidden lg:block">
+          <table className="min-w-full text-sm text-center">
+            <thead className="bg-emerald-50 text-emerald-800">
+              <tr>
+                <th className="px-5 py-4 font-semibold">Nombre</th>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th key={color} className="px-5 py-4 font-semibold">
+                    Stock {color}
+                  </th>
+                ))}
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th
+                    key={`cajas-${color}`}
+                    className="px-5 py-4 font-semibold"
+                  >
+                    Cajas rotas {color}
+                  </th>
+                ))}
+                {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                  <th
+                    key={`tapas-${color}`}
+                    className="px-5 py-4 font-semibold"
+                  >
+                    Tapas rotas {color}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-emerald-100 bg-white text-slate-700">
+                <td className="px-5 py-4 font-semibold text-slate-900">
+                  {datos.almacen.nombre}
+                </td>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <td key={`stock-${color}`} className="stock-number px-5 py-4">
+                    {formatNumber(datos.almacen.stock[color], "-")}
+                  </td>
+                ))}
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <td
+                    key={`rotura-caja-${color}`}
+                    className="stock-number px-5 py-4"
+                  >
+                    {formatNumber(datos.almacen.roturas.cajas[color], "-")}
+                  </td>
+                ))}
+                {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                  <td
+                    key={`rotura-tapa-${color}`}
+                    className="stock-number px-5 py-4"
+                  >
+                    {formatNumber(datos.almacen.roturas.tapas[color], "-")}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="space-y-3 mt-8 lg:hidden">
+          {datos.cierres.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+              {loading
+                ? "Cargando..."
+                : "No hay cierres asociados a este almacén."}
+            </div>
+          ) : (
+            datos.cierres.map((item) => (
               <article
-                key={datos.almacen.nombre}
-                className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 shadow-sm"
+                key={item.fecha}
+                className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                      Nombre
+                      Fecha del cierre
                     </p>
                     <h4 className="mt-1 text-base font-semibold text-slate-900">
-                      {datos.almacen.nombre ?? "-"}
+                      {item.fecha ?? "-"}
                     </h4>
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
-                      <p className="text-slate-600">Stock {color}</p>
+                      <p className="text-slate-600">Ajuste stock {color}</p>
                       <p className="stock-number font-medium text-slate-700">
-                        {formatNumber(datos.almacen.stock?.[color], "-")}
+                        {formatNumber(item.ajuste_stock[color], "-")}
                       </p>
                     </div>
                   ))}
@@ -189,9 +352,9 @@ export default function AuditAlmacen() {
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
-                      <p className="text-slate-600">Cajas {color} rotas</p>
+                      <p className="text-slate-600">Cajas rotas {color}</p>
                       <p className="stock-number font-medium text-slate-700">
-                        {formatNumber(datos.almacen.roturas.cajas[color], "-")}
+                        {formatNumber(item.roturas.cajas[color], "-")}
                       </p>
                     </div>
                   ))}
@@ -199,261 +362,112 @@ export default function AuditAlmacen() {
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                     <div key={color}>
-                      <p className="text-slate-600">Tapas {color} rotas</p>
+                      <p className="text-slate-600">Tapas rotas {color}</p>
                       <p className="stock-number font-medium text-slate-700">
-                        {formatNumber(datos.almacen.roturas.tapas[color], "-")}
+                        {formatNumber(item.roturas.tapas[color], "-")}
                       </p>
                     </div>
                   ))}
-                  <div>
-                    <p className="text-slate-600">Estado</p>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                        datos.almacen.habilitado
-                          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                          : "bg-rose-50 text-rose-700 ring-rose-200"
-                      }`}
-                    >
-                      {datos.almacen.habilitado
-                        ? "Habilitado"
-                        : "Deshabilitado"}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-slate-600">Editado por</p>
-                    <p className="font-medium text-slate-700">
-                      {datos.almacen.ajuste
-                        ? prettyName(datos.almacen.ajuste)
-                        : "-"}
-                    </p>
-                  </div>
                 </div>
               </article>
-            </div>
+            ))
+          )}
+        </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-emerald-100 hidden lg:block">
-              <table className="min-w-full text-sm text-center">
-                <thead className="bg-emerald-50 text-emerald-800">
-                  <tr>
-                    <th className="px-5 py-4 font-semibold">
-                      Nombre
-                    </th>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={color}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Stock {color}
-                      </th>
-                    ))}
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={`cajas-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Cajas rotas {color}
-                      </th>
-                    ))}
-                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                      <th
-                        key={`tapas-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Tapas rotas {color}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-t border-emerald-100 bg-white text-slate-700">
-                    <td className="px-5 py-4 font-semibold text-slate-900">
-                      {datos.almacen.nombre}
-                    </td>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <td
-                        key={`stock-${color}`}
-                        className="stock-number px-5 py-4"
-                      >
-                        {formatNumber(datos.almacen.stock[color], "-")}
-                      </td>
-                    ))}
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <td
-                        key={`rotura-caja-${color}`}
-                        className="stock-number px-5 py-4"
-                      >
-                        {formatNumber(datos.almacen.roturas.cajas[color], "-")}
-                      </td>
-                    ))}
-                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                      <td
-                        key={`rotura-tapa-${color}`}
-                        className="stock-number px-5 py-4"
-                      >
-                        {formatNumber(datos.almacen.roturas.tapas[color], "-")}
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="space-y-3 mt-8 lg:hidden">
-              {datos.cierres.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-                  No hay cierres asociados a este almacén.
-                </div>
-              ) : (
-                datos.cierres.map((item) => (
-                  <article
-                    key={item.fecha}
-                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
+          <table className="min-w-full text-sm text-center">
+            <thead className="bg-slate-50 text-slate-600">
+              <tr>
+                <th className="px-5 py-4 font-semibold">Fecha</th>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th
+                    key={`ajuste-${color}`}
+                    className="px-5 py-4 font-semibold"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                          Fecha del cierre
-                        </p>
-                        <h4 className="mt-1 text-base font-semibold text-slate-900">
-                          {item.fecha ?? "-"}
-                        </h4>
-                      </div>
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <div key={color}>
-                          <p className="text-slate-600">Ajuste stock {color}</p>
-                          <p className="stock-number font-medium text-slate-700">
-                            {formatNumber(item.ajuste_stock[color], "-")}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <div key={color}>
-                          <p className="text-slate-600">Cajas rotas {color}</p>
-                          <p className="stock-number font-medium text-slate-700">
-                            {formatNumber(item.roturas.cajas[color], "-")}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                        <div key={color}>
-                          <p className="text-slate-600">Tapas rotas {color}</p>
-                          <p className="stock-number font-medium text-slate-700">
-                            {formatNumber(item.roturas.tapas[color], "-")}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
-
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
-              <table className="min-w-full text-sm text-center">
-                <thead className="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th className="px-5 py-4 font-semibold">Fecha</th>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={`ajuste-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Ajuste stock {color}
-                      </th>
-                    ))}
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={`cierre-caja-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Cajas rotas {color}
-                      </th>
-                    ))}
-                    {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                      <th
-                        key={`cierre-tapa-${color}`}
-                        className="px-5 py-4 font-semibold"
-                      >
-                        Tapas rotas {color}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {datos.cierres.map((item) => (
-                    <tr
-                      key={`${item.fecha}`}
-                      className="border-t border-slate-100 transition hover:bg-slate-100"
+                    Ajuste stock {color}
+                  </th>
+                ))}
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th
+                    key={`cierre-caja-${color}`}
+                    className="px-5 py-4 font-semibold"
+                  >
+                    Cajas rotas {color}
+                  </th>
+                ))}
+                {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                  <th
+                    key={`cierre-tapa-${color}`}
+                    className="px-5 py-4 font-semibold"
+                  >
+                    Tapas rotas {color}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {datos.cierres.map((item) => (
+                <tr
+                  key={`${item.fecha}`}
+                  className="border-t border-slate-100 transition hover:bg-slate-100"
+                >
+                  <td className="px-5 py-4 font-medium text-slate-900">
+                    {item.fecha ? formatDate(item.fecha) : "-"}
+                  </td>
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <td
+                      key={`cierre-ajuste-${item.fecha}-${color}`}
+                      className="px-5 py-4 text-slate-600"
                     >
-                      <td className="px-5 py-4 font-medium text-slate-900">
-                        {item.fecha ? formatDate(item.fecha) : "-"}
-                      </td>
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <td
-                          key={`cierre-ajuste-${item.fecha}-${color}`}
-                          className="px-5 py-4 text-slate-600"
-                        >
-                          <span
-                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteStockClass(item.ajuste_stock[color])}`}
-                          >
-                            {formatNumber(item.ajuste_stock[color], "-")}
-                          </span>
-                        </td>
-                      ))}
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <td
-                          key={`cierre-cajas-${item.fecha}-${color}`}
-                          className="px-5 py-4 text-slate-600"
-                        >
-                          <span
-                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
-                          >
-                            {formatNumber(item.roturas.cajas[color], "-")}
-                          </span>
-                        </td>
-                      ))}
-                      {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                        <td
-                          key={`cierre-tapas-${item.fecha}-${color}`}
-                          className="px-5 py-4 text-slate-600"
-                        >
-                          <span
-                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
-                          >
-                            {formatNumber(item.roturas.tapas[color], "-")}
-                          </span>
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-
-                  {datos.cierres.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={
-                          1 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
-                        }
-                        className="px-5 py-10 text-slate-500"
+                      <span
+                        className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteStockClass(item.ajuste_stock[color])}`}
                       >
-                        Este almacén no tiene cierres asociados.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-slate-500">
-            {loading ? "Cargando..." : "Selecciona un almacén."}
-          </p>
-        )}
+                        {formatNumber(item.ajuste_stock[color], "-")}
+                      </span>
+                    </td>
+                  ))}
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <td
+                      key={`cierre-cajas-${item.fecha}-${color}`}
+                      className="px-5 py-4 text-slate-600"
+                    >
+                      <span
+                        className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
+                      >
+                        {formatNumber(item.roturas.cajas[color], "-")}
+                      </span>
+                    </td>
+                  ))}
+                  {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
+                    <td
+                      key={`cierre-tapas-${item.fecha}-${color}`}
+                      className="px-5 py-4 text-slate-600"
+                    >
+                      <span
+                        className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
+                      >
+                        {formatNumber(item.roturas.tapas[color], "-")}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+
+              {datos.cierres.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={1 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length}
+                    className="px-5 py-10 text-slate-500"
+                  >
+                    {loading
+                      ? "Cargando..."
+                      : "Este almacén no tiene cierres asociados."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

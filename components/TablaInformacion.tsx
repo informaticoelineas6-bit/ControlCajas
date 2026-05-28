@@ -389,184 +389,171 @@ export default function TablaInformacion() {
               </div>
             </article>
           </div>
+        </>
+      )}
 
-          <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_-36px_rgba(15,23,42,0.4)]">
-            <div className="flex flex-col gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                {/* <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
+      <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_-36px_rgba(15,23,42,0.4)]">
+        <div className="flex flex-col gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            {/* <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
                     Mapa operativo
                   </p> */}
-                <h3 className="mt-2 text-xl font-semibold text-slate-900">
-                  Análisis de centros
-                </h3>
-              </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
-                {totalCentros} centros
-              </span>
-            </div>
+            <h3 className="mt-2 text-xl font-semibold text-slate-900">
+              Análisis de centros
+            </h3>
+          </div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
+            {totalCentros} centros
+          </span>
+        </div>
 
-            <div className="space-y-3 lg:hidden">
+        <div className="space-y-3 lg:hidden">
+          {data.dashboardData.map((centro) => (
+            <article
+              key={centro.nombre}
+              className={`bg-gradient-to-r ${rowTone(
+                centro.estadoRot ?? "",
+              )} rounded-[24px] border border-slate-200 bg-slate-50/70 p-4`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
+                    Nombre
+                  </p>
+                  <h4 className="mt-1 text-base font-semibold text-slate-900">
+                    {centro.nombre ?? "-"}
+                  </h4>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                <div>
+                  <p className="text-slate-600">Deuda</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(totalCajas(centro.deuda))}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-600">Deuda activa</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(totalCajas(centro.deuda_activa))}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-600">Roturas</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(centro.roturasTotal)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-600">Rotación</p>
+                  <p className="stock-number font-medium text-slate-700">
+                    {formatNumber(centro.rotacion)} días
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-600">Fecha de deuda</p>
+                  <p className="font-medium text-slate-700">
+                    {centro.fechaRot
+                      ? formatDate(centro.fechaRot)
+                      : "Sin fecha"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-600">Estado de deuda</p>
+                  <span
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                      estadoStyles[centro.estadoRot ?? ""] ??
+                      "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
+                    }`}
+                  >
+                    {centro.estadoRot ?? "Desconocido"}
+                  </span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="overflow-x-auto hidden lg:block">
+          <table className="min-w-full text-sm text-center">
+            <thead className="bg-slate-50 text-slate-800">
+              <tr>
+                <th className="px-6 py-4 font-semibold">
+                  Centro de Distribución
+                </th>
+                <th className="px-6 py-4 font-semibold">Deuda</th>
+                <th className="px-6 py-4 font-semibold">Deuda activa</th>
+                <th className="px-6 py-4 font-semibold">Roturas</th>
+                <th className="px-6 py-4 font-semibold">Rotación</th>
+                <th className="px-6 py-4 font-semibold">Fecha de deuda</th>
+                <th className="px-6 py-4 font-semibold">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
               {data.dashboardData.map((centro) => (
-                <article
+                <tr
                   key={centro.nombre}
                   className={`bg-gradient-to-r ${rowTone(
                     centro.estadoRot ?? "",
-                  )} rounded-[24px] border border-slate-200 bg-slate-50/70 p-4`}
+                  )} border-t border-slate-100 transition hover:from-slate-50 hover:to-white`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                        Nombre
-                      </p>
-                      <h4 className="mt-1 text-base font-semibold text-slate-900">
-                        {centro.nombre ?? "-"}
-                      </h4>
-                    </div>
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                    <div>
-                      <p className="text-slate-600">Deuda</p>
-                      <p className="stock-number font-medium text-slate-700">
+                  <td className="px-6 py-4">
+                    <p className="font-semibold text-slate-900">
+                      {centro.nombre}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-2.5 w-24 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600"
+                          style={{
+                            width: deudaWidth(totalCajas(centro.deuda)),
+                          }}
+                        />
+                      </div>
+                      <span className="stock-number font-semibold text-slate-700">
                         {formatNumber(totalCajas(centro.deuda))}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-600">Deuda activa</p>
-                      <p className="stock-number font-medium text-slate-700">
-                        {formatNumber(totalCajas(centro.deuda_activa))}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-600">Roturas</p>
-                      <p className="stock-number font-medium text-slate-700">
-                        {formatNumber(centro.roturasTotal)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-600">Rotación</p>
-                      <p className="stock-number font-medium text-slate-700">
-                        {formatNumber(centro.rotacion)} días
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-600">Fecha de deuda</p>
-                      <p className="font-medium text-slate-700">
-                        {centro.fechaRot
-                          ? formatDate(centro.fechaRot)
-                          : "Sin fecha"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-600">Estado de deuda</p>
-                      <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                          estadoStyles[centro.estadoRot ?? ""] ??
-                          "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
-                        }`}
-                      >
-                        {centro.estadoRot ?? "Desconocido"}
                       </span>
                     </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            <div className="overflow-x-auto hidden lg:block">
-              <table className="min-w-full text-sm text-center">
-                <thead className="bg-slate-50 text-slate-800">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">
-                      Centro de Distribución
-                    </th>
-                    <th className="px-6 py-4 font-semibold">Deuda</th>
-                    <th className="px-6 py-4 font-semibold">
-                      Deuda activa
-                    </th>
-                    <th className="px-6 py-4 font-semibold">
-                      Roturas
-                    </th>
-                    <th className="px-6 py-4 font-semibold">
-                      Rotación
-                    </th>
-                    <th className="px-6 py-4 font-semibold">
-                      Fecha de deuda
-                    </th>
-                    <th className="px-6 py-4 font-semibold">
-                      Estado
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.dashboardData.map((centro) => (
-                    <tr
-                      key={centro.nombre}
-                      className={`bg-gradient-to-r ${rowTone(
-                        centro.estadoRot ?? "",
-                      )} border-t border-slate-100 transition hover:from-slate-50 hover:to-white`}
+                  </td>
+                  <td className="stock-number px-6 py-4 font-medium text-slate-700">
+                    {formatNumber(totalCajas(centro.deuda_activa))}
+                  </td>
+                  <td className="stock-number px-6 py-4 font-medium text-slate-700">
+                    {formatNumber(centro.roturasTotal)}
+                  </td>
+                  <td className="stock-number px-6 py-4 font-medium text-slate-700">
+                    {formatNumber(centro.rotacion)} días
+                  </td>
+                  <td className="px-6 py-4 text-slate-600">
+                    {centro.fechaRot
+                      ? formatDate(centro.fechaRot)
+                      : "Sin fecha"}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                        estadoStyles[centro.estadoRot ?? ""] ??
+                        "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
+                      }`}
                     >
-                      <td className="px-6 py-4">
-                        <p className="font-semibold text-slate-900">
-                          {centro.nombre}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-2.5 w-24 overflow-hidden rounded-full bg-slate-100">
-                            <div
-                              className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600"
-                              style={{
-                                width: deudaWidth(totalCajas(centro.deuda)),
-                              }}
-                            />
-                          </div>
-                          <span className="stock-number font-semibold text-slate-700">
-                            {formatNumber(totalCajas(centro.deuda))}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="stock-number px-6 py-4 font-medium text-slate-700">
-                        {formatNumber(totalCajas(centro.deuda_activa))}
-                      </td>
-                      <td className="stock-number px-6 py-4 font-medium text-slate-700">
-                        {formatNumber(centro.roturasTotal)}
-                      </td>
-                      <td className="stock-number px-6 py-4 font-medium text-slate-700">
-                        {formatNumber(centro.rotacion)} días
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">
-                        {centro.fechaRot
-                          ? formatDate(centro.fechaRot)
-                          : "Sin fecha"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                            estadoStyles[centro.estadoRot ?? ""] ??
-                            "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"
-                          }`}
-                        >
-                          {centro.estadoRot ?? "Desconocido"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                  {data.dashboardData.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-10 text-slate-500"
-                      >
-                        No hay centros registrados
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </>
-      )}
+                      {centro.estadoRot ?? "Desconocido"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {data.dashboardData.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-slate-500">
+                    {loading ? "Cargando..." : "No hay centros registrados"}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

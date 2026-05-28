@@ -101,159 +101,145 @@ export default function TablaEntrega({
           </div>
         )}
 
-        {loading ? (
-          <p className="text-sm text-slate-500">Cargando...</p>
-        ) : (
-          <>
-            <div className="space-y-3 lg:hidden">
-              {datos.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-                  No hay eventos para esta fecha
+        <div className="space-y-3 lg:hidden">
+          {datos.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+              {loading ? "Cargando..." : "No hay eventos para esta fecha"}
+            </div>
+          ) : (
+            datos.map((item) => (
+              <article
+                key={item.id}
+                className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
+                      {item.provincia ? "Provincia" : "Centro"}
+                    </p>
+                    <h4 className="mt-1 text-base font-semibold text-slate-900">
+                      {(item.provincia
+                        ? item.provincia
+                        : item.centro_distribucion) ?? "-"}
+                    </h4>
+                  </div>
+                  {usuario.rol === "informatico" && (
+                    <button
+                      className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
+                      onClick={() => onAjustar?.("Entrega", item.id)}
+                    >
+                      Ajustar
+                    </button>
+                  )}
                 </div>
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <p className="text-slate-600">Chofer</p>
+                    <p className="font-medium text-slate-700">
+                      {item.nombre ? prettyName(item.nombre) : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">Chapa</p>
+                    <p className="font-medium text-slate-700">
+                      {item.chapa ?? "-"}
+                    </p>
+                  </div>
+                  {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                    <div key={color}>
+                      <p className="text-slate-600 capitalize">{color}</p>
+                      <p className="stock-number font-medium text-slate-700">
+                        {formatNumber(item.cajas?.[color], "-")}
+                      </p>
+                    </div>
+                  ))}
+                  <div>
+                    <p className="text-slate-600">Ajustado por</p>
+                    <p className="font-medium text-slate-700">
+                      {item.ajuste ? prettyName(item.ajuste) : "-"}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+
+        <div className="hidden overflow-x-auto lg:block">
+          <table className="min-w-full text-sm text-center">
+            <thead className="bg-slate-50 text-slate-500">
+              <tr>
+                <th className="px-5 py-4 font-semibold">Centro</th>
+                <th className="px-5 py-4 font-semibold">Chofer</th>
+                <th className="px-5 py-4 font-semibold">Chapa</th>
+                {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                  <th
+                    key={color}
+                    className="px-5 py-4 font-semibold capitalize"
+                  >
+                    {color}
+                  </th>
+                ))}
+                <th className="px-5 py-4 font-semibold">Ajustado por</th>
+                {usuario.rol === "informatico" && (
+                  <th className="px-5 py-4 font-semibold">Acción</th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {datos.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={usuario.rol === "informatico" ? 8 : 6}
+                    className="px-5 py-10 text-slate-500"
+                  >
+                    {loading ? "Cargando..." : "No hay eventos para esta fecha"}
+                  </td>
+                </tr>
               ) : (
                 datos.map((item) => (
-                  <article
+                  <tr
                     key={item.id}
-                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                    className="border-t border-slate-100 transition hover:bg-sky-50/40"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
-                          {item.provincia ? "Provincia" : "Centro"}
-                        </p>
-                        <h4 className="mt-1 text-base font-semibold text-slate-900">
-                          {(item.provincia
-                            ? item.provincia
-                            : item.centro_distribucion) ?? "-"}
-                        </h4>
-                      </div>
-                      {usuario.rol === "informatico" && (
+                    <td className="px-5 py-4 font-semibold text-slate-900">
+                      {(item.provincia
+                        ? item.provincia
+                        : item.centro_distribucion) ?? "-"}
+                    </td>
+                    <td className="px-5 py-4 text-slate-700">
+                      {item.nombre ? prettyName(item.nombre) : "-"}
+                    </td>
+                    <td className="px-5 py-4 text-slate-700">
+                      {item.chapa ?? "-"}
+                    </td>
+                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
+                      <td
+                        key={color}
+                        className="stock-number px-5 py-4 text-slate-700"
+                      >
+                        {formatNumber(item.cajas[color], "-")}
+                      </td>
+                    ))}
+                    <td className="px-5 py-4 text-slate-500">
+                      {item.ajuste ? prettyName(item.ajuste) : "-"}
+                    </td>
+                    {usuario.rol === "informatico" && (
+                      <td className="px-5 py-4">
                         <button
                           className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
                           onClick={() => onAjustar?.("Entrega", item.id)}
                         >
                           Ajustar
                         </button>
-                      )}
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      <div>
-                        <p className="text-slate-600">Chofer</p>
-                        <p className="font-medium text-slate-700">
-                          {item.nombre ? prettyName(item.nombre) : "-"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-600">Chapa</p>
-                        <p className="font-medium text-slate-700">
-                          {item.chapa ?? "-"}
-                        </p>
-                      </div>
-                      {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <div key={color}>
-                          <p className="text-slate-600 capitalize">{color}</p>
-                          <p className="stock-number font-medium text-slate-700">
-                            {formatNumber(item.cajas?.[color], "-")}
-                          </p>
-                        </div>
-                      ))}
-                      <div>
-                        <p className="text-slate-600">Ajustado por</p>
-                        <p className="font-medium text-slate-700">
-                          {item.ajuste ? prettyName(item.ajuste) : "-"}
-                        </p>
-                      </div>
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
-
-            <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full text-sm text-center">
-                <thead className="bg-slate-50 text-slate-500">
-                  <tr>
-                    <th className="px-5 py-4 font-semibold">
-                      Centro
-                    </th>
-                    <th className="px-5 py-4 font-semibold">
-                      Chofer
-                    </th>
-                    <th className="px-5 py-4 font-semibold">Chapa</th>
-                    {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={color}
-                        className="px-5 py-4 font-semibold capitalize"
-                      >
-                        {color}
-                      </th>
-                    ))}
-                    <th className="px-5 py-4 font-semibold">
-                      Ajustado por
-                    </th>
-                    {usuario.rol === "informatico" && (
-                      <th className="px-5 py-4 font-semibold">
-                        Acción
-                      </th>
+                      </td>
                     )}
                   </tr>
-                </thead>
-                <tbody>
-                  {datos.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={usuario.rol === "informatico" ? 8 : 6}
-                        className="px-5 py-10 text-slate-500"
-                      >
-                        No hay eventos para esta fecha
-                      </td>
-                    </tr>
-                  ) : (
-                    datos.map((item) => (
-                      <tr
-                        key={item.id}
-                        className="border-t border-slate-100 transition hover:bg-sky-50/40"
-                      >
-                        <td className="px-5 py-4 font-semibold text-slate-900">
-                          {(item.provincia
-                            ? item.provincia
-                            : item.centro_distribucion) ?? "-"}
-                        </td>
-                        <td className="px-5 py-4 text-slate-700">
-                          {item.nombre ? prettyName(item.nombre) : "-"}
-                        </td>
-                        <td className="px-5 py-4 text-slate-700">
-                          {item.chapa ?? "-"}
-                        </td>
-                        {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                          <td
-                            key={color}
-                            className="stock-number px-5 py-4 text-slate-700"
-                          >
-                            {formatNumber(item.cajas[color], "-")}
-                          </td>
-                        ))}
-                        <td className="px-5 py-4 text-slate-500">
-                          {item.ajuste ? prettyName(item.ajuste) : "-"}
-                        </td>
-                        {usuario.rol === "informatico" && (
-                          <td className="px-5 py-4">
-                            <button
-                              className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                              onClick={() => onAjustar?.("Entrega", item.id)}
-                            >
-                              Ajustar
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );
