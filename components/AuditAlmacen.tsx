@@ -232,16 +232,16 @@ export default function AuditAlmacen() {
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-emerald-100 hidden lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-emerald-50 text-emerald-800">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Nombre
                     </th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={color}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Stock {color}
                       </th>
@@ -249,7 +249,7 @@ export default function AuditAlmacen() {
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`cajas-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Cajas rotas {color}
                       </th>
@@ -257,7 +257,7 @@ export default function AuditAlmacen() {
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`tapas-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Tapas rotas {color}
                       </th>
@@ -272,7 +272,7 @@ export default function AuditAlmacen() {
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td
                         key={`stock-${color}`}
-                        className="stock-number text-right px-5 py-4"
+                        className="stock-number px-5 py-4"
                       >
                         {formatNumber(datos.almacen.stock[color], "-")}
                       </td>
@@ -280,7 +280,7 @@ export default function AuditAlmacen() {
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td
                         key={`rotura-caja-${color}`}
-                        className="stock-number text-right px-5 py-4"
+                        className="stock-number px-5 py-4"
                       >
                         {formatNumber(datos.almacen.roturas.cajas[color], "-")}
                       </td>
@@ -288,7 +288,7 @@ export default function AuditAlmacen() {
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <td
                         key={`rotura-tapa-${color}`}
-                        className="stock-number text-right px-5 py-4"
+                        className="stock-number px-5 py-4"
                       >
                         {formatNumber(datos.almacen.roturas.tapas[color], "-")}
                       </td>
@@ -355,14 +355,14 @@ export default function AuditAlmacen() {
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">Fecha</th>
+                    <th className="px-5 py-4 font-semibold">Fecha</th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`ajuste-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Ajuste stock {color}
                       </th>
@@ -370,7 +370,7 @@ export default function AuditAlmacen() {
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`cierre-caja-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Cajas rotas {color}
                       </th>
@@ -378,7 +378,7 @@ export default function AuditAlmacen() {
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`cierre-tapa-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Tapas rotas {color}
                       </th>
@@ -400,7 +400,7 @@ export default function AuditAlmacen() {
                           className="px-5 py-4 text-slate-600"
                         >
                           <span
-                            className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteStockClass(item.ajuste_stock[color])}`}
+                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteStockClass(item.ajuste_stock[color])}`}
                           >
                             {formatNumber(item.ajuste_stock[color], "-")}
                           </span>
@@ -412,7 +412,7 @@ export default function AuditAlmacen() {
                           className="px-5 py-4 text-slate-600"
                         >
                           <span
-                            className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
+                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
                           >
                             {formatNumber(item.roturas.cajas[color], "-")}
                           </span>
@@ -424,7 +424,7 @@ export default function AuditAlmacen() {
                           className="px-5 py-4 text-slate-600"
                         >
                           <span
-                            className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
+                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
                           >
                             {formatNumber(item.roturas.tapas[color], "-")}
                           </span>
@@ -439,7 +439,7 @@ export default function AuditAlmacen() {
                         colSpan={
                           1 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
                         }
-                        className="px-5 py-10 text-center text-slate-500"
+                        className="px-5 py-10 text-slate-500"
                       >
                         Este almacén no tiene cierres asociados.
                       </td>

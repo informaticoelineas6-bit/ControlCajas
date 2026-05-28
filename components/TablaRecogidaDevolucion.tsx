@@ -261,73 +261,52 @@ export default function TablaRecogidaDevolucion({
             </div>
 
             <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead>
                   <tr className="bg-slate-50 text-slate-800">
                     <th
                       colSpan={3}
-                      className="px-5 py-4 text-left font-semibold bg-slate-100"
+                      className="px-5 py-4 font-semibold bg-slate-100"
                     >
                       Centro de distribución
                     </th>
                     <th
                       colSpan={3}
-                      className="px-5 py-4 text-center font-semibold text-indigo-700 bg-indigo-100"
+                      className="px-5 py-4 font-semibold text-indigo-700 bg-indigo-100"
                     >
                       Recogida
                     </th>
                     <th
                       colSpan={3}
-                      className="px-5 py-4 text-center font-semibold text-amber-700 bg-amber-100"
+                      className="px-5 py-4 font-semibold text-amber-700 bg-amber-100"
                     >
                       Devolución
                     </th>
                     <th
                       colSpan={2}
-                      className="px-5 py-4 text-center font-semibold text-rose-700 bg-rose-100"
+                      className="px-5 py-4 font-semibold text-rose-700 bg-rose-100"
                     >
                       Roturas
                     </th>
                   </tr>
                   <tr className="bg-slate-100 text-slate-800">
-                    <th className="px-5 py-3 text-left font-semibold">CD</th>
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Almacén
-                    </th>
-                    <th className="px-5 py-3 text-left font-semibold">Chapa</th>
-                    <th className="px-5 py-3 text-center font-semibold">
-                      Responsable
-                    </th>
-                    <th className="px-5 py-3 text-center font-semibold">
-                      Ajuste
-                    </th>
-                    <th className="px-5 py-3 text-center font-semibold">
-                      Total
-                    </th>
-                    <th className="px-5 py-3 text-center font-semibold">
-                      Responsable
-                    </th>
-                    <th className="px-5 py-3 text-center font-semibold">
-                      Ajuste
-                    </th>
-                    <th className="px-5 py-3 text-center font-semibold">
-                      Total
-                    </th>
-                    <th className="px-5 py-3 text-center font-semibold">
-                      Total (R)
-                    </th>
-                    <th className="px-5 py-3 text-center font-semibold">
-                      Total (D)
-                    </th>
+                    <th className="px-5 py-3 font-semibold">CD</th>
+                    <th className="px-5 py-3 font-semibold">Almacén</th>
+                    <th className="px-5 py-3 font-semibold">Chapa</th>
+                    <th className="px-5 py-3 font-semibold">Responsable</th>
+                    <th className="px-5 py-3 font-semibold">Ajuste</th>
+                    <th className="px-5 py-3 font-semibold">Total</th>
+                    <th className="px-5 py-3 font-semibold">Responsable</th>
+                    <th className="px-5 py-3 font-semibold">Ajuste</th>
+                    <th className="px-5 py-3 font-semibold">Total</th>
+                    <th className="px-5 py-3 font-semibold">Total (R)</th>
+                    <th className="px-5 py-3 font-semibold">Total (D)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {datos.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={15}
-                        className="px-5 py-10 text-center text-slate-500"
-                      >
+                      <td colSpan={15} className="px-5 py-10 text-slate-500">
                         No hay datos para esta fecha
                       </td>
                     </tr>
@@ -352,10 +331,10 @@ export default function TablaRecogidaDevolucion({
                         <td className="px-5 py-4 text-slate-600">
                           {item.chapa ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.recogida?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.recogida?.ajuste ?? "-"}
                         </td>
                         <td
@@ -364,16 +343,16 @@ export default function TablaRecogidaDevolucion({
                               ? formatCajas(item.recogida?.cajas)
                               : "No hay información"
                           }
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {item.recogida
                             ? formatNumber(totalCajas(item.recogida?.cajas))
                             : 0}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.devolucion?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.devolucion?.ajuste ?? "-"}
                         </td>
                         <td
@@ -382,14 +361,14 @@ export default function TablaRecogidaDevolucion({
                               ? formatCajas(item.devolucion?.cajas)
                               : "No hay información"
                           }
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {item.devolucion
                             ? formatNumber(totalCajas(item.devolucion?.cajas))
                             : 0}
                         </td>
                         <td
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                           title={
                             item.recogida
                               ? `Cajas:\n${formatCajas(item.recogida.roturas.cajas)}\nTapas:\n${formatTapas(item.recogida.roturas.tapas)}`
@@ -404,7 +383,7 @@ export default function TablaRecogidaDevolucion({
                             : 0}
                         </td>
                         <td
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                           title={
                             item.devolucion
                               ? `Cajas:\n${formatCajas(item.devolucion.roturas.cajas)}\nTapas:\n${formatTapas(item.devolucion.roturas.tapas)}`

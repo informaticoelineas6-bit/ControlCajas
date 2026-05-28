@@ -577,28 +577,28 @@ export default function TablaAlmacenes({
             </div>
 
             <div className="mt-8 overflow-x-auto hidden lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-slate-50 text-slate-800">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Nombre
                     </th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={color}
-                        className="px-5 py-4 text-left capitalize font-semibold"
+                        className="px-5 py-4 capitalize font-semibold"
                       >
                         {color}
                       </th>
                     ))}
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Estado
                     </th>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Editado por
                     </th>
                     {usuario.rol === "informatico" && (
-                      <th className="px-5 py-4 text-center font-semibold">
+                      <th className="px-5 py-4 font-semibold">
                         Acciones
                       </th>
                     )}
@@ -636,7 +636,7 @@ export default function TablaAlmacenes({
                         {item.ajuste ? prettyName(item.ajuste) : "-"}
                       </td>
                       {usuario.rol === "informatico" && (
-                        <td className="px-5 py-4 text-center">
+                        <td className="px-5 py-4">
                           <div className="flex justify-center gap-2">
                             <button
                               onClick={() => startEdit(item)}
@@ -682,7 +682,7 @@ export default function TablaAlmacenes({
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-5 py-10 text-center text-slate-500"
+                        className="px-5 py-10 text-slate-500"
                       >
                         No hay almacenes registrados
                       </td>

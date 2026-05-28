@@ -230,27 +230,20 @@ export default function AuditCentro() {
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-amber-100 hidden lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-amber-50 text-amber-900">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">
-                      Nombre
-                    </th>
+                    <th className="px-5 py-4 font-semibold">Nombre</th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <th
-                        key={color}
-                        className="px-5 py-4 text-left font-semibold"
-                      >
+                      <th key={color} className="px-5 py-4 font-semibold">
                         Deuda {color}
                       </th>
                     ))}
-                    <th className="px-5 py-4 text-left font-semibold">
-                      Rotación
-                    </th>
+                    <th className="px-5 py-4 font-semibold">Rotación</th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`cajas-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Cajas {color} rotas
                       </th>
@@ -258,7 +251,7 @@ export default function AuditCentro() {
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`tapas-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Tapas rotas {color}
                       </th>
@@ -273,18 +266,18 @@ export default function AuditCentro() {
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td
                         key={`deuda-${color}`}
-                        className="stock-number text-right px-5 py-4"
+                        className="stock-number px-5 py-4"
                       >
                         {formatNumber(datos.centro.deuda[color], "-")}
                       </td>
                     ))}
-                    <td className="stock-number text-right px-5 py-4">
+                    <td className="stock-number px-5 py-4">
                       {formatNumber(datos.centro.rotacion, "-")} días
                     </td>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td
                         key={`rotura-caja-${color}`}
-                        className="stock-number text-right px-5 py-4"
+                        className="stock-number px-5 py-4"
                       >
                         {formatNumber(datos.centro.roturas.cajas[color], "-")}
                       </td>
@@ -292,7 +285,7 @@ export default function AuditCentro() {
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <td
                         key={`rotura-tapa-${color}`}
-                        className="stock-number text-right px-5 py-4"
+                        className="stock-number px-5 py-4"
                       >
                         {formatNumber(datos.centro.roturas.tapas[color], "-")}
                       </td>
@@ -365,14 +358,14 @@ export default function AuditCentro() {
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm table-center">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">Fecha</th>
+                    <th className="px-5 py-4 font-semibold">Fecha</th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`ajuste-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Ajuste deuda {color}
                       </th>
@@ -380,7 +373,7 @@ export default function AuditCentro() {
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`cierre-caja-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Cajas rotas {color}
                       </th>
@@ -388,7 +381,7 @@ export default function AuditCentro() {
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`cierre-tapa-${color}`}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Tapas rotas {color}
                       </th>
@@ -410,7 +403,7 @@ export default function AuditCentro() {
                           className="px-5 py-4 text-slate-600"
                         >
                           <span
-                            className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
+                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
                           >
                             {formatNumber(item.ajuste_deuda[color], "-")}
                           </span>
@@ -422,7 +415,7 @@ export default function AuditCentro() {
                           className="px-5 py-4 text-slate-600"
                         >
                           <span
-                            className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
+                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
                           >
                             {formatNumber(item.roturas.cajas[color], "-")}
                           </span>
@@ -434,7 +427,7 @@ export default function AuditCentro() {
                           className="px-5 py-4 text-slate-600"
                         >
                           <span
-                            className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
+                            className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
                           >
                             {formatNumber(item.roturas.tapas[color], "-")}
                           </span>
@@ -449,7 +442,7 @@ export default function AuditCentro() {
                         colSpan={
                           1 + CAJAS_ARRAY.length * 2 + TAPAS_ARRAY.length
                         }
-                        className="px-5 py-10 text-center text-slate-500"
+                        className="px-5 py-10 text-slate-500"
                       >
                         Este centro no tiene cierres asociados.
                       </td>

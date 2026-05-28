@@ -473,26 +473,26 @@ export default function TablaInformacion() {
             </div>
 
             <div className="overflow-x-auto hidden lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-slate-50 text-slate-800">
                   <tr>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-6 py-4 font-semibold">
                       Centro de Distribución
                     </th>
-                    <th className="px-6 py-4 text-left font-semibold">Deuda</th>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-6 py-4 font-semibold">Deuda</th>
+                    <th className="px-6 py-4 font-semibold">
                       Deuda activa
                     </th>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-6 py-4 font-semibold">
                       Roturas
                     </th>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-6 py-4 font-semibold">
                       Rotación
                     </th>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-6 py-4 font-semibold">
                       Fecha de deuda
                     </th>
-                    <th className="px-6 py-4 text-left font-semibold">
+                    <th className="px-6 py-4 font-semibold">
                       Estado
                     </th>
                   </tr>
@@ -555,7 +555,7 @@ export default function TablaInformacion() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-6 py-10 text-center text-slate-500"
+                        className="px-6 py-10 text-slate-500"
                       >
                         No hay centros registrados
                       </td>

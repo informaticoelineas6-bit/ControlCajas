@@ -176,34 +176,24 @@ export default function TablaTraspaso({
             </div>
 
             <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-slate-50 text-slate-800">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">
-                      Centro
-                    </th>
-                    <th className="px-5 py-4 text-left font-semibold">
-                      Almacén
-                    </th>
-                    <th className="px-5 py-4 text-left font-semibold">
-                      Chofer
-                    </th>
-                    <th className="px-5 py-4 text-left font-semibold">Chapa</th>
+                    <th className="px-5 py-4 font-semibold">Centro</th>
+                    <th className="px-5 py-4 font-semibold">Almacén</th>
+                    <th className="px-5 py-4 font-semibold">Chofer</th>
+                    <th className="px-5 py-4 font-semibold">Chapa</th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={color}
-                        className="px-5 py-4 text-center font-semibold capitalize"
+                        className="px-5 py-4 font-semibold capitalize"
                       >
                         {color}
                       </th>
                     ))}
-                    <th className="px-5 py-4 text-center font-semibold">
-                      Ajustado por
-                    </th>
+                    <th className="px-5 py-4 font-semibold">Ajustado por</th>
                     {usuario.rol === "informatico" && (
-                      <th className="px-5 py-4 text-center font-semibold">
-                        Acción
-                      </th>
+                      <th className="px-5 py-4 font-semibold">Acción</th>
                     )}
                   </tr>
                 </thead>
@@ -212,7 +202,7 @@ export default function TablaTraspaso({
                     <tr>
                       <td
                         colSpan={usuario.rol === "informatico" ? 9 : 7}
-                        className="px-5 py-10 text-center text-slate-500"
+                        className="px-5 py-10 text-slate-500"
                       >
                         No hay eventos para esta fecha
                       </td>
@@ -240,16 +230,16 @@ export default function TablaTraspaso({
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={color}
-                            className="stock-number px-5 py-4 text-center text-slate-700"
+                            className="stock-number px-5 py-4 text-slate-700"
                           >
                             {formatNumber(item.cajas[color], "-")}
                           </td>
                         ))}
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </td>
                         {usuario.rol === "informatico" && (
-                          <td className="px-5 py-4 text-center">
+                          <td className="px-5 py-4">
                             <button
                               className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
                               onClick={() => onAjustar?.("Traspaso", item.id)}

@@ -271,65 +271,65 @@ export default function TablaExpedicionEntrega({
             </div>
 
             <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead>
                   <tr className="bg-slate-50 text-slate-800">
                     <th
                       colSpan={3}
-                      className="px-5 py-4 text-left font-semibold bg-slate-100"
+                      className="px-5 py-4 font-semibold bg-slate-100"
                     >
                       Centro de distribución
                     </th>
                     <th
                       colSpan={3}
-                      className="px-5 py-4 text-center font-semibold text-emerald-700 bg-emerald-100"
+                      className="px-5 py-4 font-semibold text-emerald-700 bg-emerald-100"
                     >
                       Expedición
                     </th>
                     <th
                       colSpan={3}
-                      className="px-5 py-4 text-center font-semibold text-teal-700 bg-teal-100"
+                      className="px-5 py-4 font-semibold text-teal-700 bg-teal-100"
                     >
                       Traspaso
                     </th>
                     <th
                       colSpan={3}
-                      className="px-5 py-4 text-center font-semibold text-sky-700 bg-sky-100"
+                      className="px-5 py-4 font-semibold text-sky-700 bg-sky-100"
                     >
                       Entrega
                     </th>
                   </tr>
                   <tr className="bg-slate-100 text-slate-500">
-                    <th className="px-5 py-3 text-left font-semibold">CD</th>
-                    <th className="px-5 py-3 text-left font-semibold">
+                    <th className="px-5 py-3 font-semibold">CD</th>
+                    <th className="px-5 py-3 font-semibold">
                       Almacén
                     </th>
-                    <th className="px-5 py-3 text-left font-semibold">Chapa</th>
-                    <th className="px-5 py-3 text-center font-semibold">
+                    <th className="px-5 py-3 font-semibold">Chapa</th>
+                    <th className="px-5 py-3 font-semibold">
                       Responsable
                     </th>
-                    <th className="px-5 py-3 text-center font-semibold">
+                    <th className="px-5 py-3 font-semibold">
                       Ajuste
                     </th>
-                    <th className="px-5 py-3 text-center font-semibold">
+                    <th className="px-5 py-3 font-semibold">
                       Total
                     </th>
-                    <th className="px-5 py-3 text-center font-semibold">
+                    <th className="px-5 py-3 font-semibold">
                       Responsable
                     </th>
-                    <th className="px-5 py-3 text-center font-semibold">
+                    <th className="px-5 py-3 font-semibold">
                       Ajuste
                     </th>
-                    <th className="px-5 py-3 text-center font-semibold">
+                    <th className="px-5 py-3 font-semibold">
                       Total
                     </th>
-                    <th className="px-5 py-3 text-center font-semibold">
+                    <th className="px-5 py-3 font-semibold">
                       Responsable
                     </th>
-                    <th className="px-5 py-3 text-center font-semibold">
+                    <th className="px-5 py-3 font-semibold">
                       Ajuste
                     </th>
-                    <th className="px-5 py-3 text-center font-semibold">
+                    <th className="px-5 py-3 font-semibold">
                       Total
                     </th>
                   </tr>
@@ -339,7 +339,7 @@ export default function TablaExpedicionEntrega({
                     <tr>
                       <td
                         colSpan={13}
-                        className="px-5 py-10 text-center text-slate-500"
+                        className="px-5 py-10 text-slate-500"
                       >
                         No hay datos para esta fecha
                       </td>
@@ -365,10 +365,10 @@ export default function TablaExpedicionEntrega({
                         <td className="px-5 py-4 text-slate-600">
                           {item.chapa ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.expedicion?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.expedicion?.ajuste ?? "-"}
                         </td>
                         <td
@@ -377,16 +377,16 @@ export default function TablaExpedicionEntrega({
                               ? formatCajas(item.expedicion?.cajas)
                               : "No hay información"
                           }
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {item.expedicion?.cajas
                             ? formatNumber(totalCajas(item.expedicion?.cajas))
                             : 0}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.traspaso?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.traspaso?.ajuste ?? "-"}
                         </td>
                         <td
@@ -395,16 +395,16 @@ export default function TablaExpedicionEntrega({
                               ? formatCajas(item.traspaso?.cajas)
                               : "No hay información"
                           }
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {item.traspaso?.cajas
                             ? formatNumber(totalCajas(item.traspaso?.cajas))
                             : 0}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.entrega?.nombre ?? "-"}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.entrega?.ajuste ?? "-"}
                         </td>
                         <td
@@ -413,7 +413,7 @@ export default function TablaExpedicionEntrega({
                               ? formatCajas(item.entrega?.cajas)
                               : "No hay información"
                           }
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {item.entrega?.cajas
                             ? formatNumber(totalCajas(item.entrega?.cajas))

@@ -325,27 +325,27 @@ export default function CierreDiario({
             </div>
 
             <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-slate-100 text-slate-800">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Almacén
                     </th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={color}
-                        className="px-5 py-4 text-center font-semibold capitalize"
+                        className="px-5 py-4 font-semibold capitalize"
                       >
                         {color}
                       </th>
                     ))}
-                    <th className="px-5 py-4 text-center font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Total
                     </th>
-                    <th className="px-5 py-4 text-center font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Cajas rotas
                     </th>
-                    <th className="px-5 py-4 text-center font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Tapas rotas
                     </th>
                   </tr>
@@ -355,7 +355,7 @@ export default function CierreDiario({
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-5 py-10 text-center text-slate-500"
+                        className="px-5 py-10 text-slate-500"
                       >
                         No hay datos
                       </td>
@@ -372,23 +372,23 @@ export default function CierreDiario({
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={color}
-                            className="stock-number px-5 py-4 text-center text-slate-700"
+                            className="stock-number px-5 py-4 text-slate-700"
                           >
                             {formatNumber(item.ajuste_stock[color], "-")}
                           </td>
                         ))}
-                        <td className="stock-number px-5 py-4 text-center font-semibold text-slate-900">
+                        <td className="stock-number px-5 py-4 font-semibold text-slate-900">
                           {formatNumber(totalCajas(item.ajuste_stock))}
                         </td>
                         <td
                           title={formatCajas(item.roturas.cajas)}
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {formatNumber(totalCajas(item.roturas.cajas))}
                         </td>
                         <td
                           title={formatTapas(item.roturas.tapas)}
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {formatNumber(totalCajas(item.roturas.tapas))}
                         </td>
@@ -472,27 +472,27 @@ export default function CierreDiario({
             </div>
 
             <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-slate-100 text-slate-800">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Centro
                     </th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={color}
-                        className="px-5 py-4 text-center font-semibold capitalize"
+                        className="px-5 py-4 font-semibold capitalize"
                       >
                         {color}
                       </th>
                     ))}
-                    <th className="px-5 py-4 text-center font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Total
                     </th>
-                    <th className="px-5 py-4 text-center font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Cajas rotas
                     </th>
-                    <th className="px-5 py-4 text-center font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Tapas rotas
                     </th>
                   </tr>
@@ -502,7 +502,7 @@ export default function CierreDiario({
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-5 py-10 text-center text-slate-500"
+                        className="px-5 py-10 text-slate-500"
                       >
                         No hay datos
                       </td>
@@ -519,23 +519,23 @@ export default function CierreDiario({
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={color}
-                            className="stock-number px-5 py-4 text-center text-slate-700"
+                            className="stock-number px-5 py-4 text-slate-700"
                           >
                             {formatNumber(item.ajuste_deuda[color], "-")}
                           </td>
                         ))}
-                        <td className="stock-number px-5 py-4 text-center font-semibold text-slate-700">
+                        <td className="stock-number px-5 py-4 font-semibold text-slate-700">
                           {formatNumber(totalCajas(item.ajuste_deuda))}
                         </td>
                         <td
                           title={formatCajas(item.roturas.cajas)}
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {formatNumber(totalCajas(item.roturas.cajas))}
                         </td>
                         <td
                           title={formatTapas(item.roturas.tapas)}
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {formatNumber(totalCajas(item.roturas.tapas))}
                         </td>

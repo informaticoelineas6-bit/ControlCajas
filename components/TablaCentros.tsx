@@ -604,31 +604,31 @@ export default function TablaCentros({
             </div>
 
             <div className="mt-8 overflow-x-auto hidden lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-slate-50 text-slate-800">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Nombre
                     </th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={color}
-                        className="px-5 py-4 text-left font-semibold"
+                        className="px-5 py-4 font-semibold"
                       >
                         Deuda {color}
                       </th>
                     ))}
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Rotación
                     </th>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Estado
                     </th>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Editado por
                     </th>
                     {usuario.rol === "informatico" && (
-                      <th className="px-5 py-4 text-center font-semibold">
+                      <th className="px-5 py-4 font-semibold">
                         Acciones
                       </th>
                     )}
@@ -647,7 +647,7 @@ export default function TablaCentros({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={color}
-                          className="stock-number text-right px-5 py-4 text-slate-600"
+                          className="stock-number px-5 py-4 text-slate-600"
                         >
                           {formatNumber(item.deuda[color])}
                         </td>
@@ -672,7 +672,7 @@ export default function TablaCentros({
                         {item.ajuste ? prettyName(item.ajuste) : "-"}
                       </td>
                       {usuario.rol === "informatico" && (
-                        <td className="px-5 py-4 text-center">
+                        <td className="px-5 py-4">
                           <div className="flex justify-center gap-2">
                             <button
                               onClick={() => startEdit(item)}
@@ -718,7 +718,7 @@ export default function TablaCentros({
                     <tr>
                       <td
                         colSpan={8}
-                        className="px-5 py-10 text-center text-slate-500"
+                        className="px-5 py-10 text-slate-500"
                       >
                         No hay centros registrados
                       </td>

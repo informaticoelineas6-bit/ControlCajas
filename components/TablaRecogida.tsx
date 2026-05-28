@@ -186,35 +186,35 @@ export default function TablaRecogida({
             </div>
 
             <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm text-center">
                 <thead className="bg-slate-50 text-slate-800">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Centro
                     </th>
-                    <th className="px-5 py-4 text-left font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Chofer
                     </th>
-                    <th className="px-5 py-4 text-left font-semibold">Chapa</th>
+                    <th className="px-5 py-4 font-semibold">Chapa</th>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={color}
-                        className="px-5 py-4 text-center font-semibold capitalize"
+                        className="px-5 py-4 font-semibold capitalize"
                       >
                         {color}
                       </th>
                     ))}
-                    <th className="px-5 py-4 text-center font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Cajas rotas
                     </th>
-                    <th className="px-5 py-4 text-center font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Tapas rotas
                     </th>
-                    <th className="px-5 py-4 text-center font-semibold">
+                    <th className="px-5 py-4 font-semibold">
                       Ajustado por
                     </th>
                     {usuario.rol === "informatico" && (
-                      <th className="px-5 py-4 text-center font-semibold">
+                      <th className="px-5 py-4 font-semibold">
                         Acción
                       </th>
                     )}
@@ -225,7 +225,7 @@ export default function TablaRecogida({
                     <tr>
                       <td
                         colSpan={usuario.rol === "informatico" ? 10 : 8}
-                        className="px-5 py-10 text-center text-slate-500"
+                        className="px-5 py-10 text-slate-500"
                       >
                         No hay eventos para esta fecha
                       </td>
@@ -248,28 +248,28 @@ export default function TablaRecogida({
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={color}
-                            className="stock-number px-5 py-4 text-center text-slate-700"
+                            className="stock-number px-5 py-4 text-slate-700"
                           >
                             {formatNumber(item.cajas[color], "-")}
                           </td>
                         ))}
                         <td
                           title={formatCajas(item.roturas.cajas)}
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {formatNumber(totalCajas(item.roturas.cajas))}
                         </td>
                         <td
                           title={formatTapas(item.roturas.tapas)}
-                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-slate-700 hover:bg-slate-300"
                         >
                           {formatNumber(totalCajas(item.roturas.tapas))}
                         </td>
-                        <td className="px-5 py-4 text-center text-slate-600">
+                        <td className="px-5 py-4 text-slate-600">
                           {item.ajuste ? prettyName(item.ajuste) : "-"}
                         </td>
                         {usuario.rol === "informatico" && (
-                          <td className="px-5 py-4 text-center">
+                          <td className="px-5 py-4">
                             <button
                               className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
                               onClick={() => onAjustar?.("Recogida", item.id)}
