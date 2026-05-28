@@ -523,7 +523,7 @@ export default function FormularioEvento({
       default:
         return { status: false, message: "Tipo de evento incorrecto." };
     }
-    if (totalCajas(formData.cajas) <= 0)
+    if (totalCajas(formData.cajas) <= 0 && !isAdjustment)
       return { status: false, message: "La cantidad de cajas no puede ser 0." };
     return { status: true, message: "Todo listo." };
   };

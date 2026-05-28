@@ -5,7 +5,7 @@ import { useUser } from "@/app/(app)/user-context";
 import { useFecha } from "@/app/(app)/fecha-context";
 import { pageAccess, contentCardClass, PageTabItem } from "../tabs";
 import SelectorFecha from "@/components/SelectorFecha";
-import { Evento, ROLES, TIPOS_EVENTO } from "@/lib/constants";
+import { EventoCreateForm, ROLES, TIPOS_EVENTO } from "@/lib/constants";
 import FormularioEvento, { AjusteProp } from "@/components/FormularioEvento";
 import TablaExpedicion from "@/components/TablaExpedicion";
 import TablaTraspaso from "@/components/TablaTraspaso";
@@ -94,7 +94,7 @@ export default function MisEventos() {
     () => userAccess[usuario?.rol as ROLES]?.[0],
   );
   const [adjustingEvent, setAdjustingEvent] =
-    useState<AjusteProp<Evento> | null>(null);
+    useState<AjusteProp<EventoCreateForm> | null>(null);
 
   if (!usuario) return null;
 
@@ -110,7 +110,7 @@ export default function MisEventos() {
       const res = await fetch(
         `/api/eventos/get?tipo=${tipoEvento}&id=${eventoId}`,
       );
-      const evento: AjusteProp<Evento> = await res.json();
+      const evento: AjusteProp<EventoCreateForm> = await res.json();
       if (res.ok) {
         setAdjustingEvent({ ...evento, tipo_evento: tipoEvento });
       }
