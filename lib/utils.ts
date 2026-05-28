@@ -9,48 +9,6 @@ import {
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
-// export type AjusteStr<Str> = Omit<Str, "ajuste"> & { ajuste?: string };
-
-// export function applyAjuste(
-//   item: Evento | EventoRotura,
-// ): AjusteStr<Evento | EventoRotura> {
-//   if (!item.ajuste) {
-//     return { ...item, ajuste: undefined };
-//   }
-//   item.cajas = {
-//     blancas: (item.cajas.blancas ?? 0) + (item.ajuste.cajas.blancas ?? 0),
-//     negras: (item.cajas.negras ?? 0) + (item.ajuste.cajas.negras ?? 0),
-//     verdes: (item.cajas.verdes ?? 0) + (item.ajuste.cajas.verdes ?? 0),
-//   };
-//   if ("roturas" in item) {
-//     item.roturas = {
-//       cajas: {
-//         blancas:
-//           (item.roturas.cajas.blancas ?? 0) +
-//           (item.ajuste.roturas.cajas.blancas ?? 0),
-//         negras:
-//           (item.roturas.cajas.negras ?? 0) +
-//           (item.ajuste.roturas.cajas.negras ?? 0),
-//         verdes:
-//           (item.roturas.cajas.verdes ?? 0) +
-//           (item.ajuste.roturas.cajas.verdes ?? 0),
-//       },
-//       tapas: {
-//         blancas:
-//           (item.roturas.tapas.blancas ?? 0) +
-//           (item.ajuste.roturas.tapas.blancas ?? 0),
-//         negras:
-//           (item.roturas.tapas.negras ?? 0) +
-//           (item.ajuste.roturas.tapas.negras ?? 0),
-//       },
-//     };
-//   }
-//   return {
-//     ...item,
-//     ajuste: item.ajuste,
-//   };
-// }
-
 export function sumCajas(actuales: Cajas, nuevas: Cajas): Cajas {
   return {
     blancas: (actuales.blancas ?? 0) + (nuevas.blancas ?? 0),
@@ -78,8 +36,8 @@ export function sameCajas(a: Cajas | Tapas, b: Cajas | Tapas): boolean {
 
 export function totalCajas(item: Cajas | Tapas): number {
   return (
-    (item?.blancas ?? 0) +
-    (item?.negras ?? 0) +
+    (item.blancas ?? 0) +
+    (item.negras ?? 0) +
     ("verdes" in item ? (item.verdes ?? 0) : 0)
   );
 }
@@ -102,6 +60,17 @@ export function formatDate(date: string): string {
   }
 }
 
+export function formatNumber(
+  number: number | undefined,
+  placeholder: string = "-",
+): string {
+  if (number === undefined) {
+    return placeholder;
+  } else {
+    return number.toLocaleString("es-MX");
+  }
+}
+
 export function formatCajas(
   item: Cajas,
   options?: { fullName: boolean; separator: string },
@@ -114,7 +83,7 @@ export function formatCajas(
   return CAJAS_ARRAY.map((color: COLORES_CAJAS) => {
     const capitalize =
       color.charAt(0).toUpperCase() + (options.fullName ? color.slice(1) : "");
-    return `${capitalize}: ${item[color] ?? "-"}`;
+    return `${capitalize}: ${formatNumber(item[color], "-")}`;
   }).join(options.separator);
 }
 
@@ -130,7 +99,7 @@ export function formatTapas(
   return TAPAS_ARRAY.map((color: COLORES_TAPAS) => {
     const capitalize =
       color.charAt(0).toUpperCase() + (options.fullName ? color.slice(1) : "");
-    return `${capitalize}: ${item[color] ?? "-"}`;
+    return `${capitalize}: ${formatNumber(item[color], "-")}`;
   }).join(options.separator);
 }
 
@@ -149,7 +118,7 @@ export function prettyName(name: string): string {
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(" ");
   } catch (err) {
-    console.log("Error al formatear el nombre:" + name, err);
+    console.error("Error al formatear el nombre:" + name, err);
     return "-";
   }
 }

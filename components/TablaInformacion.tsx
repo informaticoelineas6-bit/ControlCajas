@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DashboardData, TABLAS } from "@/lib/constants";
-import { formatDate, totalCajas } from "@/lib/utils";
+import { formatDate, formatNumber, totalCajas } from "@/lib/utils";
 import { frontendClient } from "@/lib/client";
 import { differenceInDays, parseISO } from "date-fns";
 
@@ -345,8 +345,8 @@ export default function TablaInformacion() {
                       <p className="text-sm font-medium text-slate-700">
                         {item.label}
                       </p>
-                      <span className="text-sm font-semibold text-slate-600">
-                        {item.amount} cajas
+                      <span className="stock-number text-sm font-semibold text-slate-600">
+                        {formatNumber(item.amount)} cajas
                       </span>
                     </div>
                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
@@ -374,8 +374,8 @@ export default function TablaInformacion() {
                       <p className="text-sm font-medium text-slate-700">
                         {item.label}
                       </p>
-                      <span className="text-sm font-semibold text-slate-600">
-                        {item.amount} cajas
+                      <span className="stock-number text-sm font-semibold text-slate-600">
+                        {formatNumber(item.amount)} cajas
                       </span>
                     </div>
                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
@@ -426,26 +426,26 @@ export default function TablaInformacion() {
                   <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                     <div>
                       <p className="text-slate-600">Deuda</p>
-                      <p className="font-medium text-slate-700">
-                        {totalCajas(centro.deuda)}
+                      <p className="stock-number font-medium text-slate-700">
+                        {formatNumber(totalCajas(centro.deuda))}
                       </p>
                     </div>
                     <div>
                       <p className="text-slate-600">Deuda activa</p>
-                      <p className="font-medium text-slate-700">
-                        {totalCajas(centro.deuda_activa)}
+                      <p className="stock-number font-medium text-slate-700">
+                        {formatNumber(totalCajas(centro.deuda_activa))}
                       </p>
                     </div>
                     <div>
                       <p className="text-slate-600">Roturas</p>
-                      <p className="font-medium text-slate-700">
-                        {centro.roturasTotal}
+                      <p className="stock-number font-medium text-slate-700">
+                        {formatNumber(centro.roturasTotal)}
                       </p>
                     </div>
                     <div>
                       <p className="text-slate-600">Rotación</p>
-                      <p className="font-medium text-slate-700">
-                        {centro.rotacion ?? "-"} días
+                      <p className="stock-number font-medium text-slate-700">
+                        {formatNumber(centro.rotacion)} días
                       </p>
                     </div>
                     <div>
@@ -520,19 +520,19 @@ export default function TablaInformacion() {
                               }}
                             />
                           </div>
-                          <span className="font-semibold text-slate-700">
-                            {totalCajas(centro.deuda)}
+                          <span className="stock-number font-semibold text-slate-700">
+                            {formatNumber(totalCajas(centro.deuda))}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-medium text-slate-700">
-                        {totalCajas(centro.deuda_activa)}
+                      <td className="stock-number px-6 py-4 font-medium text-slate-700">
+                        {formatNumber(totalCajas(centro.deuda_activa))}
                       </td>
-                      <td className="px-6 py-4 font-medium text-slate-700">
-                        {centro.roturasTotal ?? 0}
+                      <td className="stock-number px-6 py-4 font-medium text-slate-700">
+                        {formatNumber(centro.roturasTotal)}
                       </td>
-                      <td className="px-6 py-4 font-medium text-slate-700">
-                        {centro.rotacion ?? 0} días
+                      <td className="stock-number px-6 py-4 font-medium text-slate-700">
+                        {formatNumber(centro.rotacion)} días
                       </td>
                       <td className="px-6 py-4 text-slate-600">
                         {centro.fechaRot

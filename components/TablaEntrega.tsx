@@ -9,7 +9,7 @@ import {
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
-import { prettyName } from "@/lib/utils";
+import { formatNumber, prettyName } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaEntrega({
@@ -152,8 +152,8 @@ export default function TablaEntrega({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600 capitalize">{color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.cajas?.[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.cajas?.[color], "-")}
                           </p>
                         </div>
                       ))}
@@ -228,9 +228,9 @@ export default function TablaEntrega({
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={color}
-                            className="px-5 py-4 text-center text-slate-700"
+                            className="stock-number px-5 py-4 text-center text-slate-700"
                           >
-                            {item.cajas[color] ?? "-"}
+                            {formatNumber(item.cajas[color], "-")}
                           </td>
                         ))}
                         <td className="px-5 py-4 text-center text-slate-500">

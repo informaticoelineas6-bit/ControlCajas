@@ -172,7 +172,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
         <Bell size={15} />
         <span className="hidden sm:inline">{error || "Notificaciones"}</span>
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${rowToneLower()}`}
+          className={`stock-number rounded-full px-2 py-0.5 text-xs font-semibold ${rowToneLower()}`}
         >
           {loading ? "..." : data.total}
         </span>

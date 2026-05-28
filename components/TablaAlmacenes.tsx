@@ -22,7 +22,7 @@ import {
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
-import { prettyName } from "@/lib/utils";
+import { formatNumber, prettyName } from "@/lib/utils";
 import FormModal from "./AdminFormModal";
 
 export default function TablaAlmacenes({
@@ -52,6 +52,8 @@ export default function TablaAlmacenes({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const numberFieldClass =
+    "stock-number w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -410,7 +412,7 @@ export default function TablaAlmacenes({
                         value={form.stock[color]}
                         disabled={!form.habilitadas[color]}
                         onChange={handleInputChange}
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                        className={numberFieldClass}
                       />
                     </div>
                   ))}
@@ -429,7 +431,7 @@ export default function TablaAlmacenes({
                         value={form.roturas.cajas[color] ?? 0}
                         disabled={!form.habilitadas[color]}
                         onChange={handleInputChange}
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                        className={numberFieldClass}
                       />
                     </div>
                   ))}
@@ -448,7 +450,7 @@ export default function TablaAlmacenes({
                         value={form.roturas.tapas[color] ?? 0}
                         disabled={!form.habilitadas[color]}
                         onChange={handleInputChange}
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                        className={numberFieldClass}
                       />
                     </div>
                   ))}
@@ -545,8 +547,8 @@ export default function TablaAlmacenes({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Stock {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.stock?.[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.stock?.[color], "-")}
                           </p>
                         </div>
                       ))}
@@ -612,8 +614,11 @@ export default function TablaAlmacenes({
                         {item.nombre}
                       </td>
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <td key={color} className="px-5 py-4 text-slate-600">
-                          {item.stock[color] ?? 0}
+                        <td
+                          key={color}
+                          className="stock-number px-5 py-4 text-slate-600"
+                        >
+                          {formatNumber(item.stock[color])}
                         </td>
                       ))}
                       <td className="px-5 py-4 text-slate-600">

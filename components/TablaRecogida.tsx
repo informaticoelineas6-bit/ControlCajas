@@ -9,7 +9,13 @@ import {
   TIPOS_EVENTO,
   Usuario,
 } from "@/lib/constants";
-import { formatCajas, formatTapas, prettyName, totalCajas } from "@/lib/utils";
+import {
+  formatCajas,
+  formatNumber,
+  formatTapas,
+  prettyName,
+  totalCajas,
+} from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaRecogida({
@@ -150,21 +156,21 @@ export default function TablaRecogida({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600 capitalize">{color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.cajas?.[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.cajas?.[color], "-")}
                           </p>
                         </div>
                       ))}
                       <div>
                         <p className="text-slate-600">Cajas rotas</p>
-                        <p className="font-medium text-slate-700">
-                          {totalCajas(item.roturas.cajas)}
+                        <p className="stock-number font-medium text-slate-700">
+                          {formatNumber(totalCajas(item.roturas.cajas))}
                         </p>
                       </div>
                       <div>
                         <p className="text-slate-600">Tapas Rotas</p>
-                        <p className="font-medium text-slate-700">
-                          {totalCajas(item.roturas.tapas)}
+                        <p className="stock-number font-medium text-slate-700">
+                          {formatNumber(totalCajas(item.roturas.tapas))}
                         </p>
                       </div>
                       <div>
@@ -242,22 +248,22 @@ export default function TablaRecogida({
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={color}
-                            className="px-5 py-4 text-center text-slate-700"
+                            className="stock-number px-5 py-4 text-center text-slate-700"
                           >
-                            {item.cajas[color] ?? "-"}
+                            {formatNumber(item.cajas[color], "-")}
                           </td>
                         ))}
                         <td
                           title={formatCajas(item.roturas.cajas)}
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.roturas.cajas)}
+                          {formatNumber(totalCajas(item.roturas.cajas))}
                         </td>
                         <td
                           title={formatTapas(item.roturas.tapas)}
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.roturas.tapas)}
+                          {formatNumber(totalCajas(item.roturas.tapas))}
                         </td>
                         <td className="px-5 py-4 text-center text-slate-600">
                           {item.ajuste ? prettyName(item.ajuste) : "-"}

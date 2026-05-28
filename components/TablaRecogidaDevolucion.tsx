@@ -3,7 +3,12 @@
 import { frontendClient } from "@/lib/client";
 import { TABLAS } from "@/lib/constants";
 import { ItemComparacionRecogida } from "@/lib/compares";
-import { formatCajas, formatTapas, totalCajas } from "@/lib/utils";
+import {
+  formatCajas,
+  formatNumber,
+  formatTapas,
+  totalCajas,
+} from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaRecogidaDevolucion({
@@ -182,10 +187,10 @@ export default function TablaRecogidaDevolucion({
                         </div>
                         <div>
                           <p className="text-slate-600">Cajas</p>
-                          <p className="font-medium text-slate-700">
+                          <p className="stock-number font-medium text-slate-700">
                             {item.recogida
                               ? formatCajas(item.recogida.cajas) +
-                                `\nTotal: ${totalCajas(item.recogida.cajas)}`
+                                `\nTotal: ${formatNumber(totalCajas(item.recogida.cajas))}`
                               : "No hay información"}
                           </p>
                         </div>
@@ -210,10 +215,10 @@ export default function TablaRecogidaDevolucion({
                         </div>
                         <div>
                           <p className="text-slate-600">Cajas</p>
-                          <p className="font-medium text-slate-700">
+                          <p className="stock-number font-medium text-slate-700">
                             {item.devolucion
                               ? formatCajas(item.devolucion.cajas) +
-                                `\nTotal: ${totalCajas(item.devolucion.cajas)}`
+                                `\nTotal: ${formatNumber(totalCajas(item.devolucion.cajas))}`
                               : "No hay información"}
                           </p>
                         </div>
@@ -226,29 +231,25 @@ export default function TablaRecogidaDevolucion({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                         <div>
                           <p className="text-slate-600">Recogida</p>
-                          <p className="font-medium text-slate-700">
+                          <p className="stock-number font-medium text-slate-700">
                             {item.recogida
-                              ? `Cajas ${formatCajas(item.recogida.roturas.cajas)}\nTapas ${formatTapas(item.recogida.roturas.tapas)}\nTotal: ${
-                                  item.recogida
-                                    ? totalCajas(item.recogida.roturas.cajas) +
-                                      totalCajas(item.recogida.roturas.tapas)
-                                    : 0
-                                }`
+                              ? `Cajas:\n${formatCajas(item.recogida.roturas.cajas)}\nTapas:\n${formatTapas(item.recogida.roturas.tapas)}\nTotal: ${formatNumber(
+                                  totalCajas(item.recogida.roturas.cajas) +
+                                    totalCajas(item.recogida.roturas.tapas),
+                                  "0",
+                                )}`
                               : "No hay información"}
                           </p>
                         </div>
                         <div>
                           <p className="text-slate-600">Devolucion</p>
-                          <p className="font-medium text-slate-700">
+                          <p className="stock-number font-medium text-slate-700">
                             {item.devolucion
-                              ? `Cajas ${formatCajas(item.devolucion.roturas.cajas)}\nTapas ${formatTapas(item.devolucion.roturas.tapas)}\nTotal: ${
-                                  item.devolucion
-                                    ? totalCajas(
-                                        item.devolucion.roturas.cajas,
-                                      ) +
-                                      totalCajas(item.devolucion.roturas.tapas)
-                                    : 0
-                                }`
+                              ? `Cajas:\n${formatCajas(item.devolucion.roturas.cajas)}\nTapas:\n${formatTapas(item.devolucion.roturas.tapas)}\nTotal: ${formatNumber(
+                                  totalCajas(item.devolucion.roturas.cajas) +
+                                    totalCajas(item.devolucion.roturas.tapas),
+                                  "0",
+                                )}`
                               : "No hay información"}
                           </p>
                         </div>
@@ -363,9 +364,11 @@ export default function TablaRecogidaDevolucion({
                               ? formatCajas(item.recogida?.cajas)
                               : "No hay información"
                           }
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {item.recogida ? totalCajas(item.recogida?.cajas) : 0}
+                          {item.recogida
+                            ? formatNumber(totalCajas(item.recogida?.cajas))
+                            : 0}
                         </td>
                         <td className="px-5 py-4 text-center text-slate-600">
                           {item.devolucion?.nombre ?? "-"}
@@ -379,37 +382,41 @@ export default function TablaRecogidaDevolucion({
                               ? formatCajas(item.devolucion?.cajas)
                               : "No hay información"
                           }
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {item.devolucion
-                            ? totalCajas(item.devolucion?.cajas)
+                            ? formatNumber(totalCajas(item.devolucion?.cajas))
                             : 0}
                         </td>
                         <td
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                           title={
                             item.recogida
-                              ? `Cajas ${formatCajas(item.recogida.roturas.cajas)}\nTapas ${formatTapas(item.recogida.roturas.tapas)}`
+                              ? `Cajas:\n${formatCajas(item.recogida.roturas.cajas)}\nTapas:\n${formatTapas(item.recogida.roturas.tapas)}`
                               : "No hay información"
                           }
                         >
                           {item.recogida
-                            ? totalCajas(item.recogida.roturas.cajas) +
-                              totalCajas(item.recogida.roturas.tapas)
-                            : "-"}
+                            ? formatNumber(
+                                totalCajas(item.recogida.roturas.cajas) +
+                                  totalCajas(item.recogida.roturas.tapas),
+                              )
+                            : 0}
                         </td>
                         <td
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                           title={
                             item.devolucion
-                              ? `Cajas ${formatCajas(item.devolucion.roturas.cajas)}\nTapas ${formatTapas(item.devolucion.roturas.tapas)}`
+                              ? `Cajas:\n${formatCajas(item.devolucion.roturas.cajas)}\nTapas:\n${formatTapas(item.devolucion.roturas.tapas)}`
                               : "No hay información"
                           }
                         >
                           {item.devolucion
-                            ? totalCajas(item.devolucion.roturas.cajas) +
-                              totalCajas(item.devolucion.roturas.tapas)
-                            : "-"}
+                            ? formatNumber(
+                                totalCajas(item.devolucion.roturas.cajas) +
+                                  totalCajas(item.devolucion.roturas.tapas),
+                              )
+                            : 0}
                         </td>
                       </tr>
                     ))

@@ -16,7 +16,12 @@ import {
   ItemComparacionEntrega,
   ItemComparacionRecogida,
 } from "@/lib/compares";
-import { formatCajas, formatTapas, totalCajas } from "@/lib/utils";
+import {
+  formatCajas,
+  formatNumber,
+  formatTapas,
+  totalCajas,
+} from "@/lib/utils";
 import { frontendClient } from "@/lib/client";
 
 export default function CierreDiario({
@@ -275,15 +280,15 @@ export default function CierreDiario({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Ajuste {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.ajuste_stock[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.ajuste_stock[color], "-")}
                           </p>
                         </div>
                       ))}
                       <div>
                         <p className="text-slate-600">Total</p>
-                        <p className="font-semibold text-slate-700">
-                          {totalCajas(item.ajuste_stock)}
+                        <p className="stock-number font-semibold text-slate-700">
+                          {formatNumber(totalCajas(item.ajuste_stock))}
                         </p>
                       </div>
                     </div>
@@ -291,24 +296,26 @@ export default function CierreDiario({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Cajas rotas {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.roturas.cajas[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.roturas.cajas[color], "-")}
                           </p>
                         </div>
                       ))}
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Tapas rotas {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.roturas.tapas[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.roturas.tapas[color], "-")}
                           </p>
                         </div>
                       ))}
                       <div>
                         <p className="text-slate-600">Total roturas</p>
-                        <p className="font-medium text-slate-700">
-                          {totalCajas(item.roturas.cajas) +
-                            totalCajas(item.roturas.tapas)}
+                        <p className="stock-number font-medium text-slate-700">
+                          {formatNumber(
+                            totalCajas(item.roturas.cajas) +
+                              totalCajas(item.roturas.tapas),
+                          )}
                         </p>
                       </div>
                     </div>
@@ -365,25 +372,25 @@ export default function CierreDiario({
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={color}
-                            className="px-5 py-4 text-center text-slate-700"
+                            className="stock-number px-5 py-4 text-center text-slate-700"
                           >
-                            {item.ajuste_stock[color] ?? "-"}
+                            {formatNumber(item.ajuste_stock[color], "-")}
                           </td>
                         ))}
-                        <td className="px-5 py-4 text-center font-semibold text-slate-900">
-                          {totalCajas(item.ajuste_stock)}
+                        <td className="stock-number px-5 py-4 text-center font-semibold text-slate-900">
+                          {formatNumber(totalCajas(item.ajuste_stock))}
                         </td>
                         <td
                           title={formatCajas(item.roturas.cajas)}
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.roturas.cajas)}
+                          {formatNumber(totalCajas(item.roturas.cajas))}
                         </td>
                         <td
                           title={formatTapas(item.roturas.tapas)}
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.roturas.tapas)}
+                          {formatNumber(totalCajas(item.roturas.tapas))}
                         </td>
                       </tr>
                     ))
@@ -420,15 +427,15 @@ export default function CierreDiario({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Ajuste {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.ajuste_deuda[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.ajuste_deuda[color], "-")}
                           </p>
                         </div>
                       ))}
                       <div>
                         <p className="text-slate-600">Total</p>
-                        <p className="font-semibold text-slate-700">
-                          {totalCajas(item.ajuste_deuda)}
+                        <p className="stock-number font-semibold text-slate-700">
+                          {formatNumber(totalCajas(item.ajuste_deuda))}
                         </p>
                       </div>
                     </div>
@@ -436,24 +443,26 @@ export default function CierreDiario({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Cajas rotas {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.roturas.cajas[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.roturas.cajas[color], "-")}
                           </p>
                         </div>
                       ))}
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Tapas rotas {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.roturas.tapas[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.roturas.tapas[color], "-")}
                           </p>
                         </div>
                       ))}
                       <div>
                         <p className="text-slate-600">Total roturas</p>
-                        <p className="font-medium text-slate-700">
-                          {totalCajas(item.roturas.cajas) +
-                            totalCajas(item.roturas.tapas)}
+                        <p className="stock-number font-medium text-slate-700">
+                          {formatNumber(
+                            totalCajas(item.roturas.cajas) +
+                              totalCajas(item.roturas.tapas),
+                          )}
                         </p>
                       </div>
                     </div>
@@ -510,25 +519,25 @@ export default function CierreDiario({
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                           <td
                             key={color}
-                            className="px-5 py-4 text-center text-slate-700"
+                            className="stock-number px-5 py-4 text-center text-slate-700"
                           >
-                            {item.ajuste_deuda[color] ?? "-"}
+                            {formatNumber(item.ajuste_deuda[color], "-")}
                           </td>
                         ))}
-                        <td className="px-5 py-4 text-center font-semibold text-slate-700">
-                          {totalCajas(item.ajuste_deuda)}
+                        <td className="stock-number px-5 py-4 text-center font-semibold text-slate-700">
+                          {formatNumber(totalCajas(item.ajuste_deuda))}
                         </td>
                         <td
                           title={formatCajas(item.roturas.cajas)}
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.roturas.cajas)}
+                          {formatNumber(totalCajas(item.roturas.cajas))}
                         </td>
                         <td
                           title={formatTapas(item.roturas.tapas)}
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
-                          {totalCajas(item.roturas.tapas)}
+                          {formatNumber(totalCajas(item.roturas.tapas))}
                         </td>
                       </tr>
                     ))

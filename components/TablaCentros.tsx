@@ -22,7 +22,7 @@ import {
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
-import { prettyName } from "@/lib/utils";
+import { formatNumber, prettyName } from "@/lib/utils";
 import FormModal from "./AdminFormModal";
 
 export default function TablaCentros({
@@ -49,8 +49,10 @@ export default function TablaCentros({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const numberFieldClass =
+  const textFieldClass =
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
+  const numberFieldClass =
+    "stock-number w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400";
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -386,7 +388,7 @@ export default function TablaCentros({
                       value={form.nombre || ""}
                       disabled={!!editingId}
                       onChange={handleInputChange}
-                      className={numberFieldClass}
+                      className={textFieldClass}
                     />
                   </div>
                   <div>
@@ -566,15 +568,15 @@ export default function TablaCentros({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Deuda {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.deuda?.[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.deuda?.[color], "-")}
                           </p>
                         </div>
                       ))}
                       <div>
                         <p className="text-slate-600">Rotación</p>
-                        <p className="font-medium text-slate-700">
-                          {item.rotacion ?? "-"}
+                        <p className="stock-number font-medium text-slate-700">
+                          {formatNumber(item.rotacion, "-")} días
                         </p>
                       </div>
                       <div>
@@ -643,13 +645,16 @@ export default function TablaCentros({
                       </td>
 
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <td key={color} className="px-5 py-4 text-slate-600">
-                          {item.deuda[color] ?? 0}
+                        <td
+                          key={color}
+                          className="stock-number text-right px-5 py-4 text-slate-600"
+                        >
+                          {formatNumber(item.deuda[color])}
                         </td>
                       ))}
                       <td className="px-5 py-4">
-                        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
-                          {item.rotacion ?? 0} días
+                        <span className="stock-number rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+                          {formatNumber(item.rotacion, "0")} días
                         </span>
                       </td>
                       <td className="px-5 py-4 text-slate-600">

@@ -1,5 +1,17 @@
 import type { Metadata } from "next";
+import { DM_Mono, Outfit } from "next/font/google";
 import "./globals.css";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   title: "ControlCajas",
@@ -23,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" className={`${outfit.variable} ${dmMono.variable}`}>
       <body className="bg-gray-100 min-h-screen">{children}</body>
     </html>
   );

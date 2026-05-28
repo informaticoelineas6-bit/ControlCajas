@@ -3,7 +3,7 @@
 import { frontendClient } from "@/lib/client";
 import { TABLAS } from "@/lib/constants";
 import { ItemComparacionEntrega } from "@/lib/compares";
-import { formatCajas, totalCajas } from "@/lib/utils";
+import { formatCajas, formatNumber, totalCajas } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaExpedicionEntrega({
@@ -187,12 +187,14 @@ export default function TablaExpedicionEntrega({
                         </div>
                         <div>
                           <p className="text-slate-600">Cajas</p>
-                          <p className="font-medium text-slate-700">
+                          <p className="stock-number font-medium text-slate-700">
                             {item.expedicion
                               ? formatCajas(item.expedicion?.cajas) +
                                 "\nTotal: " +
                                 (item.expedicion?.cajas
-                                  ? totalCajas(item.expedicion.cajas)
+                                  ? formatNumber(
+                                      totalCajas(item.expedicion.cajas),
+                                    )
                                   : 0)
                               : "No hay información"}
                           </p>
@@ -218,12 +220,14 @@ export default function TablaExpedicionEntrega({
                         </div>
                         <div>
                           <p className="text-slate-600">Cajas</p>
-                          <p className="font-medium text-slate-700">
+                          <p className="stock-number font-medium text-slate-700">
                             {item.traspaso
                               ? formatCajas(item.traspaso?.cajas) +
                                 "\nTotal: " +
                                 (item.traspaso?.cajas
-                                  ? totalCajas(item.traspaso.cajas)
+                                  ? formatNumber(
+                                      totalCajas(item.traspaso.cajas),
+                                    )
                                   : 0)
                               : "No hay información"}
                           </p>
@@ -249,12 +253,12 @@ export default function TablaExpedicionEntrega({
                         </div>
                         <div>
                           <p className="text-slate-600">Cajas</p>
-                          <p className="font-medium text-slate-700">
+                          <p className="stock-number font-medium text-slate-700">
                             {item.entrega
                               ? formatCajas(item.entrega?.cajas) +
                                 "\nTotal: " +
                                 (item.entrega?.cajas
-                                  ? totalCajas(item.entrega.cajas)
+                                  ? formatNumber(totalCajas(item.entrega.cajas))
                                   : 0)
                               : "No hay información"}
                           </p>
@@ -373,10 +377,10 @@ export default function TablaExpedicionEntrega({
                               ? formatCajas(item.expedicion?.cajas)
                               : "No hay información"
                           }
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {item.expedicion?.cajas
-                            ? totalCajas(item.expedicion?.cajas)
+                            ? formatNumber(totalCajas(item.expedicion?.cajas))
                             : 0}
                         </td>
                         <td className="px-5 py-4 text-center text-slate-600">
@@ -391,10 +395,10 @@ export default function TablaExpedicionEntrega({
                               ? formatCajas(item.traspaso?.cajas)
                               : "No hay información"
                           }
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {item.traspaso?.cajas
-                            ? totalCajas(item.traspaso?.cajas)
+                            ? formatNumber(totalCajas(item.traspaso?.cajas))
                             : 0}
                         </td>
                         <td className="px-5 py-4 text-center text-slate-600">
@@ -409,10 +413,10 @@ export default function TablaExpedicionEntrega({
                               ? formatCajas(item.entrega?.cajas)
                               : "No hay información"
                           }
-                          className="px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
+                          className="stock-number px-5 py-4 text-center text-slate-700 hover:bg-slate-300"
                         >
                           {item.entrega?.cajas
-                            ? totalCajas(item.entrega?.cajas)
+                            ? formatNumber(totalCajas(item.entrega?.cajas))
                             : 0}
                         </td>
                       </tr>

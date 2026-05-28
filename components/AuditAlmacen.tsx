@@ -9,7 +9,7 @@ import {
   TAPAS_ARRAY,
 } from "@/lib/constants";
 import type { AlmacenAudit } from "@/lib/constants";
-import { formatDate, prettyName } from "@/lib/utils";
+import { formatDate, formatNumber, prettyName } from "@/lib/utils";
 
 export default function AuditAlmacen() {
   const [nombre, setNombre] = useState("");
@@ -164,7 +164,7 @@ export default function AuditAlmacen() {
             <div className="space-y-3 lg:hidden">
               <article
                 key={datos.almacen.nombre}
-                className="rounded-[24px] rounded-2xl border border-emerald-100 bg-emerald-50 p-4 shadow-sm"
+                className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -180,8 +180,8 @@ export default function AuditAlmacen() {
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
                       <p className="text-slate-600">Stock {color}</p>
-                      <p className="font-medium text-slate-700">
-                        {datos.almacen.stock?.[color] ?? "-"}
+                      <p className="stock-number font-medium text-slate-700">
+                        {formatNumber(datos.almacen.stock?.[color], "-")}
                       </p>
                     </div>
                   ))}
@@ -190,8 +190,8 @@ export default function AuditAlmacen() {
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <div key={color}>
                       <p className="text-slate-600">Cajas {color} rotas</p>
-                      <p className="font-medium text-slate-700">
-                        {datos.almacen.roturas.cajas[color] ?? "-"}
+                      <p className="stock-number font-medium text-slate-700">
+                        {formatNumber(datos.almacen.roturas.cajas[color], "-")}
                       </p>
                     </div>
                   ))}
@@ -200,8 +200,8 @@ export default function AuditAlmacen() {
                   {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                     <div key={color}>
                       <p className="text-slate-600">Tapas {color} rotas</p>
-                      <p className="font-medium text-slate-700">
-                        {datos.almacen.roturas.tapas[color] ?? "-"}
+                      <p className="stock-number font-medium text-slate-700">
+                        {formatNumber(datos.almacen.roturas.tapas[color], "-")}
                       </p>
                     </div>
                   ))}
@@ -270,18 +270,27 @@ export default function AuditAlmacen() {
                       {datos.almacen.nombre}
                     </td>
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <td key={`stock-${color}`} className="px-5 py-4">
-                        {datos.almacen.stock[color] ?? "-"}
+                      <td
+                        key={`stock-${color}`}
+                        className="stock-number text-right px-5 py-4"
+                      >
+                        {formatNumber(datos.almacen.stock[color], "-")}
                       </td>
                     ))}
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <td key={`rotura-caja-${color}`} className="px-5 py-4">
-                        {datos.almacen.roturas.cajas[color] ?? "-"}
+                      <td
+                        key={`rotura-caja-${color}`}
+                        className="stock-number text-right px-5 py-4"
+                      >
+                        {formatNumber(datos.almacen.roturas.cajas[color], "-")}
                       </td>
                     ))}
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                      <td key={`rotura-tapa-${color}`} className="px-5 py-4">
-                        {datos.almacen.roturas.tapas[color] ?? "-"}
+                      <td
+                        key={`rotura-tapa-${color}`}
+                        className="stock-number text-right px-5 py-4"
+                      >
+                        {formatNumber(datos.almacen.roturas.tapas[color], "-")}
                       </td>
                     ))}
                   </tr>
@@ -314,8 +323,8 @@ export default function AuditAlmacen() {
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Ajuste stock {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.ajuste_stock[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.ajuste_stock[color], "-")}
                           </p>
                         </div>
                       ))}
@@ -324,8 +333,8 @@ export default function AuditAlmacen() {
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Cajas rotas {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.roturas.cajas[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.roturas.cajas[color], "-")}
                           </p>
                         </div>
                       ))}
@@ -334,8 +343,8 @@ export default function AuditAlmacen() {
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <div key={color}>
                           <p className="text-slate-600">Tapas rotas {color}</p>
-                          <p className="font-medium text-slate-700">
-                            {item.roturas.tapas[color] ?? "-"}
+                          <p className="stock-number font-medium text-slate-700">
+                            {formatNumber(item.roturas.tapas[color], "-")}
                           </p>
                         </div>
                       ))}
@@ -391,9 +400,9 @@ export default function AuditAlmacen() {
                           className="px-5 py-4 text-slate-600"
                         >
                           <span
-                            className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteStockClass(item.ajuste_stock[color])}`}
+                            className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteStockClass(item.ajuste_stock[color])}`}
                           >
-                            {item.ajuste_stock[color] ?? "-"}
+                            {formatNumber(item.ajuste_stock[color], "-")}
                           </span>
                         </td>
                       ))}
@@ -403,9 +412,9 @@ export default function AuditAlmacen() {
                           className="px-5 py-4 text-slate-600"
                         >
                           <span
-                            className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
+                            className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
                           >
-                            {item.roturas.cajas[color] ?? "-"}
+                            {formatNumber(item.roturas.cajas[color], "-")}
                           </span>
                         </td>
                       ))}
@@ -415,9 +424,9 @@ export default function AuditAlmacen() {
                           className="px-5 py-4 text-slate-600"
                         >
                           <span
-                            className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
+                            className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
                           >
-                            {item.roturas.tapas[color] ?? "-"}
+                            {formatNumber(item.roturas.tapas[color], "-")}
                           </span>
                         </td>
                       ))}

@@ -976,7 +976,7 @@ export default function FormularioEvento({
                   disabled={
                     disabled || loading || bloqueadoPorCierre || submitted
                   }
-                  className={`w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
+                  className={`stock-number w-full rounded-2xl border px-3 py-3 text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 ${
                     value === 0
                       ? "border-slate-200 bg-slate-50"
                       : "border-slate-400 bg-white"

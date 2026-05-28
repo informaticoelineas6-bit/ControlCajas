@@ -10,7 +10,7 @@ import {
   Usuario,
 } from "@/lib/constants";
 import type { EventoAudit, UsuarioAudit } from "@/lib/constants";
-import { formatDate, prettyName } from "@/lib/utils";
+import { formatDate, formatNumber, prettyName } from "@/lib/utils";
 
 export default function AuditUsuario() {
   const [nombre, setNombre] = useState("");
@@ -181,7 +181,7 @@ export default function AuditUsuario() {
             <div className="space-y-3 lg:hidden">
               <article
                 key={datos.usuario.nombre}
-                className="rounded-[24px] rounded-2xl border border-blue-100 bg-blue-50 p-4 shadow-sm"
+                className="rounded-2xl border border-blue-100 bg-blue-50 p-4 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -491,9 +491,9 @@ export default function AuditUsuario() {
                                 {"Cajas " + color}
                               </p>
                               <p
-                                className={`font-medium text-slate-700 ${getCajasClass(item.cajas[color])}`}
+                                className={`stock-number font-medium text-slate-700 ${getCajasClass(item.cajas[color])}`}
                               >
-                                {item.cajas[color] ?? "-"}
+                                {formatNumber(item.cajas[color], "-")}
                               </p>
                             </div>
                           ))}
@@ -506,9 +506,12 @@ export default function AuditUsuario() {
                                   Cajas {color} rotas
                                 </p>
                                 <p
-                                  className={`font-medium text-slate-700 ${getRoturaClass(item.roturas?.cajas[color])}`}
+                                  className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas?.cajas[color])}`}
                                 >
-                                  {item.roturas?.cajas[color] ?? "-"}
+                                  {formatNumber(
+                                    item.roturas?.cajas[color],
+                                    "-",
+                                  )}
                                 </p>
                               </div>
                             ))}
@@ -522,9 +525,12 @@ export default function AuditUsuario() {
                                   Tapas {color} rotas
                                 </p>
                                 <p
-                                  className={`font-medium text-slate-700 ${getRoturaClass(item.roturas?.tapas[color])}`}
+                                  className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas?.tapas[color])}`}
                                 >
-                                  {item.roturas?.tapas[color] ?? "-"}
+                                  {formatNumber(
+                                    item.roturas?.tapas[color],
+                                    "-",
+                                  )}
                                 </p>
                               </div>
                             ))}
@@ -597,9 +603,9 @@ export default function AuditUsuario() {
                               className="px-5 py-4 text-slate-700"
                             >
                               <span
-                                className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getCajasClass(item.cajas[color])}`}
+                                className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getCajasClass(item.cajas[color])}`}
                               >
-                                {item.cajas[color] ?? "-"}
+                                {formatNumber(item.cajas[color], "-")}
                               </span>
                             </td>
                           ))}
@@ -609,9 +615,9 @@ export default function AuditUsuario() {
                               className="px-5 py-4 text-slate-700"
                             >
                               <span
-                                className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.cajas[color])}`}
+                                className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.cajas[color])}`}
                               >
-                                {item.roturas?.cajas[color] ?? "-"}
+                                {formatNumber(item.roturas?.cajas[color], "-")}
                               </span>
                             </td>
                           ))}
@@ -621,9 +627,9 @@ export default function AuditUsuario() {
                               className="px-5 py-4 text-slate-700"
                             >
                               <span
-                                className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.tapas[color])}`}
+                                className={`stock-number text-right inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.tapas[color])}`}
                               >
-                                {item.roturas?.tapas[color] ?? "-"}
+                                {formatNumber(item.roturas?.tapas[color], "-")}
                               </span>
                             </td>
                           ))}
