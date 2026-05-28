@@ -181,15 +181,20 @@ export default function TablaInformacion() {
     deudaMaxima > 0 ? `${Math.max((cantidad / deudaMaxima) * 100, 8)}%` : "0%";
 
   const buildColorBars = (values: DashboardData["deudaTotal"]) => {
-    const maxValue = Math.max(...Object.values(values), 0);
+    const maxValue = Object.values(values).reduce(
+      (max, current) => Math.max(Math.abs(max), Math.abs(current)),
+      0,
+    );
     return colorBarConfig.map((config) => {
       const amount = values[config.key] ?? 0;
-      const width = maxValue > 0 ? `${(amount / maxValue) * 100}%` : "0%";
+      const width =
+        maxValue !== 0 ? `${(Math.abs(amount) / maxValue) * 100}%` : "0%";
 
       return {
         ...config,
         amount,
         width,
+        barClass: amount >= 0 ? config.barClass : "bg-red-600",
       };
     });
   };
@@ -314,11 +319,16 @@ export default function TablaInformacion() {
                   ? "Centros retrasados"
                   : "No hay centros con retraso"}
               </h3>
-              <p className="mt-2 text-sm text-slate-600">
-                {hasCentrosConRetraso
-                  ? centrosConRetraso.join(", ")
-                  : "Todos los centros están en tiempo o cumplidos."}
-              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {centrosConRetraso.map((centro) => (
+                  <p
+                    key={centro}
+                    className="mt-2 text-sm text-slate-600 truncate"
+                  >
+                    {centro}
+                  </p>
+                ))}
+              </div>
             </article>
 
             <article className="rounded-[28px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.45)]">
