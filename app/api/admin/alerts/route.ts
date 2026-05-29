@@ -1,7 +1,13 @@
-import { AlertaResponse, EventAlerta, TABLAS } from "@/lib/constants";
+import {
+  AlertaResponse,
+  CentroDistribucion,
+  DeudaAct,
+  EventAlerta,
+  TABLAS,
+} from "@/lib/constants";
 import { connectToDatabase, getErrorMessage } from "@/lib/server";
 import { NextRequest, NextResponse } from "next/server";
-import { formatCajas, formatTapas, sameCajas } from "@/lib/utils";
+import { formatCajas, formatTapas, sameCajas, totalCajas } from "@/lib/utils";
 import { usuarioCookie } from "@/lib/auth";
 import {
   getComparacionEntrega,
@@ -9,7 +15,14 @@ import {
   ItemComparacionEntrega,
   ItemComparacionRecogida,
 } from "@/lib/compares";
-import { endOfDay, format, startOfDay } from "date-fns";
+import {
+  addDays,
+  endOfDay,
+  format,
+  isBefore,
+  parseISO,
+  startOfDay,
+} from "date-fns";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,30 +32,38 @@ export async function GET(request: NextRequest) {
     if (usuario.rol !== "informatico")
       return NextResponse.json({ error: "Permiso denegado" }, { status: 401 });
 
-    const fecha = format(new Date(), "yyyy-MM-dd");
+    const today = new Date();
+    const fecha = format(today, "yyyy-MM-dd");
 
-    const startOfToday = startOfDay(new Date());
-    const endOfToday = endOfDay(new Date());
+    const startOfToday = startOfDay(today);
+    const endOfToday = endOfDay(today);
 
     const db = await connectToDatabase();
 
-    const [usuariosRecientes, cierreHoy, alertsExpEntRaw, alertsDevRecRaw] =
-      await Promise.all([
-        db
-          .from(TABLAS.USUARIO)
-          .select("*", { count: "exact", head: true })
-          .is("habilitado", false)
-          .gte("created_at", startOfToday.toISOString())
-          .lte("created_at", endOfToday.toISOString()),
-        db
-          .from(TABLAS.CIERRE)
-          .select("*", { count: "exact", head: true })
-          .eq("fecha", fecha),
-        getComparacionEntrega(db, fecha),
-        getComparacionRecogida(db, fecha),
-      ]);
+    const [
+      usuariosRecientes,
+      cierreHoy,
+      alertsExpEntRaw,
+      alertsDevRecRaw,
+      centrosRaw,
+    ] = await Promise.all([
+      db
+        .from(TABLAS.USUARIO)
+        .select("*", { count: "exact", head: true })
+        .is("habilitado", false)
+        .gte("created_at", startOfToday.toISOString())
+        .lte("created_at", endOfToday.toISOString()),
+      db
+        .from(TABLAS.CIERRE)
+        .select("*", { count: "exact", head: true })
+        .eq("fecha", fecha),
+      getComparacionEntrega(db, fecha),
+      getComparacionRecogida(db, fecha),
+      db.rpc<string, DeudaAct<CentroDistribucion>>("all_centros_deuda_activa"),
+    ]);
 
-    const error = usuariosRecientes.error || cierreHoy.error;
+    const error =
+      usuariosRecientes.error || cierreHoy.error || centrosRaw.error;
 
     if (error !== null) throw new Error(error.message);
 
@@ -131,13 +152,30 @@ export async function GET(request: NextRequest) {
         };
       });
 
+    let retrasos = 0;
+    for (const centro of centrosRaw.data) {
+      if (totalCajas(centro.deuda_activa) <= 0 || !centro.fecha_liquidacion)
+        continue;
+
+      const fechaLimite = addDays(
+        parseISO(centro.fecha_liquidacion),
+        centro.rotacion ?? 0,
+      );
+
+      if (isBefore(fechaLimite, today)) {
+        retrasos++;
+      }
+    }
+
     const response: AlertaResponse = {
       total:
         (usuariosRecientes.count ?? 0) +
+        (retrasos > 0 ? 1 : 0) +
         alertsExpEnt.length +
         alertsDevRec.length +
-        (cierreHoy.count && cierreHoy.count > 0 ? 0 : 1),
+        (cierreHoy.count === 0 ? 1 : 0),
       usuarios_recientes: usuariosRecientes.count ?? 0,
+      centros_retrasados: retrasos,
       inconsistencias_expedicion_entrega: alertsExpEnt,
       inconsistencias_devolucion_recogida: alertsDevRec,
       cierre_pendiente: cierreHoy.count === 0,

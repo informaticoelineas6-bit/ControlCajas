@@ -109,7 +109,7 @@ export interface Almacen extends Objetos {
 
 export type DeudaAct<Centro> = Centro & {
   deuda_activa: Cajas;
-  fecha_liquidacion: string | null;
+  fecha_liquidacion: string;
 };
 
 export interface CentroDistribucion extends Objetos {
@@ -242,6 +242,7 @@ export type EventoResponse = Record<
 export interface AlertaResponse {
   total: number;
   usuarios_recientes: number;
+  centros_retrasados: number;
   inconsistencias_expedicion_entrega: EventAlerta[];
   inconsistencias_devolucion_recogida: EventAlerta[];
   cierre_pendiente: boolean;

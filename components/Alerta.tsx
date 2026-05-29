@@ -14,6 +14,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
   const [data, setData] = useState<AlertaResponse>({
     total: 0,
     usuarios_recientes: 0,
+    centros_retrasados: 0,
     inconsistencias_expedicion_entrega: [],
     inconsistencias_devolucion_recogida: [],
     cierre_pendiente: false,
@@ -110,14 +111,15 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
           Cargando...
         </p>
       );
-    if (data.total === 0)
-      return (
-        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          Sin alertas.
-        </p>
-      );
     return (
       <div className="space-y-2">
+        {data.total === 0 && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
+              Sin alertas.
+            </p>
+          </div>
+        )}
         {data?.cierre_pendiente && (
           <div className="rounded-xl border border-yellow-200 bg-yellow-50 px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-yellow-600">
@@ -130,6 +132,14 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Se han creado {data?.usuarios_recientes} usuarios nuevos
               pendientes a ser habilitados.
+            </p>
+          </div>
+        )}
+        {data?.centros_retrasados > 0 && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Hay {data?.centros_retrasados} centros con retrasos en su
+              rotación.
             </p>
           </div>
         )}
@@ -153,17 +163,27 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
   const rowTone = () => {
     if (!data.total) return "border-slate-500 bg-white";
     else if (data.total === 0) return "border-emerald-500 bg-emerald-200";
-    else if (data.total === 1 && data.cierre_pendiente)
-      return "border-amber-500 bg-amber-200";
-    else return "border-rose-500 bg-rose-200";
+    else if (
+      data.inconsistencias_devolucion_recogida.length > 0 ||
+      data.inconsistencias_expedicion_entrega.length > 0
+    )
+      return "border-rose-500 bg-rose-200";
+    else if (data.usuarios_recientes > 0)
+      return "border-orange-500 bg-orange-200";
+    else return "border-amber-500 bg-amber-200";
   };
 
   const rowToneLower = () => {
     if (!data.total) return "text-slate-700 bg-white";
     else if (data.total === 0) return "text-emerald-700 bg-emerald-200";
-    else if (data.total === 1 && data.cierre_pendiente)
-      return "text-amber-700 bg-amber-200";
-    else return "text-rose-700 bg-rose-200";
+    else if (
+      data.inconsistencias_devolucion_recogida.length > 0 ||
+      data.inconsistencias_expedicion_entrega.length > 0
+    )
+      return "text-rose-700 bg-rose-200";
+    else if (data.usuarios_recientes > 0)
+      return "text-orange-700 bg-orange-200";
+    else return "text-amber-700 bg-amber-200";
   };
 
   return (
