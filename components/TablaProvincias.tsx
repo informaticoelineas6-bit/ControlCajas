@@ -436,7 +436,7 @@ export default function TablaProvincias({
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {provincias.map((item) => (
                 <tr
                   key={item.nombre}

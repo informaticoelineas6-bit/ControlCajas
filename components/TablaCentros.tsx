@@ -617,7 +617,7 @@ export default function TablaCentros({
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {centros.map((item) => (
                 <tr
                   key={item.nombre}

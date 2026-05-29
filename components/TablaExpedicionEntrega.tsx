@@ -308,7 +308,7 @@ export default function TablaExpedicionEntrega({
                 <th className="px-5 py-3 font-semibold">Total</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {datos.length === 0 ? (
                 <tr>
                   <td colSpan={13} className="px-5 py-10 text-slate-500">

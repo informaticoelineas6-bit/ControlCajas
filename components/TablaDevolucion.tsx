@@ -204,7 +204,7 @@ export default function TablaDevolucion({
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {datos.length === 0 ? (
                 <tr>
                   <td

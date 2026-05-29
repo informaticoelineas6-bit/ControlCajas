@@ -193,7 +193,7 @@ export default function TablaTraspaso({
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {datos.length === 0 ? (
                 <tr>
                   <td

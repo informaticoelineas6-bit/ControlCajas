@@ -339,7 +339,7 @@ export default function CierreDiario({
                   <th className="px-5 py-4 font-semibold">Tapas rotas</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-200">
                 {cierre.cierre_almacen.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-5 py-10 text-slate-500">
@@ -477,7 +477,7 @@ export default function CierreDiario({
                   <th className="px-5 py-4 font-semibold">Tapas rotas</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-200">
                 {cierre.cierre_cd.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-5 py-10 text-slate-500">

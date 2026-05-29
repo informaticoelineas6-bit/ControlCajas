@@ -445,7 +445,7 @@ export default function TablaVehiculos({
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {vehiculos.map((item) => (
                 <tr
                   key={item.chapa}

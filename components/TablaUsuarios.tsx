@@ -483,7 +483,7 @@ export default function TablaUsuarios({
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {usuarios.map((item) => (
                 <tr
                   key={item.nombre}

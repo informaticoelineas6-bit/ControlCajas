@@ -253,8 +253,8 @@ export default function AuditUsuario() {
                 <th className="px-5 py-4 font-semibold">Ajustado por</th>
               </tr>
             </thead>
-            <tbody>
-              <tr className="border-t border-blue-100 bg-white text-slate-700">
+            <tbody className="divide-y divide-slate-200">
+              <tr className="border-t border-blue-100 bg-white text-slate-700 hover:bg-slate-100">
                 <td className="px-5 py-4 font-semibold text-slate-900">
                   {prettyName(datos.usuario.nombre)}
                 </td>
@@ -373,7 +373,7 @@ export default function AuditUsuario() {
                     <th className="px-5 py-4 font-semibold">(Cambios)</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-200">
                   {logs.map((item, index) => (
                     <tr
                       key={`${item.object_type}-${item.action}-${index}`}
@@ -551,7 +551,7 @@ export default function AuditUsuario() {
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-200">
                   {eventos.map((item, index) => (
                     <tr
                       key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}

@@ -405,7 +405,7 @@ export default function AuditAlmacen() {
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {datos.cierres.map((item) => (
                 <tr
                   key={`${item.fecha}`}

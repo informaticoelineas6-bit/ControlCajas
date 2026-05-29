@@ -590,7 +590,7 @@ export default function TablaAlmacenes({
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {almacenes.map((item) => (
                 <tr
                   key={item.nombre}

@@ -489,13 +489,13 @@ export default function TablaInformacion() {
                 <th className="px-6 py-4 font-semibold">Estado</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {data.dashboardData.map((centro) => (
                 <tr
                   key={centro.nombre}
                   className={`bg-gradient-to-r ${rowTone(
                     centro.estadoRot ?? "",
-                  )} border-t border-slate-100 transition hover:from-slate-50 hover:to-white`}
+                  )} border-t border-slate-100 transition hover:from-slate-100 hover:to-white`}
                 >
                   <td className="px-6 py-4">
                     <p className="font-semibold text-slate-900">

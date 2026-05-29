@@ -301,7 +301,7 @@ export default function TablaRecogidaDevolucion({
                 <th className="px-5 py-3 font-semibold">Total (D)</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {datos.length === 0 ? (
                 <tr>
                   <td colSpan={15} className="px-5 py-10 text-slate-500">
