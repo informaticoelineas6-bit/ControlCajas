@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ROLES_ARRAY } from "@/lib/constants";
+import { ROLES } from "@/lib/constants";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function Registro() {
@@ -70,6 +70,8 @@ export default function Registro() {
   const redirectLogin = () => {
     router.push("/login");
   };
+
+  const roles: ROLES[] = ["chofer", "expedidor", "almacenero"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-400 to-sky-800 flex items-center justify-center p-4">
@@ -173,7 +175,7 @@ export default function Registro() {
               onChange={handleInputChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              {ROLES_ARRAY.map((rol) => (
+              {roles.map((rol) => (
                 <option key={rol} value={rol}>
                   {rol.charAt(0).toUpperCase() + rol.slice(1)}
                 </option>
