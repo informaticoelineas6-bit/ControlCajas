@@ -118,6 +118,7 @@ export default function Registro() {
                 value={formData.contrasena}
                 onChange={handleInputChange}
                 required
+                minLength={6}
                 placeholder="Mínimo 6 caracteres"
                 className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -147,6 +148,7 @@ export default function Registro() {
                 value={confirmarContrasena}
                 onChange={(e) => setConfirmarContrasena(e.target.value)}
                 required
+                minLength={6}
                 placeholder="Repite la contraseña"
                 className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
