@@ -344,7 +344,7 @@ export default function TablaProvincias({
             provincias.map((item) => (
               <article
                 key={item.nombre}
-                className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                className="rounded-[24px] text-center border border-slate-200 bg-slate-50/70 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>

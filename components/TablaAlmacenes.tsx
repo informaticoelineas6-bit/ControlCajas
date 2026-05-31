@@ -21,6 +21,7 @@ import {
   Usuario,
 } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
+import { colorStyles } from "@/app/(app)/layout";
 import { frontendClient } from "@/lib/client";
 import { formatNumber, prettyName } from "@/lib/utils";
 import FormModal from "./AdminFormModal";
@@ -489,7 +490,7 @@ export default function TablaAlmacenes({
             almacenes.map((item) => (
               <article
                 key={item.nombre}
-                className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                className="rounded-[24px] text-center border border-slate-200 bg-slate-50/70 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -539,8 +540,13 @@ export default function TablaAlmacenes({
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                    <div key={color}>
-                      <p className="text-slate-600">Stock {color}</p>
+                    <div key={color} className={colorStyles[color].bg}>
+                      <p className="text-slate-600">
+                        <span className="inline-flex items-center gap-1">
+                          {colorStyles[color].icon}
+                          Stock {color}
+                        </span>
+                      </p>
                       <p className="stock-number font-medium text-slate-700">
                         {formatNumber(item.stock?.[color], "-")}
                       </p>
@@ -578,9 +584,15 @@ export default function TablaAlmacenes({
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                   <th
                     key={color}
-                    className="px-5 py-4 capitalize font-semibold"
+                    className={
+                      "px-5 py-4 capitalize font-semibold" +
+                      colorStyles[color].bg
+                    }
                   >
-                    {color}
+                    <span className="inline-flex items-center">
+                      {colorStyles[color].icon}
+                      {color}
+                    </span>
                   </th>
                 ))}
                 <th className="px-5 py-4 font-semibold">Estado</th>
@@ -602,7 +614,10 @@ export default function TablaAlmacenes({
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <td
                       key={color}
-                      className="stock-number px-5 py-4 text-slate-600"
+                      className={
+                        "stock-number px-5 py-4 text-slate-600" +
+                        colorStyles[color].bg
+                      }
                     >
                       {formatNumber(item.stock[color])}
                     </td>

@@ -413,7 +413,7 @@ export default function TablaInformacion() {
               key={centro.nombre}
               className={`bg-gradient-to-r ${rowTone(
                 centro.estadoRot ?? "",
-              )} rounded-[24px] border border-slate-200 bg-slate-50/70 p-4`}
+              )} rounded-[24px] text-center border border-slate-200 bg-slate-50/70 p-4`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>

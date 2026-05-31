@@ -134,7 +134,7 @@ export default function TablaRecogidaDevolucion({
             datos.map((item) => (
               <article
                 key={item.centro_distribucion}
-                className={`rounded-[24px] border p-4 shadow-sm ${
+                className={`rounded-[24px] text-center border p-4 shadow-sm ${
                   item.alerta && !cierreExistente
                     ? "border-rose-200 bg-rose-100"
                     : item.advertencia

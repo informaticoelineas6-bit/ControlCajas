@@ -22,6 +22,7 @@ import {
   formatTapas,
   totalCajas,
 } from "@/lib/utils";
+import { colorStyles } from "@/app/(app)/layout";
 import { frontendClient } from "@/lib/client";
 
 export default function CierreDiario({
@@ -265,7 +266,7 @@ export default function CierreDiario({
               cierre.cierre_almacen.map((item) => (
                 <article
                   key={item.almacen}
-                  className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm"
+                  className="rounded-[24px] text-center border border-slate-200 bg-white p-4 shadow-sm"
                 >
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                     Almacén
@@ -275,8 +276,13 @@ export default function CierreDiario({
                   </h4>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <div key={color}>
-                        <p className="text-slate-600">Ajuste {color}</p>
+                      <div key={color} className={colorStyles[color].bg}>
+                        <p className="text-slate-600">
+                          <span className="inline-flex items-center gap-1">
+                            {colorStyles[color].icon}
+                            Ajuste {color}
+                          </span>
+                        </p>
                         <p className="stock-number font-medium text-slate-700">
                           {formatNumber(item.ajuste_stock[color], "-")}
                         </p>
@@ -291,16 +297,26 @@ export default function CierreDiario({
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <div key={color}>
-                        <p className="text-slate-600">Cajas rotas {color}</p>
+                      <div key={color} className={colorStyles[color].bg}>
+                        <p className="text-slate-600">
+                          <span className="inline-flex items-center gap-1">
+                            {colorStyles[color].icon}
+                            Cajas rotas {color}
+                          </span>
+                        </p>
                         <p className="stock-number font-medium text-slate-700">
                           {formatNumber(item.roturas.cajas[color], "-")}
                         </p>
                       </div>
                     ))}
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                      <div key={color}>
-                        <p className="text-slate-600">Tapas rotas {color}</p>
+                      <div key={color} className={colorStyles[color].bg}>
+                        <p className="text-slate-600">
+                          <span className="inline-flex items-center gap-1">
+                            {colorStyles[color].icon}
+                            Tapas rotas {color}
+                          </span>
+                        </p>
                         <p className="stock-number font-medium text-slate-700">
                           {formatNumber(item.roturas.tapas[color], "-")}
                         </p>
@@ -329,9 +345,15 @@ export default function CierreDiario({
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <th
                       key={color}
-                      className="px-5 py-4 font-semibold capitalize"
+                      className={
+                        "px-5 py-4 font-semibold capitalize" +
+                        colorStyles[color].bg
+                      }
                     >
-                      {color}
+                      <span className="inline-flex items-center">
+                        {colorStyles[color].icon}
+                        {color}
+                      </span>
                     </th>
                   ))}
                   <th className="px-5 py-4 font-semibold">Total</th>
@@ -360,7 +382,10 @@ export default function CierreDiario({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={color}
-                          className="stock-number px-5 py-4 text-slate-700"
+                          className={
+                            "stock-number px-5 py-4 text-slate-700" +
+                            colorStyles[color].bg
+                          }
                         >
                           {formatNumber(item.ajuste_stock[color], "-")}
                         </td>
@@ -403,7 +428,7 @@ export default function CierreDiario({
               cierre.cierre_cd.map((item) => (
                 <article
                   key={item.centro_distribucion}
-                  className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm"
+                  className="rounded-[24px] text-center border border-slate-200 bg-white p-4 shadow-sm"
                 >
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-800">
                     Centro
@@ -413,8 +438,13 @@ export default function CierreDiario({
                   </h4>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <div key={color}>
-                        <p className="text-slate-600">Ajuste {color}</p>
+                      <div key={color} className={colorStyles[color].bg}>
+                        <p className="text-slate-600">
+                          <span className="inline-flex items-center gap-1">
+                            {colorStyles[color].icon}
+                            Ajuste {color}
+                          </span>
+                        </p>
                         <p className="stock-number font-medium text-slate-700">
                           {formatNumber(item.ajuste_deuda[color], "-")}
                         </p>
@@ -429,16 +459,26 @@ export default function CierreDiario({
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                      <div key={color}>
-                        <p className="text-slate-600">Cajas rotas {color}</p>
+                      <div key={color} className={colorStyles[color].bg}>
+                        <p className="text-slate-600">
+                          <span className="inline-flex items-center gap-1">
+                            {colorStyles[color].icon}
+                            Cajas rotas {color}
+                          </span>
+                        </p>
                         <p className="stock-number font-medium text-slate-700">
                           {formatNumber(item.roturas.cajas[color], "-")}
                         </p>
                       </div>
                     ))}
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                      <div key={color}>
-                        <p className="text-slate-600">Tapas rotas {color}</p>
+                      <div key={color} className={colorStyles[color].bg}>
+                        <p className="text-slate-600">
+                          <span className="inline-flex items-center gap-1">
+                            {colorStyles[color].icon}
+                            Tapas rotas {color}
+                          </span>
+                        </p>
                         <p className="stock-number font-medium text-slate-700">
                           {formatNumber(item.roturas.tapas[color], "-")}
                         </p>
@@ -467,9 +507,15 @@ export default function CierreDiario({
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <th
                       key={color}
-                      className="px-5 py-4 font-semibold capitalize"
+                      className={
+                        "px-5 py-4 font-semibold capitalize" +
+                        colorStyles[color].bg
+                      }
                     >
-                      {color}
+                      <span className="inline-flex items-center">
+                        {colorStyles[color].icon}
+                        {color}
+                      </span>
                     </th>
                   ))}
                   <th className="px-5 py-4 font-semibold">Total</th>
@@ -498,7 +544,10 @@ export default function CierreDiario({
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={color}
-                          className="stock-number px-5 py-4 text-slate-700"
+                          className={
+                            "stock-number px-5 py-4 text-slate-700" +
+                            colorStyles[color].bg
+                          }
                         >
                           {formatNumber(item.ajuste_deuda[color], "-")}
                         </td>

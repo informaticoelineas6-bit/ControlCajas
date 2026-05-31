@@ -1,5 +1,6 @@
 "use client";
 
+import { colorStyles } from "@/app/(app)/layout";
 import { frontendClient } from "@/lib/client";
 import {
   CAJAS_ARRAY,
@@ -116,7 +117,7 @@ export default function TablaDevolucion({
             datos.map((item) => (
               <article
                 key={item.id}
-                className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                className="rounded-[24px] text-center border border-slate-200 bg-slate-50/70 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -150,8 +151,13 @@ export default function TablaDevolucion({
                     </p>
                   </div>
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                    <div key={color}>
-                      <p className="text-slate-600 capitalize">{color}</p>
+                    <div key={color} className={colorStyles[color].bg}>
+                      <p className="text-slate-600 capitalize">
+                        <span className="inline-flex items-center">
+                          {colorStyles[color].icon}
+                          {color}
+                        </span>
+                      </p>
                       <p className="stock-number font-medium text-slate-700">
                         {formatNumber(item.cajas?.[color], "-")}
                       </p>
@@ -191,9 +197,15 @@ export default function TablaDevolucion({
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                   <th
                     key={color}
-                    className="px-5 py-4 font-semibold capitalize"
+                    className={
+                      "px-5 py-4 font-semibold capitalize" +
+                      colorStyles[color].bg
+                    }
                   >
-                    {color}
+                    <span className="inline-flex items-center">
+                      {colorStyles[color].icon}
+                      {color}
+                    </span>
                   </th>
                 ))}
                 <th className="px-5 py-4 font-semibold">Cajas rotas</th>
@@ -232,7 +244,10 @@ export default function TablaDevolucion({
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <td
                         key={color}
-                        className="stock-number px-5 py-4 text-slate-700"
+                        className={
+                          "stock-number px-5 py-4 text-slate-700" +
+                          colorStyles[color].bg
+                        }
                       >
                         {formatNumber(item.cajas[color], "-")}
                       </td>

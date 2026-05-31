@@ -1,5 +1,6 @@
 "use client";
 
+import { colorStyles } from "@/app/(app)/layout";
 import { useCallback, useEffect, useState } from "react";
 import {
   AuditLog,
@@ -191,7 +192,7 @@ export default function AuditUsuario() {
         <div className="space-y-3 lg:hidden">
           <article
             key={datos.usuario.nombre}
-            className="rounded-2xl border border-blue-100 bg-blue-50 p-4 shadow-sm"
+            className="rounded-2xl text-center border border-blue-100 bg-blue-50 p-4 shadow-sm"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -298,7 +299,7 @@ export default function AuditUsuario() {
                 datos.logs.map((item, index) => (
                   <article
                     key={`${item.object_type}-${item.action}-${index}`}
-                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                    className="rounded-[24px] text-center border border-slate-200 bg-slate-50/70 p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -443,7 +444,7 @@ export default function AuditUsuario() {
                 datos.eventos.map((item, index) => (
                   <article
                     key={`${item.fecha}-${item.tipo_evento}-${item.centro_distribucion}-${index}`}
-                    className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                    className="rounded-[24px] text-center border border-slate-200 bg-slate-50/70 p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -471,8 +472,13 @@ export default function AuditUsuario() {
                     </div>
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                        <div key={color}>
-                          <p className="text-slate-600">{"Cajas " + color}</p>
+                        <div key={color} className={colorStyles[color].bg}>
+                          <p className="text-slate-600">
+                            <span className="inline-flex items-center gap-1">
+                              {colorStyles[color].icon}
+                              {"Cajas " + color}
+                            </span>
+                          </p>
                           <p
                             className={`stock-number font-medium text-slate-700 ${getCajasClass(item.cajas[color])}`}
                           >
@@ -484,9 +490,12 @@ export default function AuditUsuario() {
                     {item.roturas && (
                       <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                         {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                          <div key={color}>
+                          <div key={color} className={colorStyles[color].bg}>
                             <p className="text-slate-600">
-                              Cajas {color} rotas
+                              <span className="inline-flex items-center gap-1">
+                                {colorStyles[color].icon}
+                                Cajas {color} rotas
+                              </span>
                             </p>
                             <p
                               className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas?.cajas[color])}`}
@@ -500,9 +509,12 @@ export default function AuditUsuario() {
                     {item.roturas && (
                       <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                         {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                          <div key={color}>
+                          <div key={color} className={colorStyles[color].bg}>
                             <p className="text-slate-600">
-                              Tapas {color} rotas
+                              <span className="inline-flex items-center gap-1">
+                                {colorStyles[color].icon}
+                                Tapas {color} rotas
+                              </span>
                             </p>
                             <p
                               className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas?.tapas[color])}`}
@@ -528,25 +540,38 @@ export default function AuditUsuario() {
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`cajas-${color}`}
-                        className="px-5 py-4 font-semibold"
+                        className={
+                          "px-5 py-4 font-semibold" + colorStyles[color].bg
+                        }
                       >
-                        Cajas {color}
+                        <span className="inline-flex items-center gap-1">
+                          {colorStyles[color].icon}
+                          Cajas {color}
+                        </span>
                       </th>
                     ))}
                     {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                       <th
                         key={`rotas-${color}`}
-                        className="px-5 py-4 font-semibold"
+                        className={
+                          "px-5 py-4 font-semibold" + colorStyles[color].bg
+                        }
                       >
-                        Cajas rotas {color}
+                        <span className="inline-flex items-center gap-1">
+                          {colorStyles[color].icon}
+                          Cajas rotas {color}
+                        </span>
                       </th>
                     ))}
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`tapas-${color}`}
-                        className="px-5 py-4 font-semibold"
+                        className={"px-5 py-4 font-semibold" + colorStyles[color].bg}
                       >
-                        Tapas rotas {color}
+                        <span className="inline-flex items-center gap-1">
+                          {colorStyles[color].icon}
+                          Tapas rotas {color}
+                        </span>
                       </th>
                     ))}
                   </tr>
@@ -571,7 +596,9 @@ export default function AuditUsuario() {
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={`cajas-${item.fecha}-${color}`}
-                          className="px-5 py-4 text-slate-700"
+                          className={
+                            "px-5 py-4 text-slate-700" + colorStyles[color].bg
+                          }
                         >
                           <span
                             className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getCajasClass(item.cajas[color])}`}
@@ -583,7 +610,9 @@ export default function AuditUsuario() {
                       {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                         <td
                           key={`cajas-rotas-${item.fecha}-${color}`}
-                          className="px-5 py-4 text-slate-700"
+                          className={
+                            "px-5 py-4 text-slate-700" + colorStyles[color].bg
+                          }
                         >
                           <span
                             className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.cajas[color])}`}
@@ -595,7 +624,7 @@ export default function AuditUsuario() {
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <td
                           key={`tapas-rotas-${item.fecha}-${color}`}
-                          className="px-5 py-4 text-slate-700"
+                          className={"px-5 py-4 text-slate-700" + colorStyles[color].bg}
                         >
                           <span
                             className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.tapas[color])}`}

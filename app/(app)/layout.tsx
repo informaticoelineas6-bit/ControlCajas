@@ -2,13 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Usuario } from "@/lib/constants";
+import { COLORES_CAJAS, Usuario } from "@/lib/constants";
 import { pageAccess } from "./tabs";
 import { UserProvider } from "@/app/(app)/user-context";
 import { FechaProvider } from "@/app/(app)/fecha-context";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import NavFooter from "@/components/NavFooter";
+import { Package } from "lucide-react";
+
+export const colorStyles: Record<
+  COLORES_CAJAS,
+  { bg: string; icon: React.ReactNode }
+> = {
+  blancas: {
+    bg: " bg-yellow-100",
+    icon: <Package className="text-yellow-600" />,
+  },
+  negras: {
+    bg: " bg-gray-100",
+    icon: <Package className="text-gray-600" />,
+  },
+  verdes: {
+    bg: " bg-green-100",
+    icon: <Package className="text-green-600" />,
+  },
+};
 
 export default function AppLayout({
   children,

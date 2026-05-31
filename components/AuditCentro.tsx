@@ -1,5 +1,6 @@
 "use client";
 
+import { colorStyles } from "@/app/(app)/layout";
 import { useCallback, useEffect, useState } from "react";
 import {
   CAJAS_ARRAY,
@@ -193,7 +194,7 @@ export default function AuditCentro() {
         <div className="space-y-3 lg:hidden">
           <article
             key={datos.centro.nombre}
-            className="rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm"
+            className="rounded-2xl text-center border border-amber-100 bg-amber-50 p-4 shadow-sm"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -207,8 +208,13 @@ export default function AuditCentro() {
             </div>
             <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
               {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                <div key={color}>
-                  <p className="text-slate-600">Deuda {color}</p>
+                <div key={color} className={colorStyles[color].bg}>
+                  <p className="text-slate-600">
+                    <span className="inline-flex items-center gap-1">
+                      {colorStyles[color].icon}
+                      Deuda {color}
+                    </span>
+                  </p>
                   <p className="stock-number font-medium text-slate-700">
                     {formatNumber(datos.centro.deuda?.[color], "-")}
                   </p>
@@ -217,8 +223,13 @@ export default function AuditCentro() {
             </div>
             <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
               {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                <div key={color}>
-                  <p className="text-slate-600">Cajas {color} rotas</p>
+                <div key={color} className={colorStyles[color].bg}>
+                  <p className="text-slate-600">
+                    <span className="inline-flex items-center gap-1">
+                      {colorStyles[color].icon}
+                      Cajas {color} rotas
+                    </span>
+                  </p>
                   <p className="stock-number font-medium text-slate-700">
                     {formatNumber(datos.centro.roturas.cajas[color], "-")}
                   </p>
@@ -227,8 +238,13 @@ export default function AuditCentro() {
             </div>
             <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
               {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                <div key={color}>
-                  <p className="text-slate-600">Tapas {color} rotas</p>
+                <div key={color} className={colorStyles[color].bg}>
+                  <p className="text-slate-600">
+                    <span className="inline-flex items-center gap-1">
+                      {colorStyles[color].icon}
+                      Tapas {color} rotas
+                    </span>
+                  </p>
                   <p className="stock-number font-medium text-slate-700">
                     {formatNumber(datos.centro.roturas.tapas[color], "-")}
                   </p>
@@ -262,25 +278,41 @@ export default function AuditCentro() {
               <tr>
                 <th className="px-5 py-4 font-semibold">Nombre</th>
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                  <th key={color} className="px-5 py-4 font-semibold">
-                    Deuda {color}
+                  <th
+                    key={color}
+                    className={
+                      "px-5 py-4 font-semibold" + colorStyles[color].bg
+                    }
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {colorStyles[color].icon}
+                      Deuda {color}
+                    </span>
                   </th>
                 ))}
                 <th className="px-5 py-4 font-semibold">Rotación</th>
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                   <th
                     key={`cajas-${color}`}
-                    className="px-5 py-4 font-semibold"
+                    className={
+                      "px-5 py-4 font-semibold" + colorStyles[color].bg
+                    }
                   >
-                    Cajas {color} rotas
+                    <span className="inline-flex items-center gap-1">
+                      {colorStyles[color].icon}
+                      Cajas {color} rotas
+                    </span>
                   </th>
                 ))}
                 {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                   <th
                     key={`tapas-${color}`}
-                    className="px-5 py-4 font-semibold"
+                    className={"px-5 py-4 font-semibold" + colorStyles[color].bg}
                   >
-                    Tapas rotas {color}
+                    <span className="inline-flex items-center gap-1">
+                      {colorStyles[color].icon}
+                      Tapas rotas {color}
+                    </span>
                   </th>
                 ))}
               </tr>
@@ -291,7 +323,12 @@ export default function AuditCentro() {
                   {datos.centro.nombre}
                 </td>
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                  <td key={`deuda-${color}`} className="stock-number px-5 py-4">
+                  <td
+                    key={`deuda-${color}`}
+                    className={
+                      "stock-number px-5 py-4" + colorStyles[color].bg
+                    }
+                  >
                     {formatNumber(datos.centro.deuda[color], "-")}
                   </td>
                 ))}
@@ -301,7 +338,9 @@ export default function AuditCentro() {
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                   <td
                     key={`rotura-caja-${color}`}
-                    className="stock-number px-5 py-4"
+                    className={
+                      "stock-number px-5 py-4" + colorStyles[color].bg
+                    }
                   >
                     {formatNumber(datos.centro.roturas.cajas[color], "-")}
                   </td>
@@ -309,7 +348,7 @@ export default function AuditCentro() {
                 {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                   <td
                     key={`rotura-tapa-${color}`}
-                    className="stock-number px-5 py-4"
+                    className={"stock-number px-5 py-4" + colorStyles[color].bg}
                   >
                     {formatNumber(datos.centro.roturas.tapas[color], "-")}
                   </td>
@@ -330,7 +369,7 @@ export default function AuditCentro() {
             datos.cierres.map((item) => (
               <article
                 key={item.fecha}
-                className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4"
+                className="rounded-[24px] text-center border border-slate-200 bg-slate-50/70 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -344,8 +383,13 @@ export default function AuditCentro() {
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                    <div key={color}>
-                      <p className="text-slate-600">Ajuste deuda {color}</p>
+                    <div key={color} className={colorStyles[color].bg}>
+                      <p className="text-slate-600">
+                        <span className="inline-flex items-center gap-1">
+                          {colorStyles[color].icon}
+                          Ajuste deuda {color}
+                        </span>
+                      </p>
                       <p
                         className={`stock-number font-medium text-slate-700 ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
                       >
@@ -356,8 +400,13 @@ export default function AuditCentro() {
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
-                    <div key={color}>
-                      <p className="text-slate-600">Cajas {color} rotas</p>
+                    <div key={color} className={colorStyles[color].bg}>
+                      <p className="text-slate-600">
+                        <span className="inline-flex items-center gap-1">
+                          {colorStyles[color].icon}
+                          Cajas {color} rotas
+                        </span>
+                      </p>
                       <p
                         className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas.cajas[color])}`}
                       >
@@ -368,8 +417,13 @@ export default function AuditCentro() {
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
-                    <div key={color}>
-                      <p className="text-slate-600">Tapas {color} rotas</p>
+                    <div key={color} className={colorStyles[color].bg}>
+                      <p className="text-slate-600">
+                        <span className="inline-flex items-center gap-1">
+                          {colorStyles[color].icon}
+                          Tapas {color} rotas
+                        </span>
+                      </p>
                       <p
                         className={`stock-number font-medium text-slate-700 ${getRoturaClass(item.roturas.tapas[color])}`}
                       >
@@ -391,25 +445,38 @@ export default function AuditCentro() {
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                   <th
                     key={`ajuste-${color}`}
-                    className="px-5 py-4 font-semibold"
+                    className={
+                      "px-5 py-4 font-semibold" + colorStyles[color].bg
+                    }
                   >
-                    Ajuste deuda {color}
+                    <span className="inline-flex items-center gap-1">
+                      {colorStyles[color].icon}
+                      Ajuste deuda {color}
+                    </span>
                   </th>
                 ))}
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                   <th
                     key={`cierre-caja-${color}`}
-                    className="px-5 py-4 font-semibold"
+                    className={
+                      "px-5 py-4 font-semibold" + colorStyles[color].bg
+                    }
                   >
-                    Cajas rotas {color}
+                    <span className="inline-flex items-center gap-1">
+                      {colorStyles[color].icon}
+                      Cajas rotas {color}
+                    </span>
                   </th>
                 ))}
                 {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                   <th
                     key={`cierre-tapa-${color}`}
-                    className="px-5 py-4 font-semibold"
+                    className={"px-5 py-4 font-semibold" + colorStyles[color].bg}
                   >
-                    Tapas rotas {color}
+                    <span className="inline-flex items-center gap-1">
+                      {colorStyles[color].icon}
+                      Tapas rotas {color}
+                    </span>
                   </th>
                 ))}
               </tr>
@@ -426,7 +493,9 @@ export default function AuditCentro() {
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <td
                       key={`cierre-ajuste-${item.fecha}-${color}`}
-                      className="px-5 py-4 text-slate-600"
+                      className={
+                        "px-5 py-4 text-slate-600" + colorStyles[color].bg
+                      }
                     >
                       <span
                         className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getAjusteDeudaClass(item.ajuste_deuda[color])}`}
@@ -438,7 +507,9 @@ export default function AuditCentro() {
                   {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                     <td
                       key={`cierre-cajas-${item.fecha}-${color}`}
-                      className="px-5 py-4 text-slate-600"
+                      className={
+                        "px-5 py-4 text-slate-600" + colorStyles[color].bg
+                      }
                     >
                       <span
                         className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.cajas[color])}`}
@@ -450,7 +521,7 @@ export default function AuditCentro() {
                   {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                     <td
                       key={`cierre-tapas-${item.fecha}-${color}`}
-                      className="px-5 py-4 text-slate-600"
+                      className={"px-5 py-4 text-slate-600" + colorStyles[color].bg}
                     >
                       <span
                         className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}
