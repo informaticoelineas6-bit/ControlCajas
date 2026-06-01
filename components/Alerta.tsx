@@ -2,7 +2,7 @@
 
 import { AlertaResponse, TABLAS, Usuario } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -15,6 +15,20 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
   const ringTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = dropdownRef.current;
+    if (!open || !el) return;
+    const clamp = () => {
+      el.style.transform = "";
+      const shift = Math.max(0, 8 - el.getBoundingClientRect().left);
+      if (shift > 0) el.style.transform = `translateX(${shift}px)`;
+    };
+    clamp();
+    window.addEventListener("resize", clamp);
+    return () => window.removeEventListener("resize", clamp);
+  }, [open]);
   const [data, setData] = useState<AlertaResponse>({
     total: 0,
     usuarios_recientes: 0,
@@ -211,7 +225,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
       </button>
 
       {open && !error && (
-        <div className="absolute right-0 z-40 mt-2 w-64 lg:w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+        <div ref={dropdownRef} className="absolute right-0 z-40 mt-2 w-64 lg:w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-900">Alertas</p>
             <p className="text-xs text-slate-500">Fecha: {fecha}</p>
