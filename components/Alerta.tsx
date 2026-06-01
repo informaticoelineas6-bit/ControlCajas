@@ -2,7 +2,7 @@
 
 import { AlertaResponse, TABLAS, Usuario } from "@/lib/constants";
 import { frontendClient } from "@/lib/client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -11,6 +11,10 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [ringing, setRinging] = useState(false);
+  const ringTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const [data, setData] = useState<AlertaResponse>({
     total: 0,
     usuarios_recientes: 0,
@@ -46,6 +50,9 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
       } finally {
         if (!signal.aborted) {
           setLoading(false);
+          setRinging(true);
+          clearTimeout(ringTimeoutRef.current);
+          ringTimeoutRef.current = setTimeout(() => setRinging(false), 650);
         }
       }
     },
@@ -92,6 +99,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
     return () => {
       abortController.abort();
       clearTimeout(fetchTimeout);
+      clearTimeout(ringTimeoutRef.current);
       channel.unsubscribe();
     };
   }, [fetchAlerts]);
@@ -193,7 +201,7 @@ export default function Alerta({ usuario }: Readonly<{ usuario: Usuario }>) {
         onClick={() => setOpen((prev) => !prev)}
         className={`inline-flex items-center gap-2 rounded-full border ${rowTone()} px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100`}
       >
-        <Bell size={15} />
+        <Bell size={15} className={ringing ? "animate-ring origin-top" : ""} />
         <span className="hidden sm:inline">{error || "Notificaciones"}</span>
         <span
           className={`stock-number rounded-full px-2 py-0.5 text-xs font-semibold ${rowToneLower()}`}

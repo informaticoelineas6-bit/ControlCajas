@@ -173,7 +173,7 @@ export default function TablaEntrega({
 
         <div className="hidden overflow-x-auto lg:block">
           <table className="min-w-full text-sm text-center">
-            <thead className="bg-slate-50 text-slate-500">
+            <thead className="bg-slate-50 text-slate-800">
               <tr>
                 <th className="px-5 py-4 font-semibold">Centro</th>
                 <th className="px-5 py-4 font-semibold">Chofer</th>

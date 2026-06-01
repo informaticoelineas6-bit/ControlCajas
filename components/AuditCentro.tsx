@@ -274,7 +274,7 @@ export default function AuditCentro() {
 
         <div className="overflow-x-auto rounded-2xl border border-amber-100 hidden lg:block">
           <table className="min-w-full text-sm text-center">
-            <thead className="bg-amber-50 text-amber-900">
+            <thead className="bg-amber-50 text-amber-800">
               <tr>
                 <th className="px-5 py-4 font-semibold">Nombre</th>
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
@@ -307,7 +307,9 @@ export default function AuditCentro() {
                 {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                   <th
                     key={`tapas-${color}`}
-                    className={"px-5 py-4 font-semibold" + colorStyles[color].bg}
+                    className={
+                      "px-5 py-4 font-semibold" + colorStyles[color].bg
+                    }
                   >
                     <span className="inline-flex items-center gap-1">
                       {colorStyles[color].icon}
@@ -325,9 +327,7 @@ export default function AuditCentro() {
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                   <td
                     key={`deuda-${color}`}
-                    className={
-                      "stock-number px-5 py-4" + colorStyles[color].bg
-                    }
+                    className={"stock-number px-5 py-4" + colorStyles[color].bg}
                   >
                     {formatNumber(datos.centro.deuda[color], "-")}
                   </td>
@@ -338,9 +338,7 @@ export default function AuditCentro() {
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
                   <td
                     key={`rotura-caja-${color}`}
-                    className={
-                      "stock-number px-5 py-4" + colorStyles[color].bg
-                    }
+                    className={"stock-number px-5 py-4" + colorStyles[color].bg}
                   >
                     {formatNumber(datos.centro.roturas.cajas[color], "-")}
                   </td>
@@ -439,7 +437,7 @@ export default function AuditCentro() {
 
         <div className="overflow-x-auto rounded-2xl border border-slate-200 hidden lg:block">
           <table className="min-w-full text-sm table-center">
-            <thead className="bg-slate-50 text-slate-600">
+            <thead className="bg-slate-50 text-slate-800">
               <tr>
                 <th className="px-5 py-4 font-semibold">Fecha</th>
                 {CAJAS_ARRAY.map((color: COLORES_CAJAS) => (
@@ -471,7 +469,9 @@ export default function AuditCentro() {
                 {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                   <th
                     key={`cierre-tapa-${color}`}
-                    className={"px-5 py-4 font-semibold" + colorStyles[color].bg}
+                    className={
+                      "px-5 py-4 font-semibold" + colorStyles[color].bg
+                    }
                   >
                     <span className="inline-flex items-center gap-1">
                       {colorStyles[color].icon}
@@ -521,7 +521,9 @@ export default function AuditCentro() {
                   {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                     <td
                       key={`cierre-tapas-${item.fecha}-${color}`}
-                      className={"px-5 py-4 text-slate-600" + colorStyles[color].bg}
+                      className={
+                        "px-5 py-4 text-slate-600" + colorStyles[color].bg
+                      }
                     >
                       <span
                         className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas.tapas[color])}`}

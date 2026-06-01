@@ -245,7 +245,7 @@ export default function AuditUsuario() {
 
         <div className="overflow-x-auto rounded-2xl border border-blue-100 hidden lg:block">
           <table className="min-w-full text-sm text-center">
-            <thead className="bg-blue-50 text-blue-900">
+            <thead className="bg-blue-50 text-blue-800">
               <tr>
                 <th className="px-5 py-4 font-semibold">Nombre</th>
                 <th className="px-5 py-4 font-semibold">Rol</th>
@@ -566,7 +566,9 @@ export default function AuditUsuario() {
                     {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                       <th
                         key={`tapas-${color}`}
-                        className={"px-5 py-4 font-semibold" + colorStyles[color].bg}
+                        className={
+                          "px-5 py-4 font-semibold" + colorStyles[color].bg
+                        }
                       >
                         <span className="inline-flex items-center gap-1">
                           {colorStyles[color].icon}
@@ -624,7 +626,9 @@ export default function AuditUsuario() {
                       {TAPAS_ARRAY.map((color: COLORES_TAPAS) => (
                         <td
                           key={`tapas-rotas-${item.fecha}-${color}`}
-                          className={"px-5 py-4 text-slate-700" + colorStyles[color].bg}
+                          className={
+                            "px-5 py-4 text-slate-700" + colorStyles[color].bg
+                          }
                         >
                           <span
                             className={`stock-number inline-flex min-w-[2.5rem] items-center justify-center rounded-full px-3 py-1 text-sm font-semibold ${getRoturaClass(item.roturas?.tapas[color])}`}
