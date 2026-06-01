@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Mono, Outfit } from "next/font/google";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -12,6 +13,12 @@ const dmMono = DM_Mono({
   weight: ["400", "500"],
   variable: "--font-mono",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#00a6f4",
+};
 
 export const metadata: Metadata = {
   title: "ControlCajas",
@@ -36,7 +43,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${outfit.variable} ${dmMono.variable}`}>
-      <body className="bg-gray-100 min-h-screen">{children}</body>
+      <body className="bg-gray-100 min-h-screen">
+        <ServiceWorkerRegister />
+        {children}
+      </body>
     </html>
   );
 }

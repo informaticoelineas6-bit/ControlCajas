@@ -1,0 +1,51 @@
+{
+  "packageId": "dev.workers.informaticoelineas6.control_cajas.twa",
+  "host": "control-cajas.informaticoelineas6.workers.dev",
+  "name": "Control de Cajas",
+  "launcherName": "ControlCajas",
+  "display": "standalone",
+  "themeColor": "#00a6f4",
+  "themeColorDark": "#00a6f4",
+  "navigationColor": "#00a6f4",
+  "navigationColorDark": "#00a6f4",
+  "navigationDividerColor": "#00a6f4",
+  "navigationDividerColorDark": "#00a6f4",
+  "backgroundColor": "#00a6f4",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://control-cajas.informaticoelineas6.workers.dev/icons/maskable_icon_x512.png",
+  "maskableIconUrl": "https://control-cajas.informaticoelineas6.workers.dev/icons/maskable_icon_x512.png",
+  "monochromeIconUrl": "",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "/home/soporteelineas6/release-key.jks",
+    "alias": "my-key-alias"
+  },
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://control-cajas.informaticoelineas6.workers.dev/manifest.webmanifest",
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://control-cajas.informaticoelineas6.workers.dev/",
+  "minSdkVersion": 21,
+  "targetSdkVersion": 34,
+  "orientation": "portrait",
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isTrustedWebActivity": true,
+  "fallbackType": "customtabs",
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "appVersion": "3",
+  "appVersionCode": 3
+}
