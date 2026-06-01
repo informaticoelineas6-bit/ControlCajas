@@ -3,7 +3,7 @@ const CACHE_NAME = 'control-cajas-v1';
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.add('/'))
+    caches.open(CACHE_NAME).then((cache) => cache.add('/').catch(() => {}))
   );
 });
 
