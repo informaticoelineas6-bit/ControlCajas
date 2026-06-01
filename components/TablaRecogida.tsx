@@ -17,6 +17,7 @@ import {
   prettyName,
   totalCajas,
 } from "@/lib/utils";
+import AdjustButton from "./AdjustButton";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaRecogida({
@@ -26,7 +27,7 @@ export default function TablaRecogida({
 }: Readonly<{
   usuario: Usuario;
   fecha: string;
-  onAjustar?: (tipo: TIPOS_EVENTO, id: number) => void;
+  onAjustar: (tipo: TIPOS_EVENTO, id: number) => void;
 }>) {
   const [datos, setDatos] = useState<Recogida[]>([]);
   const [loading, setLoading] = useState(false);
@@ -129,12 +130,9 @@ export default function TablaRecogida({
                     </h4>
                   </div>
                   {usuario.rol === "informatico" && (
-                    <button
-                      className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                      onClick={() => onAjustar?.("Recogida", item.id)}
-                    >
-                      Ajustar
-                    </button>
+                    <AdjustButton
+                      onClick={() => onAjustar("Recogida", item.id)}
+                    />
                   )}
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
@@ -269,12 +267,9 @@ export default function TablaRecogida({
                     </td>
                     {usuario.rol === "informatico" && (
                       <td className="px-5 py-4">
-                        <button
-                          className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                          onClick={() => onAjustar?.("Recogida", item.id)}
-                        >
-                          Ajustar
-                        </button>
+                        <AdjustButton
+                          onClick={() => onAjustar("Recogida", item.id)}
+                        />
                       </td>
                     )}
                   </tr>

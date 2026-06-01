@@ -11,6 +11,7 @@ import {
   Usuario,
 } from "@/lib/constants";
 import { formatNumber, prettyName } from "@/lib/utils";
+import AdjustButton from "./AdjustButton";
 import { useCallback, useEffect, useState } from "react";
 
 export default function TablaTraspaso({
@@ -20,7 +21,7 @@ export default function TablaTraspaso({
 }: Readonly<{
   usuario: Usuario;
   fecha: string;
-  onAjustar?: (tipo: TIPOS_EVENTO, id: number) => void;
+  onAjustar: (tipo: TIPOS_EVENTO, id: number) => void;
 }>) {
   const [datos, setDatos] = useState<Traspaso[]>([]);
   const [loading, setLoading] = useState(false);
@@ -125,12 +126,9 @@ export default function TablaTraspaso({
                     </h4>
                   </div>
                   {usuario.rol === "informatico" && (
-                    <button
-                      className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                      onClick={() => onAjustar?.("Traspaso", item.id)}
-                    >
-                      Ajustar
-                    </button>
+                    <AdjustButton
+                      onClick={() => onAjustar("Traspaso", item.id)}
+                    />
                   )}
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
@@ -251,12 +249,9 @@ export default function TablaTraspaso({
                     </td>
                     {usuario.rol === "informatico" && (
                       <td className="px-5 py-4">
-                        <button
-                          className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200"
-                          onClick={() => onAjustar?.("Traspaso", item.id)}
-                        >
-                          Ajustar
-                        </button>
+                        <AdjustButton
+                          onClick={() => onAjustar("Traspaso", item.id)}
+                        />
                       </td>
                     )}
                   </tr>
