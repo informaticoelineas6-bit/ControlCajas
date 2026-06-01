@@ -47,10 +47,10 @@ export default function ConfirmDeleteButton({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 ring-1 ring-rose-300 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Trash2 size={12} />
-        {buttonLabel}
+        <span className="hidden sm:block lg:hidden xl:block">{buttonLabel}</span>
       </button>
       {isOpen &&
         createPortal(

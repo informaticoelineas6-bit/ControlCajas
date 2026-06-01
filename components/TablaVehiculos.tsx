@@ -1,20 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Check,
-  Truck,
-  Pencil,
-  Plus,
-  X,
-  ToggleLeft,
-  ToggleRight,
-} from "lucide-react";
+import { Check, Truck, Plus, X } from "lucide-react";
 import { Nuevo, TABLAS, Usuario, Vehiculo } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
 import { prettyName } from "@/lib/utils";
 import FormModal from "./AdminFormModal";
+import EditButton from "./EditButton";
+import EnableDisableButton from "./EnableDisableButton";
 
 export default function TablaVehiculos({
   usuario,
@@ -350,42 +344,6 @@ export default function TablaVehiculos({
                       {item.chapa ?? "-"}
                     </h4>
                   </div>
-                  {usuario.rol === "informatico" && (
-                    <div className="flex flex-wrap flex-col justify-end gap-2">
-                      <button
-                        onClick={() => startEdit(item)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                      >
-                        <Pencil size={12} />
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => enableVehiculo(item, !item.habilitado)}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                          item.habilitado
-                            ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                        }`}
-                      >
-                        {item.habilitado ? (
-                          <ToggleLeft size={12} />
-                        ) : (
-                          <ToggleRight size={12} />
-                        )}
-                        {item.habilitado ? "Deshabilitar" : "Habilitar"}
-                      </button>
-                      <ConfirmDeleteButton
-                        entityName={`el centro ${item.chapa}`}
-                        disabled={deletingId === item.chapa}
-                        buttonLabel={
-                          deletingId === item.chapa
-                            ? "Eliminando..."
-                            : undefined
-                        }
-                        onConfirm={() => handleDelete(item)}
-                      />
-                    </div>
-                  )}
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   <div>
@@ -425,6 +383,23 @@ export default function TablaVehiculos({
                     </p>
                   </div>
                 </div>
+                {usuario.rol === "informatico" && (
+                  <div className="flex flex-wrap flex-row justify-end mt-4 gap-2">
+                    <EditButton onClick={() => startEdit(item)} />
+                    <EnableDisableButton
+                      enabled={item.habilitado}
+                      onClick={() => enableVehiculo(item, !item.habilitado)}
+                    />
+                    <ConfirmDeleteButton
+                      entityName={`el ${item.categoria} ${item.chapa}`}
+                      disabled={deletingId === item.chapa}
+                      buttonLabel={
+                        deletingId === item.chapa ? "Eliminando..." : undefined
+                      }
+                      onConfirm={() => handleDelete(item)}
+                    />
+                  </div>
+                )}
               </article>
             ))
           )}
@@ -482,29 +457,15 @@ export default function TablaVehiculos({
                   {usuario.rol === "informatico" && (
                     <td className="px-5 py-4">
                       <div className="flex justify-center gap-2">
-                        <button
+                        <EditButton
                           onClick={() => startEdit(item)}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                        >
-                          <Pencil size={12} />
-                          Editar
-                        </button>
-                        <button
-                          disabled={submitting}
+                          responsive
+                        />
+                        <EnableDisableButton
+                          enabled={item.habilitado}
                           onClick={() => enableVehiculo(item, !item.habilitado)}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                            item.habilitado
-                              ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                          }`}
-                        >
-                          {item.habilitado ? (
-                            <ToggleLeft size={12} />
-                          ) : (
-                            <ToggleRight size={12} />
-                          )}
-                          {item.habilitado ? "Deshabilitar" : "Habilitar"}
-                        </button>
+                          responsive
+                        />
                         <ConfirmDeleteButton
                           entityName={`el ${item.categoria} ${item.chapa}`}
                           disabled={deletingId === item.chapa}

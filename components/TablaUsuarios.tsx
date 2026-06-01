@@ -1,21 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Check,
-  Eye,
-  EyeOff,
-  Users,
-  Pencil,
-  X,
-  ToggleLeft,
-  ToggleRight,
-} from "lucide-react";
+import { Check, Eye, EyeOff, Users, X } from "lucide-react";
 import { Nuevo, ROLES_ARRAY, TABLAS, Usuario } from "@/lib/constants";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 import { frontendClient } from "@/lib/client";
 import { prettyName } from "@/lib/utils";
 import FormModal from "./AdminFormModal";
+import EnableDisableButton from "./EnableDisableButton";
+import EditButton from "./EditButton";
 
 export default function TablaUsuarios({
   usuario,
@@ -402,42 +395,6 @@ export default function TablaUsuarios({
                       {item.nombre ? prettyName(item.nombre) : "-"}
                     </h4>
                   </div>
-                  {usuario.rol === "informatico" && (
-                    <div className="flex flex-wrap flex-col justify-end gap-2">
-                      <button
-                        onClick={() => startEdit(item)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                      >
-                        <Pencil size={12} />
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => enableUsuario(item, !item.habilitado)}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                          item.habilitado
-                            ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                        }`}
-                      >
-                        {item.habilitado ? (
-                          <ToggleLeft size={12} />
-                        ) : (
-                          <ToggleRight size={12} />
-                        )}
-                        {item.habilitado ? "Deshabilitar" : "Habilitar"}
-                      </button>
-                      <ConfirmDeleteButton
-                        entityName={`el centro ${item.nombre}`}
-                        disabled={deletingId === item.nombre}
-                        buttonLabel={
-                          deletingId === item.nombre
-                            ? "Eliminando..."
-                            : undefined
-                        }
-                        onConfirm={() => handleDelete(item)}
-                      />
-                    </div>
-                  )}
                 </div>
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   <div>
@@ -465,6 +422,23 @@ export default function TablaUsuarios({
                     </p>
                   </div>
                 </div>
+                {usuario.rol === "informatico" && (
+                  <div className="flex flex-wrap flex-row justify-end mt-4 gap-2">
+                    <EditButton onClick={() => startEdit(item)} />
+                    <EnableDisableButton
+                      enabled={item.habilitado}
+                      onClick={() => enableUsuario(item, !item.habilitado)}
+                    />
+                    <ConfirmDeleteButton
+                      entityName={`el usuario ${item.nombre}`}
+                      disabled={deletingId === item.nombre}
+                      buttonLabel={
+                        deletingId === item.nombre ? "Eliminando..." : undefined
+                      }
+                      onConfirm={() => handleDelete(item)}
+                    />
+                  </div>
+                )}
               </article>
             ))
           )}
@@ -514,29 +488,15 @@ export default function TablaUsuarios({
                   {usuario.rol === "informatico" && (
                     <td className="px-5 py-4">
                       <div className="flex justify-center gap-2">
-                        <button
-                          disabled={submitting}
-                          onClick={() => enableUsuario(item, !item.habilitado)}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                            item.habilitado
-                              ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                          }`}
-                        >
-                          {item.habilitado ? (
-                            <ToggleLeft size={12} />
-                          ) : (
-                            <ToggleRight size={12} />
-                          )}
-                          {item.habilitado ? "Deshabilitar" : "Habilitar"}
-                        </button>
-                        <button
+                        <EditButton
                           onClick={() => startEdit(item)}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                        >
-                          <Pencil size={12} />
-                          Editar
-                        </button>
+                          responsive
+                        />
+                        <EnableDisableButton
+                          enabled={item.habilitado}
+                          onClick={() => enableUsuario(item, !item.habilitado)}
+                          responsive
+                        />
                         <ConfirmDeleteButton
                           entityName={`el usuario ${item.nombre}`}
                           disabled={deletingId === item.nombre}
