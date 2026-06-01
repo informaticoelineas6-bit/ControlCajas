@@ -154,7 +154,7 @@ export default function AuditUsuario() {
             </p>
           </div>
           <span className="rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200">
-            {usuarios.length} disponibles
+            {loading ? "Cargando..." : `${usuarios.length} disponibles`}
           </span>
         </div>
       </div>

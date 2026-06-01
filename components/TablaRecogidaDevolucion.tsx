@@ -111,7 +111,7 @@ export default function TablaRecogidaDevolucion({
             </h3>
           </div>
           <span className="rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200">
-            {datos.length} centros
+            {loading ? "Cargando..." : `${datos.length} centros`}
           </span>
         </div>
       </div>
