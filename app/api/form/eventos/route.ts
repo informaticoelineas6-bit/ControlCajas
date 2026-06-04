@@ -283,7 +283,7 @@ export async function GET(request: NextRequest) {
           db
             .from(TABLAS.RECOGIDA)
             .select<string, Recogida>("centro_distribucion")
-            .eq("fecha", fecha)
+            .is("fecha_cierre", null)
             .order("centro_distribucion"),
           db.rpc<string, DeudaAct<CentroDistribucion>>(
             "all_centros_deuda_activa",
